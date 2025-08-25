@@ -1,0 +1,97 @@
+{% comment %} Footer (2 à 4 colonnes) — 1 seul link_list (colonne 1). Colonnes 2–4: lignes "Label | URL". {% endcomment %}
+<footer class="tls-footer" style="background: {{ block.settings.bg }}; color: {{ block.settings.fg }};">
+  <div class="tls-footer-wrap" style="grid-template-columns: repeat({{ block.settings.columns }}, 1fr);">
+
+    {%- comment -%} Colonne 1 (menu natif) {%- endcomment -%}
+    <div class="tls-col">
+      {% if block.settings.col_title_1 != blank %}<h4>{{ block.settings.col_title_1 }}</h4>{% endif %}
+      <ul>
+        {% assign menu_handle = block.settings.col_menu_1 %}
+        {% if menu_handle and linklists[menu_handle] %}
+          {% for link in linklists[menu_handle].links %}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </div>
+
+    {%- comment -%} Colonnes 2..4 (texte multi-lignes "Label | URL") {%- endcomment -%}
+    {% for idx in (2..4) %}
+      {% if idx <= block.settings.columns %}
+        {% capture title_key %}col_title_{{ idx }}{% endcapture %}
+        {% capture lines_key %}col_links_{{ idx }}{% endcapture %}
+        {% assign the_title = block.settings[title_key] %}
+        {% assign raw_lines = block.settings[lines_key] | default: '' %}
+        <div class="tls-col">
+          {% if the_title != blank %}<h4>{{ the_title }}</h4>{% endif %}
+          <ul>
+            {% assign br_split = raw_lines | newline_to_br | split: '<br />' %}
+            {% for line in br_split %}
+              {% assign clean = line | strip %}
+              {% if clean != '' %}
+                {% assign parts = clean | split: '|' %}
+                {% assign label = parts[0] | strip %}
+                {% assign url   = parts[1] | default: '' | strip %}
+                <li>
+                  {% if url != '' %}<a href="{{ url }}">{{ label }}</a>{% else %}{{ label }}{% endif %}
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if block.settings.payments_image != blank or block.settings.payments_note != blank %}
+    <div class="tls-payments">
+      {% if block.settings.payments_image %}
+        {{ block.settings.payments_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: 'Moyens de paiement' }}
+      {% endif %}
+      {% if block.settings.payments_note != blank %}
+        <div class="tls-payments-note">{{ block.settings.payments_note }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+</footer>
+
+<style>
+.tls-footer{ padding:32px 0 }
+.tls-footer-wrap{ max-width:1200px; margin:0 auto; padding:0 16px; display:grid; gap:24px }
+.tls-col h4{ margin:0 0 10px; font-size:16px }
+.tls-col ul{ list-style:none; margin:0; padding:0 }
+.tls-col li{ margin:6px 0 }
+.tls-col a{ text-decoration:none; color:inherit }
+.tls-col a:hover{ text-decoration:underline }
+.tls-payments{ max-width:1200px; margin:12px auto 0; padding:0 16px; opacity:.95; display:grid; gap:8px; }
+.tls-payments img{ height:auto; max-width:100%; display:block; }
+.tls-payments-note{ font-size:.95rem; opacity:.85; }
+</style>
+
+{% schema %}
+{
+  "name": "TLS — Footer",
+  "target": "section",
+  "settings": [
+    { "type": "range", "id": "columns", "label": "Colonnes", "min": 2, "max": 4, "step": 1, "default": 3 },
+
+    { "type": "text", "id": "col_title_1", "label": "Titre colonne 1", "default": "Liens" },
+    { "type": "link_list", "id": "col_menu_1", "label": "Menu colonne 1" },
+
+    { "type": "text", "id": "col_title_2", "label": "Titre colonne 2", "default": "Support" },
+    { "type": "textarea", "id": "col_links_2", "label": "Liens colonne 2 (une ligne = Label | URL)" },
+
+    { "type": "text", "id": "col_title_3", "label": "Titre colonne 3", "default": "Entreprise" },
+    { "type": "textarea", "id": "col_links_3", "label": "Liens colonne 3 (une ligne = Label | URL)" },
+
+    { "type": "text", "id": "col_title_4", "label": "Titre colonne 4", "default": "Réseaux" },
+    { "type": "textarea", "id": "col_links_4", "label": "Liens colonne 4 (une ligne = Label | URL)" },
+
+    { "type": "image_picker", "id": "payments_image", "label": "Image des moyens de paiement (optionnel)" },
+    { "type": "text", "id": "payments_note", "label": "Texte sous l’image (optionnel)" },
+
+    { "type": "color", "id": "bg", "label": "Fond", "default": "#0f0f0f" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#ffffff" }
+  ]
+}
+{% endschema %}

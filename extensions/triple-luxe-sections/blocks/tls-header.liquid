@@ -1,0 +1,67 @@
+<header class="header-simple">
+  <div class="header-container page-width">
+    <div class="header-logo">
+      {% if block.settings.logo != blank %}
+        <a href="{{ routes.root_url }}" class="logo-link" aria-label="{{ shop.name }}">
+          {{ block.settings.logo | image_url: width: 600 | image_tag: class: 'logo-img', alt: shop.name, loading: 'eager' }}
+        </a>
+      {% else %}
+        <a href="{{ routes.root_url }}" class="logo-text">{{ shop.name }}</a>
+      {% endif %}
+    </div>
+
+    <nav class="header-menu" aria-label="Navigation principale">
+      <ul>
+        {% assign menu_handle = block.settings.menu %}
+        {% if menu_handle and linklists[menu_handle] %}
+          {% for link in linklists[menu_handle].links %}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <div class="header-cart">
+      <a href="{{ routes.cart_url }}" aria-label="Panier">🛒</a>
+    </div>
+  </div>
+</header>
+
+<style>
+.header-simple{ background: linear-gradient(90deg,#000,{{ block.settings.accent_color }}); padding:12px 0; }
+.header-container{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.logo-img{ max-height: {{ block.settings.logo_height }}px; width:auto; height:auto; object-fit:contain; display:block; }
+.logo-text{ font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
+.header-menu{ flex:1 1 auto; }
+.header-menu ul{ display:flex; align-items:center; list-style:none; margin:0; padding:0; gap:20px; white-space:nowrap; }
+.header-menu a{ color:#fff; text-decoration:none; font-weight:600; }
+.header-menu a:hover{ color:{{ block.settings.accent_color }}; }
+.header-cart a{ color:#fff; font-size:1.4rem; text-decoration:none; }
+@media (max-width:768px){
+  .header-simple{ padding:10px 0; }
+  .header-menu{ overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .header-menu::-webkit-scrollbar{ display:none; }
+  .logo-img{ max-height: {{ block.settings.logo_height | divided_by: 1.6 }}px; }
+  .header-menu ul{ gap:12px; }
+  .header-menu a{ font-size:.9rem; padding:.35rem .6rem; }
+  .header-cart a{ font-size:1.2rem; }
+}
+@media (max-width:400px){
+  .logo-img{ max-height: {{ block.settings.logo_height | divided_by: 2 }}px; }
+  .header-menu ul{ gap:10px; }
+  .header-menu a{ font-size:.85rem; }
+}
+</style>
+
+{% schema %}
+{
+  "name": "TLS — Header simple",
+  "target": "section",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "Menu principal" },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "range", "id": "logo_height", "label": "Hauteur du logo (px)", "default": 60, "min": 30, "max": 200, "step": 5 },
+    { "type": "color", "id": "accent_color", "label": "Couleur accent du dégradé", "default": "#ff5fa2" }
+  ]
+}
+{% endschema %}

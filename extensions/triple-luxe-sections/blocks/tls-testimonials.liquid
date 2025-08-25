@@ -1,0 +1,76 @@
+<style>
+.testimonial-section{ background: {{ block.settings.background_color }}; padding: clamp(20px,4vw,48px) 0; }
+.testimonials-wrapper{ width:min(1100px,92vw); margin:0 auto; display:grid; gap:18px; grid-template-columns:repeat(3,1fr); }
+@media (max-width:990px){ .testimonials-wrapper{ grid-template-columns:1fr; } }
+.testimonial-item{ background: {{ block.settings.item_background_color }}; color: {{ block.settings.text_color }};
+  border-radius:16px; padding:16px; box-shadow:0 6px 20px rgba(0,0,0,.06); display:grid;
+  grid-template-columns: {{ block.settings.photo_size }}px 1fr; grid-template-areas:"photo text" "photo author";
+  column-gap:12px; row-gap:8px; align-items:center; }
+.testimonial-photo{ grid-area:photo; width:{{ block.settings.photo_size }}px; height:{{ block.settings.photo_size }}px; border-radius:50%;
+  object-fit:cover; border:2px solid {{ block.settings.accent_color }}; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+.testimonial-text{ grid-area:text; margin:0; font-size: {{ block.settings.text_size }}px; line-height:1.6; }
+.testimonial-author{ grid-area:author; margin:0; font-weight:700; color: {{ block.settings.accent_color }}; font-size: calc({{ block.settings.text_size }}px * 0.9); }
+</style>
+
+<div class="testimonial-section">
+  <div class="testimonials-wrapper">
+    {% for i in (1..6) %}
+      {% capture pkey %}photo_{{ i }}{% endcapture %}
+      {% capture akey %}author_{{ i }}{% endcapture %}
+      {% capture tkey %}text_{{ i }}{% endcapture %}
+      {% assign ph = block.settings[pkey] %}
+      {% assign au = block.settings[akey] %}
+      {% assign tx = block.settings[tkey] %}
+      {% if ph != blank or tx != blank or au != blank %}
+        <div class="testimonial-item">
+          {% if ph != blank %}
+            {{ ph | image_url: width: 400 | image_tag: class: 'testimonial-photo', alt: au | default: 'Client', loading: 'lazy' }}
+          {% else %}
+            <div class="testimonial-photo" style="display:grid;place-items:center;background:#f2f2f3;color:#888;">👤</div>
+          {% endif %}
+          <p class="testimonial-text">“{{ tx }}”</p>
+          <p class="testimonial-author">— {{ au }}</p>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TLS — Testimonials",
+  "target": "section",
+  "settings": [
+    { "type": "color", "id": "background_color", "label": "Fond", "default": "#f7f7f7" },
+    { "type": "color", "id": "item_background_color", "label": "Fond des cartes", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Texte", "default": "#111111" },
+    { "type": "color", "id": "accent_color", "label": "Accent", "default": "#ff5fa2" },
+    { "type": "range", "id": "photo_size", "min": 40, "max": 200, "step": 5, "unit": "px", "label": "Taille photo", "default": 60 },
+    { "type": "range", "id": "text_size", "min": 12, "max": 28, "step": 1, "unit": "px", "label": "Taille texte avis", "default": 16 },
+
+    { "type": "image_picker", "id": "photo_1", "label": "Photo 1" },
+    { "type": "text",         "id": "author_1", "label": "Auteur 1", "default": "Client 1" },
+    { "type": "textarea",     "id": "text_1", "label": "Texte 1", "default": "Robe magnifique, qualité au top et livraison rapide !" },
+
+    { "type": "image_picker", "id": "photo_2", "label": "Photo 2" },
+    { "type": "text",         "id": "author_2", "label": "Auteur 2", "default": "Client 2" },
+    { "type": "textarea",     "id": "text_2", "label": "Texte 2", "default": "Parfait, je recommande." },
+
+    { "type": "image_picker", "id": "photo_3", "label": "Photo 3" },
+    { "type": "text",         "id": "author_3", "label": "Auteur 3", "default": "Client 3" },
+    { "type": "textarea",     "id": "text_3", "label": "Texte 3", "default": "Service client réactif." },
+
+    { "type": "image_picker", "id": "photo_4", "label": "Photo 4" },
+    { "type": "text",         "id": "author_4", "label": "Auteur 4", "default": "Client 4" },
+    { "type": "textarea",     "id": "text_4", "label": "Texte 4", "default": "Très belle coupe." },
+
+    { "type": "image_picker", "id": "photo_5", "label": "Photo 5" },
+    { "type": "text",         "id": "author_5", "label": "Auteur 5", "default": "Client 5" },
+    { "type": "textarea",     "id": "text_5", "label": "Texte 5", "default": "Livraison rapide." },
+
+    { "type": "image_picker", "id": "photo_6", "label": "Photo 6" },
+    { "type": "text",         "id": "author_6", "label": "Auteur 6", "default": "Client 6" },
+    { "type": "textarea",     "id": "text_6", "label": "Texte 6", "default": "Qualité au rendez-vous." }
+  ]
+}
+{% endschema %}
