@@ -1,4 +1,6 @@
 {
+  "name": "triple-luxe-sections",
+  "private": true,
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev",
@@ -15,9 +17,7 @@
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
     "vite": "vite"
-  }
-},
-
+  },
   "type": "module",
   "engines": {
     "node": "^18.20 || ^20.10 || >=21.0.0"
