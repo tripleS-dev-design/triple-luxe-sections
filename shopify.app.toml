@@ -2,7 +2,7 @@
 
 client_id = "bfb33fe92c4274f1ba39275effdb6c25"
 name = "Triple-Luxe-Sections"
-application_url = "https://inter-forgot-consolidated-occupied.trycloudflare.com"
+application_url = "https://triple-luxe-sections-1.onrender.com"
 embedded = true
 handle = "triple-luxe-sections"
 
@@ -26,7 +26,11 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://inter-forgot-consolidated-occupied.trycloudflare.com/auth/callback", "https://inter-forgot-consolidated-occupied.trycloudflare.com/auth/shopify/callback", "https://inter-forgot-consolidated-occupied.trycloudflare.com/api/auth/callback"]
+redirect_urls = [
+  "https://triple-luxe-sections-1.onrender.com/auth/callback",
+  "https://triple-luxe-sections-1.onrender.com/auth/shopify/callback",
+  "https://triple-luxe-sections-1.onrender.com/api/auth/callback"
+]
 
 [pos]
 embedded = false
