@@ -3,22 +3,22 @@ import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
-// ==============================
-//  Loader: récupère shop + apiKey
-// ==============================
+/* ==============================
+   Loader: shop + apiKey
+================================ */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { session } = await authenticate.admin(request);
 
   return json({
-    shop: session.shop, // ex: selyadev.myshopify.com
+    shop: session.shop,
     apiKey: process.env.SHOPIFY_API_KEY || "",
   });
 };
 
-// ==============================
-//        Styles (noir & or)
-// ==============================
+/* ==============================
+   Styles (noir & or)
+================================ */
 const BUTTON_BASE = {
   border: "none",
   borderRadius: "10px",
@@ -40,7 +40,7 @@ const CARD_STYLE = {
   borderRadius: "14px",
   padding: "18px",
   marginBottom: "16px",
-  border: "1px solid rgba(200,162,77,.25)", // doré subtil
+  border: "1px solid rgba(200,162,77,.25)",
   display: "grid",
   gridTemplateColumns: "1fr auto",
   gap: "14px",
@@ -63,8 +63,7 @@ const TITLE = {
   fontSize: "22px",
   fontWeight: 900,
   letterSpacing: ".3px",
-  background:
-    "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)",
+  background: "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
 };
@@ -74,7 +73,6 @@ const SUB = {
   opacity: 0.9,
 };
 
-// Optionnel: léger effet “shine” dans le header
 const GLOBAL_STYLES = `
 @keyframes tlsShimmer {
   0%   { background-position: -420px 0; }
@@ -89,75 +87,97 @@ const GLOBAL_STYLES = `
 }
 `;
 
-// ==============================
-//   Deep-link vers Theme Editor
-// ==============================
-function makeAddBlockUrl({ shop, apiKey, handle, template = "index" }) {
-  // Ajoute le block et ouvre l’éditeur (onglet Apps) sur la home (index)
-  const base = `https://${shop}/admin/themes/current/editor`;
+/* ==============================
+   Deep-link vers Theme Editor
+   - addAppBlockId = <apiKey>/<extensionUuid>/<blockType>
+   - blockType = souvent le nom du fichier .liquid sans extension
+================================ */
+const EXT_UUID = "123e4567-e89b-12d3-a456-426614174000";
+
+function editorBase({ shop, themeId }) {
+  const themePart = themeId ? `themes/${themeId}` : "themes/current";
+  return `https://${shop}/admin/${themePart}/editor`;
+}
+
+function makeAddBlockUrl({
+  shop,
+  apiKey,
+  template = "index",
+  extensionUuid,
+  blockType,
+  themeId,
+}) {
+  const base = editorBase({ shop, themeId });
   const params = new URLSearchParams({
-    template,
     context: "apps",
-    addAppBlockId: `${apiKey}/${handle}`,
+    template,
     target: "newAppsSection",
+    addAppBlockId: `${apiKey}/${extensionUuid}/${blockType}`,
   });
   return `${base}?${params.toString()}`;
 }
 
-// ==============================
-//   Liste des blocks de l’app
-//   ⚠️ handles EXACTS = nom du fichier sans .liquid
-// ==============================
+/* ==============================
+   Définition des blocks
+   (blockType = nom fichier sans .liquid)
+================================ */
 const APP_BLOCKS = [
   {
-    id: "tls-header",
+    handle: "tls-header",
     title: "Header simple (noir & rose)",
     desc: "Logo + menu horizontal (scroll mobile) + panier. Couleur d’accent personnalisable.",
     template: "index",
   },
   {
-    id: "tls-banner-3",
+    handle: "tls-banner-3",
     title: "Bannière — 3 images",
     desc: "Slider automatique de 3 visuels, qualité conservée (pas de zoom forcé).",
     template: "index",
   },
   {
-    id: "tls-circle-marquee",
+    handle: "tls-circle-marquee",
     title: "Bandeau produits (cercle)",
     desc: "Images rondes en défilement continu, hover zoom, pause au survol. Jusqu’à 20 items.",
     template: "index",
   },
   {
-    id: "tls-product-showcase",
+    handle: "tls-product-card",
     title: "Produit — Bloc vitrine",
     desc: "Grande image + miniatures, prix/promo, CTA “Voir le produit”, puces avantages, badges.",
     template: "index",
   },
   {
-    id: "tls-social-timer",
+    handle: "tls-social-timer",
     title: "Social + Timer",
     desc: "Icônes Instagram / Facebook / TikTok / WhatsApp + timer 24h en boucle.",
     template: "index",
   },
   {
-    id: "tls-testimonials",
+    handle: "tls-testimonials",
     title: "Testimonials avancés",
     desc: "Grille responsive d’avis, photos rondes, auteur doré.",
     template: "index",
   },
   {
-    id: "tls-footer",
+    handle: "tls-footer",
     title: "Footer (2 à 4 colonnes)",
     desc: "Basé sur vos menus Shopify, option icônes de paiement.",
     template: "index",
   },
 ];
 
-// ==============================
-//             UI
-// ==============================
+/* ==============================
+   UI
+================================ */
 export default function Settings() {
   const { shop, apiKey } = useLoaderData();
+
+  // Groupes d’affichage
+  const headerBlocks = APP_BLOCKS.filter((b) => b.handle === "tls-header");
+  const footerBlocks = APP_BLOCKS.filter((b) => b.handle === "tls-footer");
+  const contentBlocks = APP_BLOCKS.filter(
+    (b) => b.handle !== "tls-header" && b.handle !== "tls-footer"
+  );
 
   return (
     <>
@@ -167,12 +187,13 @@ export default function Settings() {
         <section style={HEADER_HERO}>
           <h1 style={TITLE} className="tls-shine">Triple-Luxe-Sections — Settings</h1>
           <p style={SUB}>
-            Page principale (noir & doré). Ajoutez vos sections ci-dessous — chaque bouton ouvre l’éditeur de thème et
-            insère automatiquement le block.
+            Page principale (noir & doré). Ajoutez vos sections ci-dessous —
+            chaque bouton ouvre l’éditeur de thème et insère automatiquement le block.
           </p>
           <div style={{ marginTop: 12 }}>
+            {/* Fallback: focus sur l’onglet Apps de l’éditeur */}
             <a
-              href={`https://${shop}/admin/themes/current/editor?context=apps`}
+              href={`https://${shop}/admin/themes/current/editor?context=apps&activateAppId=${apiKey}`}
               target="_top"
               rel="noreferrer"
             >
@@ -194,7 +215,7 @@ export default function Settings() {
         <section style={{ marginBottom: 10 }}>
           <div
             style={{
-              color: "#111", // ← noir lisible
+              color: "#111",
               fontWeight: 900,
               letterSpacing: ".3px",
               margin: "0 0 10px 2px",
@@ -202,15 +223,21 @@ export default function Settings() {
           >
             Header
           </div>
-          {APP_BLOCKS.filter((b) => b.id === "tls-header").map((b) => (
-            <article key={b.id} style={CARD_STYLE}>
+          {headerBlocks.map((b) => (
+            <article key={b.handle} style={CARD_STYLE}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
                 <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
               </div>
               <div>
                 <a
-                  href={makeAddBlockUrl({ shop, apiKey, handle: b.id, template: b.template })}
+                  href={makeAddBlockUrl({
+                    shop,
+                    apiKey,
+                    template: b.template,
+                    extensionUuid: EXT_UUID,
+                    blockType: b.handle, // ← par défaut: nom de fichier
+                  })}
                   target="_top"
                   rel="noreferrer"
                 >
@@ -234,7 +261,7 @@ export default function Settings() {
         <section style={{ margin: "16px 0 10px" }}>
           <div
             style={{
-              color: "#111", // ← noir lisible
+              color: "#111",
               fontWeight: 900,
               letterSpacing: ".3px",
               margin: "0 0 10px 2px",
@@ -242,17 +269,21 @@ export default function Settings() {
           >
             Content
           </div>
-          {APP_BLOCKS.filter(
-            (b) => b.id !== "tls-header" && b.id !== "tls-footer"
-          ).map((b) => (
-            <article key={b.id} style={CARD_STYLE}>
+          {contentBlocks.map((b) => (
+            <article key={b.handle} style={CARD_STYLE}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
                 <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
               </div>
               <div>
                 <a
-                  href={makeAddBlockUrl({ shop, apiKey, handle: b.id, template: b.template })}
+                  href={makeAddBlockUrl({
+                    shop,
+                    apiKey,
+                    template: b.template,
+                    extensionUuid: EXT_UUID,
+                    blockType: b.handle,
+                  })}
                   target="_top"
                   rel="noreferrer"
                 >
@@ -276,7 +307,7 @@ export default function Settings() {
         <section style={{ marginTop: 16 }}>
           <div
             style={{
-              color: "#111", // ← noir lisible
+              color: "#111",
               fontWeight: 900,
               letterSpacing: ".3px",
               margin: "0 0 10px 2px",
@@ -284,15 +315,21 @@ export default function Settings() {
           >
             Footer
           </div>
-          {APP_BLOCKS.filter((b) => b.id === "tls-footer").map((b) => (
-            <article key={b.id} style={CARD_STYLE}>
+          {footerBlocks.map((b) => (
+            <article key={b.handle} style={CARD_STYLE}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
                 <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
               </div>
               <div>
                 <a
-                  href={makeAddBlockUrl({ shop, apiKey, handle: b.id, template: b.template })}
+                  href={makeAddBlockUrl({
+                    shop,
+                    apiKey,
+                    template: b.template,
+                    extensionUuid: EXT_UUID,
+                    blockType: b.handle,
+                  })}
                   target="_top"
                   rel="noreferrer"
                 >
@@ -312,6 +349,8 @@ export default function Settings() {
           ))}
         </section>
       </div>
+
+      {/* Bouton YouTube (en bas à droite) */}
       <a
         href="https://youtu.be/dm0eBVNGGjw"
         target="_blank"
@@ -339,7 +378,7 @@ export default function Settings() {
         </button>
       </a>
 
-      {/* ✅ WhatsApp en bas à GAUCHE (inchangé) */}
+      {/* WhatsApp (en bas à gauche) */}
       <a
         href="https://wa.me/+212630079763"
         target="_blank"
