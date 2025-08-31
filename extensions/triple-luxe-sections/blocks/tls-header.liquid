@@ -1,8 +1,17 @@
+{% comment %}
+  TLS — Header simple
+  - Logo image ou texte
+  - Menu principal configurable
+  - Icône panier
+  - Accent couleur dans le dégradé
+{% endcomment %}
+
 <header class="header-simple">
   <div class="header-container page-width">
+    <!-- Logo -->
     <div class="header-logo">
       {% if block.settings.logo != blank %}
-        <a href="{{ routes.root_url }}" class="logo-link" aria-label="{{ shop.name }}">
+        <a href="{{ routes.root_url }}" class="logo-link" aria-label="{{ shop.name | escape }}">
           {{ block.settings.logo | image_url: width: 600 | image_tag: class: 'logo-img', alt: shop.name, loading: 'eager' }}
         </a>
       {% else %}
@@ -10,17 +19,26 @@
       {% endif %}
     </div>
 
+    <!-- Menu -->
     <nav class="header-menu" aria-label="Navigation principale">
       <ul>
         {% assign menu_handle = block.settings.menu %}
-        {% if menu_handle and linklists[menu_handle] %}
+        {% if menu_handle and linklists and linklists[menu_handle] %}
           {% for link in linklists[menu_handle].links %}
             <li><a href="{{ link.url }}">{{ link.title }}</a></li>
           {% endfor %}
+        {% else %}
+          <!-- Fallback si menu vide -->
+          <li><a href="{{ routes.root_url }}">Accueil</a></li>
+          {% if routes.all_products_collection_url %}
+            <li><a href="{{ routes.all_products_collection_url }}">Boutique</a></li>
+          {% endif %}
+          <li><a href="{{ routes.cart_url }}">Panier</a></li>
         {% endif %}
       </ul>
     </nav>
 
+    <!-- Panier -->
     <div class="header-cart">
       <a href="{{ routes.cart_url }}" aria-label="Panier">🛒</a>
     </div>
@@ -28,29 +46,71 @@
 </header>
 
 <style>
-.header-simple{ background: linear-gradient(90deg,#000,{{ block.settings.accent_color }}); padding:12px 0; }
-.header-container{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.logo-img{ max-height: {{ block.settings.logo_height }}px; width:auto; height:auto; object-fit:contain; display:block; }
-.logo-text{ font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
-.header-menu{ flex:1 1 auto; }
-.header-menu ul{ display:flex; align-items:center; list-style:none; margin:0; padding:0; gap:20px; white-space:nowrap; }
-.header-menu a{ color:#fff; text-decoration:none; font-weight:600; }
-.header-menu a:hover{ color:{{ block.settings.accent_color }}; }
-.header-cart a{ color:#fff; font-size:1.4rem; text-decoration:none; }
-@media (max-width:768px){
-  .header-simple{ padding:10px 0; }
-  .header-menu{ overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-  .header-menu::-webkit-scrollbar{ display:none; }
-  .logo-img{ max-height: {{ block.settings.logo_height | divided_by: 1.6 }}px; }
-  .header-menu ul{ gap:12px; }
-  .header-menu a{ font-size:.9rem; padding:.35rem .6rem; }
-  .header-cart a{ font-size:1.2rem; }
-}
-@media (max-width:400px){
-  .logo-img{ max-height: {{ block.settings.logo_height | divided_by: 2 }}px; }
-  .header-menu ul{ gap:10px; }
-  .header-menu a{ font-size:.85rem; }
-}
+  :root {
+    --tls-accent: {{ block.settings.accent_color | default: "#ff5fa2" }};
+  }
+  .header-simple {
+    background: linear-gradient(90deg, #000, var(--tls-accent));
+    padding: {{ block.settings.padding_vertical }}px 0;
+  }
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .logo-img {
+    max-height: {{ block.settings.logo_height }}px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+  }
+  .logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+  }
+  .header-menu {
+    flex: 1 1 auto;
+  }
+  .header-menu ul {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 20px;
+    white-space: nowrap;
+  }
+  .header-menu a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .header-menu a:hover {
+    color: var(--tls-accent);
+  }
+  .header-cart a {
+    color: #fff;
+    font-size: 1.4rem;
+    text-decoration: none;
+  }
+
+  @media (max-width:768px){
+    .header-menu { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .header-menu::-webkit-scrollbar { display: none; }
+    .logo-img { max-height: {{ block.settings.logo_height | divided_by: 1.6 }}px; }
+    .header-menu ul { gap: 12px; }
+    .header-menu a { font-size: .9rem; padding: .35rem .6rem; }
+    .header-cart a { font-size: 1.2rem; }
+  }
+  @media (max-width:400px){
+    .logo-img { max-height: {{ block.settings.logo_height | divided_by: 2 }}px; }
+    .header-menu ul { gap: 10px; }
+    .header-menu a { font-size: .85rem; }
+  }
 </style>
 
 {% schema %}
@@ -61,7 +121,8 @@
     { "type": "link_list", "id": "menu", "label": "Menu principal" },
     { "type": "image_picker", "id": "logo", "label": "Logo" },
     { "type": "range", "id": "logo_height", "label": "Hauteur du logo (px)", "default": 60, "min": 30, "max": 200, "step": 5 },
-    { "type": "color", "id": "accent_color", "label": "Couleur accent du dégradé", "default": "#ff5fa2" }
+    { "type": "color", "id": "accent_color", "label": "Couleur accent du dégradé", "default": "#ff5fa2" },
+    { "type": "range", "id": "padding_vertical", "label": "Padding vertical (px)", "default": 12, "min": 0, "max": 50, "step": 1 }
   ]
 }
 {% endschema %}
