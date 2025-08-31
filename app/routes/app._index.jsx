@@ -4,15 +4,19 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
 /* ==============================
-   Loader: shop + apiKey
+   Loader: shop + extensionId
 ================================ */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { session } = await authenticate.admin(request);
 
+  // session.shop = "selyadev.myshopify.com" → on extrait le sous-domaine "selyadev"
+  const shopDomain = session.shop || "";
+  const shopSub = shopDomain.replace(".myshopify.com", "");
+
   return json({
-    shop: session.shop,
-    apiKey: process.env.SHOPIFY_API_KEY || "",
+    shopSub, // "selyadev"
+    extensionId: process.env.THEME_EXTENSION_ID || "bfb33fe92c4274f1ba39275effdb6c25",
   });
 };
 
@@ -68,10 +72,7 @@ const TITLE = {
   WebkitTextFillColor: "transparent",
 };
 
-const SUB = {
-  margin: "6px 0 0 0",
-  opacity: 0.9,
-};
+const SUB = { margin: "6px 0 0 0", opacity: 0.9 };
 
 const GLOBAL_STYLES = `
 @keyframes tlsShimmer {
@@ -88,95 +89,89 @@ const GLOBAL_STYLES = `
 `;
 
 /* ==============================
-   Deep-link vers Theme Editor
-   - addAppBlockId = <apiKey>/<extensionUuid>/<blockType>
-   - blockType = souvent le nom du fichier .liquid sans extension
+   Deep-links (même logique que ton app 1)
+   - addAppBlockId = <extensionId>/<handle>
+   - addAppSectionId = <extensionId>/<handle>
 ================================ */
-const EXT_UUID = "123e4567-e89b-12d3-a456-426614174000";
-
-function editorBase({ shop, themeId }) {
+function editorBase({ shopSub, themeId }) {
   const themePart = themeId ? `themes/${themeId}` : "themes/current";
-  return `https://${shop}/admin/${themePart}/editor`;
+  return `https://${shopSub}.myshopify.com/admin/${themePart}/editor`;
 }
 
-function makeAddBlockUrl({
-  shop,
-  apiKey,
-  template = "index",
-  extensionUuid,
-  blockType,
-  themeId,
-}) {
-  const base = editorBase({ shop, themeId });
-  const params = new URLSearchParams({
+function linkAddBlock({ shopSub, template = "index", extensionId, handle, themeId }) {
+  const base = editorBase({ shopSub, themeId });
+  const p = new URLSearchParams({
+    context: "apps",
+    template,
+    addAppBlockId: `${extensionId}/${handle}`,
+    // target volontairement omis—Shopify place le block dans la section Apps si nécessaire
+  });
+  return `${base}?${p.toString()}`;
+}
+
+function linkAddSection({ shopSub, template = "index", extensionId, handle, themeId }) {
+  const base = editorBase({ shopSub, themeId });
+  const p = new URLSearchParams({
     context: "apps",
     template,
     target: "newAppsSection",
-    addAppBlockId: `${apiKey}/${extensionUuid}/${blockType}`,
+    addAppSectionId: `${extensionId}/${handle}`,
   });
-  return `${base}?${params.toString()}`;
+  return `${base}?${p.toString()}`;
+}
+
+function linkActivateApp({ shopSub, extensionId, themeId }) {
+  const base = editorBase({ shopSub, themeId });
+  const p = new URLSearchParams({
+    context: "apps",
+    activateAppId: extensionId,
+  });
+  return `${base}?${p.toString()}`;
 }
 
 /* ==============================
-   Définition des blocks
-   (blockType = nom fichier sans .liquid)
+   Tes blocks (handles = fichiers .liquid)
 ================================ */
 const APP_BLOCKS = [
-  {
-    handle: "tls-header",
-    title: "Header simple (noir & rose)",
-    desc: "Logo + menu horizontal (scroll mobile) + panier. Couleur d’accent personnalisable.",
-    template: "index",
-  },
-  {
-    handle: "tls-banner-3",
-    title: "Bannière — 3 images",
-    desc: "Slider automatique de 3 visuels, qualité conservée (pas de zoom forcé).",
-    template: "index",
-  },
-  {
-    handle: "tls-circle-marquee",
-    title: "Bandeau produits (cercle)",
-    desc: "Images rondes en défilement continu, hover zoom, pause au survol. Jusqu’à 20 items.",
-    template: "index",
-  },
-  {
-    handle: "tls-product-card",
-    title: "Produit — Bloc vitrine",
-    desc: "Grande image + miniatures, prix/promo, CTA “Voir le produit”, puces avantages, badges.",
-    template: "index",
-  },
-  {
-    handle: "tls-social-timer",
-    title: "Social + Timer",
-    desc: "Icônes Instagram / Facebook / TikTok / WhatsApp + timer 24h en boucle.",
-    template: "index",
-  },
-  {
-    handle: "tls-testimonials",
-    title: "Testimonials avancés",
-    desc: "Grille responsive d’avis, photos rondes, auteur doré.",
-    template: "index",
-  },
-  {
-    handle: "tls-footer",
-    title: "Footer (2 à 4 colonnes)",
-    desc: "Basé sur vos menus Shopify, option icônes de paiement.",
-    template: "index",
-  },
+  { handle: "tls-header",          title: "Header simple (noir & rose)", desc: "Logo + menu horizontal + panier.", template: "index" },
+  { handle: "tls-banner-3",        title: "Bannière — 3 images",         desc: "Slider auto 3 visuels, sans crop.", template: "index" },
+  { handle: "tls-circle-marquee",  title: "Bandeau produits (cercle)",   desc: "Défilement continu, hover zoom.",   template: "index" },
+  { handle: "tls-product-card",    title: "Produit — Bloc vitrine",      desc: "Grande image + miniatures + CTA.",  template: "index" },
+  { handle: "tls-social-timer",    title: "Social + Timer",              desc: "IG / FB / TikTok / WhatsApp + timer.", template: "index" },
+  { handle: "tls-testimonials",    title: "Testimonials avancés",        desc: "Grille d’avis responsive.",         template: "index" },
+  { handle: "tls-footer",          title: "Footer (2 à 4 colonnes)",     desc: "Basé sur menus Shopify + paiements.", template: "index" },
 ];
 
 /* ==============================
    UI
 ================================ */
 export default function Settings() {
-  const { shop, apiKey } = useLoaderData();
+  const { shopSub, extensionId } = useLoaderData();
 
-  // Groupes d’affichage
   const headerBlocks = APP_BLOCKS.filter((b) => b.handle === "tls-header");
   const footerBlocks = APP_BLOCKS.filter((b) => b.handle === "tls-footer");
-  const contentBlocks = APP_BLOCKS.filter(
-    (b) => b.handle !== "tls-header" && b.handle !== "tls-footer"
+  const contentBlocks = APP_BLOCKS.filter((b) => b.handle !== "tls-header" && b.handle !== "tls-footer");
+
+  const missingExt = !extensionId || extensionId.length < 16; // ton app 1 utilise 32 chars hex
+
+  const ActionButtons = ({ b }) => (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <a href={linkAddBlock({ shopSub, template: b.template, extensionId, handle: b.handle })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
+          Add as Block
+        </button>
+      </a>
+      <a href={linkAddSection({ shopSub, template: b.template, extensionId, handle: b.handle })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "#000", color: "#fff" }}>
+          Add as Section
+        </button>
+      </a>
+      <a href={linkActivateApp({ shopSub, extensionId })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "#111", color: "#fff", border: "1px solid rgba(200,162,77,.35)" }}>
+          Open Editor (Apps)
+        </button>
+      </a>
+    </div>
   );
 
   return (
@@ -187,212 +182,80 @@ export default function Settings() {
         <section style={HEADER_HERO}>
           <h1 style={TITLE} className="tls-shine">Triple-Luxe-Sections — Settings</h1>
           <p style={SUB}>
-            Page principale (noir & doré). Ajoutez vos sections ci-dessous —
-            chaque bouton ouvre l’éditeur de thème et insère automatiquement le block.
+            Ajoutez vos éléments ci-dessous. Chaque bouton ouvre l’éditeur et tente d’insérer automatiquement le block/section.
           </p>
-          <div style={{ marginTop: 12 }}>
-            {/* Fallback: focus sur l’onglet Apps de l’éditeur */}
-            <a
-              href={`https://${shop}/admin/themes/current/editor?context=apps&activateAppId=${apiKey}`}
-              target="_top"
-              rel="noreferrer"
-            >
-              <button
-                style={{
-                  ...BUTTON_BASE,
-                  background:
-                    "linear-gradient(90deg, #d6b35b, #f0df9b 70%, #d6b35b)",
-                  color: "#111",
-                }}
-              >
-                Open Theme Editor (Apps)
-              </button>
-            </a>
-          </div>
+          {missingExt && (
+            <div style={{
+              marginTop: 12, background: "#2a1f10", color: "#f0df9b",
+              border: "1px solid rgba(200,162,77,.35)", borderRadius: 10, padding: "10px 14px", fontWeight: 700
+            }}>
+              THEME_EXTENSION_ID manquant/incorrect. Mets l’ID que tu utilises dans ton app 1 (ex: <code>be79dab79ff6bb4be47d4e66577b6c50</code>).
+            </div>
+          )}
         </section>
 
         {/* HEADER group */}
         <section style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              color: "#111",
-              fontWeight: 900,
-              letterSpacing: ".3px",
-              margin: "0 0 10px 2px",
-            }}
-          >
-            Header
-          </div>
+          <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Header</div>
           {headerBlocks.map((b) => (
             <article key={b.handle} style={CARD_STYLE}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
                 <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
               </div>
-              <div>
-                <a
-                  href={makeAddBlockUrl({
-                    shop,
-                    apiKey,
-                    template: b.template,
-                    extensionUuid: EXT_UUID,
-                    blockType: b.handle, // ← par défaut: nom de fichier
-                  })}
-                  target="_top"
-                  rel="noreferrer"
-                >
-                  <button
-                    style={{
-                      ...BUTTON_BASE,
-                      background:
-                        "linear-gradient(90deg, #d6b35b, #f0df9b 70%, #d6b35b)",
-                      color: "#111",
-                    }}
-                  >
-                    Add block in Theme
-                  </button>
-                </a>
-              </div>
+              <ActionButtons b={b} />
             </article>
           ))}
         </section>
 
         {/* CONTENT group */}
         <section style={{ margin: "16px 0 10px" }}>
-          <div
-            style={{
-              color: "#111",
-              fontWeight: 900,
-              letterSpacing: ".3px",
-              margin: "0 0 10px 2px",
-            }}
-          >
-            Content
-          </div>
+          <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Content</div>
           {contentBlocks.map((b) => (
             <article key={b.handle} style={CARD_STYLE}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
                 <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
               </div>
-              <div>
-                <a
-                  href={makeAddBlockUrl({
-                    shop,
-                    apiKey,
-                    template: b.template,
-                    extensionUuid: EXT_UUID,
-                    blockType: b.handle,
-                  })}
-                  target="_top"
-                  rel="noreferrer"
-                >
-                  <button
-                    style={{
-                      ...BUTTON_BASE,
-                      background:
-                        "linear-gradient(90deg, #d6b35b, #f0df9b 70%, #d6b35b)",
-                      color: "#111",
-                    }}
-                  >
-                    Add block in Theme
-                  </button>
-                </a>
-              </div>
+              <ActionButtons b={b} />
             </article>
           ))}
         </section>
 
         {/* FOOTER group */}
         <section style={{ marginTop: 16 }}>
-          <div
-            style={{
-              color: "#111",
-              fontWeight: 900,
-              letterSpacing: ".3px",
-              margin: "0 0 10px 2px",
-            }}
-          >
-            Footer
-          </div>
+          <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Footer</div>
           {footerBlocks.map((b) => (
             <article key={b.handle} style={CARD_STYLE}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
                 <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
               </div>
-              <div>
-                <a
-                  href={makeAddBlockUrl({
-                    shop,
-                    apiKey,
-                    template: b.template,
-                    extensionUuid: EXT_UUID,
-                    blockType: b.handle,
-                  })}
-                  target="_top"
-                  rel="noreferrer"
-                >
-                  <button
-                    style={{
-                      ...BUTTON_BASE,
-                      background:
-                        "linear-gradient(90deg, #d6b35b, #f0df9b 70%, #d6b35b)",
-                      color: "#111",
-                    }}
-                  >
-                    Add block in Theme
-                  </button>
-                </a>
-              </div>
+              <ActionButtons b={b} />
             </article>
           ))}
         </section>
       </div>
 
-      {/* Bouton YouTube (en bas à droite) */}
+      {/* YouTube */}
       <a
         href="https://youtu.be/dm0eBVNGGjw"
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          textDecoration: "none",
-          zIndex: 999,
-        }}
+        style={{ position: "fixed", bottom: "24px", right: "24px", textDecoration: "none", zIndex: 999 }}
         aria-label="YouTube tutorial"
       >
-        <button
-          style={{
-            ...BUTTON_BASE,
-            backgroundColor: "#000",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: "30px",
-            cursor: "pointer",
-          }}
-        >
+        <button style={{ ...BUTTON_BASE, backgroundColor: "#000", color: "#fff", padding: "12px 20px", borderRadius: "30px", cursor: "pointer" }}>
           YouTube
         </button>
       </a>
 
-      {/* WhatsApp (en bas à gauche) */}
+      {/* WhatsApp */}
       <a
         href="https://wa.me/+212630079763"
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          left: "24px",
-          backgroundColor: "#000",
-          borderRadius: "50%",
-          padding: "14px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          zIndex: 999,
-        }}
+        style={{ position: "fixed", bottom: "24px", left: "24px", backgroundColor: "#000", borderRadius: "50%", padding: "14px", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 999 }}
         aria-label="WhatsApp"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#fff" viewBox="0 0 448 512">
