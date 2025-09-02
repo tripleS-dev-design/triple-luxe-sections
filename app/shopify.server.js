@@ -9,15 +9,11 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-/**
- * ✔️ Handles de plans — utilise-les dans /billing.activate?plan=<handle>
- *    et dans billing.require({ plans: [PLAN_HANDLES.monthly, PLAN_HANDLES.annual] })
- */
+// ✔ Handles de plan (réutilisés partout)
 export const PLAN_HANDLES = {
   monthly: "tls-premium-monthly",
   annual:  "tls-premium-annual",
 };
-
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -29,11 +25,7 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
 
-  /**
-   * 💳 Billing — 1 plan mensuel + 1 plan annuel
-   * - Tu peux ajouter trialDays si tu veux un essai gratuit.
-   * - Les handles doivent correspondre à ceux utilisés dans tes routes.
-   */
+  // 💳 Billing (14 jours d’essai)
   billing: {
     [PLAN_HANDLES.monthly]: {
       amount: 4.99,
@@ -54,7 +46,6 @@ const shopify = shopifyApp({
     removeRest: true,
   },
 
-  // (optionnel) si tu utilises un domaine custom d'App Bridge
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
@@ -62,8 +53,6 @@ const shopify = shopifyApp({
 
 export default shopify;
 export const apiVersion = ApiVersion.January25;
-
-// Exports utilitaires (comme dans ton fichier d’origine)
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
