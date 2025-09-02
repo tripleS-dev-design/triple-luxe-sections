@@ -1,10 +1,10 @@
 import "@shopify/shopify-app-remix/adapters/node";
 import {
+  shopifyApp,
   ApiVersion,
-  AppDistribution,
-  BillingInterval,
-} from "@shopify/shopify-api";
-import { shopifyApp } from "@shopify/shopify-app-remix/server";
+  AppDistribution, // ✅ vient du package remix/server
+} from "@shopify/shopify-app-remix/server";
+import { BillingInterval } from "@shopify/shopify-api"; // ✅ OK ici
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
@@ -21,7 +21,7 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
-  distribution: AppDistribution.AppStore,
+  distribution: AppDistribution.AppStore, // ✅ maintenant résolu
   future: {
     unstable_newEmbeddedAuthStrategy: true,
     removeRest: true,
@@ -30,9 +30,8 @@ const shopify = shopifyApp({
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
 
-  // ✅ Plans avec essai 14 jours
+  // Plans avec essai 14 jours
   billing: {
-    // on ne force pas ici; on le gère via /app/_index
     required: false,
     plans: [
       {
