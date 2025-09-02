@@ -4,29 +4,27 @@ import { json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
 /* ===============================
-   LOADER = Auth + Billing gating
-   - Si PAS abonné → redirect /app/additional
-   - Sinon → renvoie shopSub + apiKey pour l’UI
-================================= */
+ * LOADER: Auth + Billing gating
+ * - Si PAS abonné → redirect /app/additional
+ * - Sinon → renvoie shopSub + apiKey pour l’UI (Settings)
+ * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
   const REQUIRED = [PLAN_HANDLES.monthly, PLAN_HANDLES.annual];
 
   const { billing, session } = await authenticate.admin(request);
 
-  // Conserver shop/host
+  // garder shop/host (pour les retours/CTA)
   const url = new URL(request.url);
   const qs = url.searchParams.toString();
   const suffix = qs ? `?${qs}` : "";
 
-  // Gating
   try {
     await billing.require({ plans: REQUIRED });
   } catch {
     return redirect(`/app/additional${suffix}`);
   }
 
-  // OK → données pour Settings UI
   const shopDomain = session.shop || "";
   const shopSub = shopDomain.replace(".myshopify.com", "");
   const apiKey = process.env.SHOPIFY_API_KEY || "";
@@ -35,9 +33,9 @@ export const loader = async ({ request }) => {
 };
 
 /* ===============================
-   Helpers deep links (API KEY)
-   addAppBlockId / addAppSectionId = <API_KEY>/<handle>
-================================= */
+ * Deep links (API KEY)
+ * addAppBlockId / addAppSectionId = <API_KEY>/<handle>
+ * =============================== */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
@@ -68,16 +66,56 @@ function linkActivateApp({ shopSub, apiKey }) {
 }
 
 /* ===============================
-   UI (SETTINGS) — ta page principale
-================================= */
-const BUTTON_BASE = { border: "none", borderRadius: "10px", padding: "12px 20px", fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,0,0,.18)", letterSpacing: ".2px" };
-const CONTAINER_STYLE = { maxWidth: "1080px", margin: "0 auto", padding: "18px 16px 80px", fontFamily: "system-ui, sans-serif" };
-const CARD_STYLE = { backgroundColor: "#111111", borderRadius: "14px", padding: "18px", marginBottom: "16px", border: "1px solid rgba(200,162,77,.25)", display: "grid", gridTemplateColumns: "1fr auto", gap: "14px", alignItems: "center", color: "#f5f5f5" };
-const HEADER_HERO = { background: "linear-gradient(135deg, #0a0a0a 35%, #1a1a1a 60%, #2a2a2a 100%)", border: "1px solid rgba(200,162,77,.35)", borderRadius: "16px", padding: "22px", marginBottom: "18px", color: "#fff", boxShadow: "0 12px 40px rgba(0,0,0,.25)" };
-const TITLE = { margin: 0, fontSize: "22px", fontWeight: 900, letterSpacing: ".3px", background: "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
+ * UI (SETTINGS) — Page principale
+ * =============================== */
+const BUTTON_BASE = {
+  border: "none",
+  borderRadius: "10px",
+  padding: "12px 20px",
+  fontWeight: 800,
+  cursor: "pointer",
+  boxShadow: "0 6px 18px rgba(0,0,0,.18)",
+  letterSpacing: ".2px",
+};
+const CONTAINER_STYLE = {
+  maxWidth: "1080px",
+  margin: "0 auto",
+  padding: "18px 16px 80px",
+  fontFamily: "system-ui, sans-serif",
+};
+const CARD_STYLE = {
+  backgroundColor: "#111111",
+  borderRadius: "14px",
+  padding: "18px",
+  marginBottom: "16px",
+  border: "1px solid rgba(200,162,77,.25)",
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: "14px",
+  alignItems: "center",
+  color: "#f5f5f5",
+};
+const HEADER_HERO = {
+  background: "linear-gradient(135deg, #0a0a0a 35%, #1a1a1a 60%, #2a2a2a 100%)",
+  border: "1px solid rgba(200,162,77,.35)",
+  borderRadius: "16px",
+  padding: "22px",
+  marginBottom: "18px",
+  color: "#fff",
+  boxShadow: "0 12px 40px rgba(0,0,0,.25)",
+};
+const TITLE = {
+  margin: 0,
+  fontSize: "22px",
+  fontWeight: 900,
+  letterSpacing: ".3px",
+  background: "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+};
 const SUB = { margin: "6px 0 0 0", opacity: 0.9 };
 
-// Handles = noms des fichiers .liquid dans ton extension
+// Handles = noms des fichiers .liquid de ton extension
 const APP_BLOCKS = [
   { handle: "tls-header",          title: "Header simple (noir & rose)", desc: "Logo + menu horizontal + panier.", template: "index" },
   { handle: "tls-banner-3",        title: "Bannière — 3 images",         desc: "Slider auto 3 visuels, sans crop.", template: "index" },
@@ -97,18 +135,39 @@ export default function AppIndex() {
 
   const ActionButtons = ({ b }) => (
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      <a href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
-        <button style={{ ...BUTTON_BASE, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
+      <a
+        href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
+        target="_top"
+        rel="noreferrer"
+      >
+        <button
+          style={{
+            ...BUTTON_BASE,
+            background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)",
+            color: "#111",
+          }}
+        >
           Add as Block
         </button>
       </a>
-      <a href={linkAddSection({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
+      <a
+        href={linkAddSection({ shopSub, template: b.template, apiKey, handle: b.handle })}
+        target="_top"
+        rel="noreferrer"
+      >
         <button style={{ ...BUTTON_BASE, background: "#000", color: "#fff" }}>
           Add as Section
         </button>
       </a>
       <a href={linkActivateApp({ shopSub, apiKey })} target="_top" rel="noreferrer">
-        <button style={{ ...BUTTON_BASE, background: "#111", color: "#fff", border: "1px solid rgba(200,162,77,.35)" }}>
+        <button
+          style={{
+            ...BUTTON_BASE,
+            background: "#111",
+            color: "#fff",
+            border: "1px solid rgba(200,162,77,.35)",
+          }}
+        >
           Open Editor (Apps)
         </button>
       </a>
@@ -119,12 +178,16 @@ export default function AppIndex() {
     <div style={CONTAINER_STYLE}>
       <section style={HEADER_HERO}>
         <h1 style={TITLE}>Triple-Luxe-Sections — Settings</h1>
-        <p style={SUB}>Ajoutez vos éléments ci-dessous. Chaque bouton ouvre l’éditeur et pré-sélectionne le block/section.</p>
+        <p style={SUB}>
+          Ajoutez vos éléments ci-dessous. Chaque bouton ouvre l’éditeur et pré-sélectionne le block/section.
+        </p>
       </section>
 
       {/* HEADER */}
       <section style={{ marginBottom: 10 }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Header</div>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>
+          Header
+        </div>
         {headerBlocks.map((b) => (
           <article key={b.handle} style={CARD_STYLE}>
             <div>
@@ -138,7 +201,9 @@ export default function AppIndex() {
 
       {/* CONTENT */}
       <section style={{ margin: "16px 0 10px" }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Content</div>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>
+          Content
+        </div>
         {contentBlocks.map((b) => (
           <article key={b.handle} style={CARD_STYLE}>
             <div>
@@ -152,7 +217,9 @@ export default function AppIndex() {
 
       {/* FOOTER */}
       <section style={{ marginTop: 16 }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Footer</div>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>
+          Footer
+        </div>
         {footerBlocks.map((b) => (
           <article key={b.handle} style={CARD_STYLE}>
             <div>
