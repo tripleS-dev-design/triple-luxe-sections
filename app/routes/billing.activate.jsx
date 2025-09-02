@@ -1,6 +1,6 @@
 // app/routes/billing.activate.jsx
 import { json } from "@remix-run/node";
-import { shopify } from "~/shopify.server";
+import { shopify } from "../shopify.server";
 
 export async function loader({ request }) {
   const url = new URL(request.url);
