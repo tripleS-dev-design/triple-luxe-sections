@@ -1,22 +1,23 @@
-// app/routes/billing.activate.tsx (ou .jsx si tu n'utilises pas TS)
+// app/routes/billing.activate.jsx
 import { redirect } from "@remix-run/node";
 
-export const loader = async ({ request }: { request: Request }) => {
+export const loader = async ({ request }) => {
   const url = new URL(request.url);
   const plan = url.searchParams.get("plan") || "";
   const host = url.searchParams.get("host") || "";
 
+  // Import dynamique pour éviter les problèmes de build
   const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
   const { billing, session } = await authenticate.admin(request);
 
-  // 0) Valider le handle
+  // 0) Valider le handle du plan
   const knownHandles = new Set(Object.values(PLAN_HANDLES));
   if (!knownHandles.has(plan)) {
     console.error("[billing.activate] Handle inconnu:", { plan, knownHandles: [...knownHandles] });
     return new Response("Plan inconnu", { status: 400 });
   }
 
-  // 1) Check si déjà actif
+  // 1) Vérifier si le plan est déjà actif
   const isTest = process.env.NODE_ENV !== "production";
   const check = await billing.check({ plans: [plan], isTest });
 
