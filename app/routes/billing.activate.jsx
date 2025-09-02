@@ -6,7 +6,7 @@ export const loader = async ({ request }: { request: Request }) => {
   const plan = url.searchParams.get("plan") || "";
   const host = url.searchParams.get("host") || "";
 
-  const { authenticate, PLAN_HANDLES } = await import("~/shopify.server");
+  const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
   const { billing, session } = await authenticate.admin(request);
 
   // 0) Valider le handle
