@@ -154,7 +154,7 @@ export default function Pricing() {
 
         <div style={{ marginTop: 18 }}>
           {/* target="_top" pour forcer la navigation hors iframe (sécurise l’ouverture du checkout) */}
-          <a href={href} target="_top" rel="noreferrer">
+          <a href={href}  rel="noreferrer">
             <button
               style={{
                 ...BUTTON_BASE,
