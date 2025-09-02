@@ -15,6 +15,7 @@ for (const k of requiredEnv) {
   }
 }
 
+// ✅ NE CHANGE RIEN ICI: mêmes handles que tes liens
 export const PLAN_HANDLES = {
   monthly: "tls-premium-monthly",
   annual: "tls-premium-annual",
@@ -32,6 +33,7 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
 
+  // ✅ Important: billing avec tes handles
   billing: {
     plans: [
       {
