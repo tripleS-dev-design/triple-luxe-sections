@@ -1,33 +1,44 @@
 // app/routes/billing.activate.jsx
-import { redirect } from "@remix-run/node";
-import { authenticate } from "../shopify.server";
+import { shopify } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  const { billing, session } = await authenticate.admin(request);
-
   const url = new URL(request.url);
   const plan = url.searchParams.get("plan");
   if (!plan) {
-    throw new Response("Missing 'plan' query param", { status: 400 });
+    return new Response("Missing plan", { status: 400 });
   }
 
-  // 1) Demander l’URL de confirmation
-  //    (garde isTest:true en dev, false en prod)
-  const confirmationUrl = await billing.request({
+  // Assure la session Admin
+  const { session } = await shopify.authenticate.admin(request);
+
+  // URL de retour après acceptation du plan (on garde shop/host & co)
+  const returnUrl = `${url.origin}/billing/confirm?${url.searchParams.toString()}`;
+
+  // Si déjà payé, on retourne dans l’app
+  const check = await shopify.billing.check({
+    session,
+    plans: [plan],
+    isTest: process.env.NODE_ENV !== "production",
+    returnObject: true,
+  });
+  if (check?.hasActivePayment) {
+    return new Response(
+      `<script>window.top.location.href=${JSON.stringify(`/app?${url.searchParams.toString()}`)};</script>`,
+      { headers: { "Content-Type": "text/html" } }
+    );
+  }
+
+  // Demande l’URL de confirmation
+  const req = await shopify.billing.request({
+    session,
     plan,
     isTest: process.env.NODE_ENV !== "production",
+    returnUrl,
   });
 
-  // 2) Sortir de l’iframe pour ouvrir la page de paiement Shopify
-  const params = new URLSearchParams({
-    shop: session.shop,
-    host: url.searchParams.get("host") || "",
-    exitIframe: confirmationUrl,
-  });
-
-  return redirect(`/auth/exit-iframe?${params.toString()}`);
+  // IMPORTANT: forcer la redirection top-level (évite la boucle dans l’iframe)
+  return new Response(
+    `<html><body><script>window.top.location.href=${JSON.stringify(req.confirmationUrl)};</script></body></html>`,
+    { headers: { "Content-Type": "text/html" } }
+  );
 };
-
-export default function ActivateBilling() {
-  return null;
-}
