@@ -22,36 +22,30 @@ export const loader = async ({ request }) => {
 
   const appOrigin = process.env.SHOPIFY_APP_URL || url.origin;
 
+  // URL de retour courte (<= 255 chars)
+  const returnUrl = new URL("/billing/confirm", appOrigin);
+  if (shop) returnUrl.searchParams.set("shop", shop);
+  if (host) returnUrl.searchParams.set("host", host);
+
   try {
     const { billing } = await authenticate.admin(request);
 
-    // URL de retour courte
-    const returnUrl = new URL("/billing/confirm", appOrigin);
-    if (shop) returnUrl.searchParams.set("shop", shop);
-    if (host) returnUrl.searchParams.set("host", host);
-
-    await billing.request({
+    // ⬇️ Laisse la librairie gérer le 302 vers la page d’approbation
+    const resp = await billing.request({
       plan,
       isTest: computeIsTest(shop, process.env.NODE_ENV),
       returnUrl: returnUrl.toString(),
     });
 
-    // Normalement on ne passe pas ici (Shopify 302 → page d’approbation)
+    // En pratique, billing.request renvoie (ou jette) un 302; au cas improbable où on “retombe” ici:
     const fb = new URL("/app/additional", appOrigin);
     if (shop) fb.searchParams.set("shop", shop);
     if (host) fb.searchParams.set("host", host);
     return redirect(fb.toString());
-
   } catch (err) {
-    // IMPORTANT : on sort de l'iframe vers **la page d’approbation Shopify**
-    if (err instanceof Response && err.status === 302) {
-      const approvalUrl = err.headers.get("Location"); // <- Doit être une URL admin.shopify.com/charges/...
-      const exit = new URL("/auth/exit-iframe", appOrigin);
-      if (shop) exit.searchParams.set("shop", shop);
-      if (host) exit.searchParams.set("host", host);
-      exit.searchParams.set("exitIframe", approvalUrl || "/auth/login");
-      return redirect(exit.toString());
-    }
+    // ⬇️ Très important : si la librairie renvoie un Response (302),
+    // on le renvoie tel quel. Ça contient l’URL Shopify "approval".
+    if (err instanceof Response) return err;
 
     console.error("billing.activate error:", err);
     return new Response("Billing activation failed", { status: 500 });
