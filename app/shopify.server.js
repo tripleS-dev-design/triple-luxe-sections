@@ -3,49 +3,50 @@ import "@shopify/shopify-app-remix/adapters/node";
 import {
   ApiVersion,
   AppDistribution,
-  BillingInterval,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-// ✔ Handles de plan (réutilisés partout)
 export const PLAN_HANDLES = {
   monthly: "tls-premium-monthly",
   annual:  "tls-premium-annual",
+};
+
+const BILLING = {
+  // Déclare tes plans ici (handles = names)
+  plans: [
+    {
+      name: PLAN_HANDLES.monthly,
+      amount: 4.99,
+      currencyCode: "USD",
+      interval: "EVERY_30_DAYS",
+      trialDays: 14,
+    },
+    {
+      name: PLAN_HANDLES.annual,
+      amount: 39.99,
+      currencyCode: "USD",
+      interval: "ANNUAL",
+      trialDays: 14,
+    },
+  ],
 };
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: ApiVersion.January25,
-  scopes: (process.env.SCOPES || "").split(",").filter(Boolean),
+  scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
-
-  // 💳 Billing (14 jours d’essai)
-  billing: {
-    [PLAN_HANDLES.monthly]: {
-      amount: 4.99,
-      currencyCode: "USD",
-      interval: BillingInterval.Every30Days,
-      trialDays: 14,
-    },
-    [PLAN_HANDLES.annual]: {
-      amount: 39.99,
-      currencyCode: "USD",
-      interval: BillingInterval.Annual,
-      trialDays: 14,
-    },
-  },
-
+  billing: BILLING, // ⬅️ important
   future: {
     unstable_newEmbeddedAuthStrategy: true,
     removeRest: true,
   },
-
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
