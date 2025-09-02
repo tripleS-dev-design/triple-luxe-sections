@@ -5,8 +5,6 @@ import { useLoaderData } from "@remix-run/react";
 
 /* ===============================
  * LOADER: Auth + Billing gating
- * - Si PAS abonné → redirect /app/additional
- * - Sinon → renvoie shopSub + apiKey pour l’UI (Settings)
  * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
@@ -14,7 +12,7 @@ export const loader = async ({ request }) => {
 
   const { billing, session } = await authenticate.admin(request);
 
-  // garder shop/host (pour les retours/CTA)
+  // Conserver shop/host dans la query
   const url = new URL(request.url);
   const qs = url.searchParams.toString();
   const suffix = qs ? `?${qs}` : "";
@@ -22,9 +20,11 @@ export const loader = async ({ request }) => {
   try {
     await billing.require({ plans: REQUIRED });
   } catch {
+    // ⛔ Pas abonné → Pricing
     return redirect(`/app/additional${suffix}`);
   }
 
+  // ✅ Abonné → données pour l’UI
   const shopDomain = session.shop || "";
   const shopSub = shopDomain.replace(".myshopify.com", "");
   const apiKey = process.env.SHOPIFY_API_KEY || "";
@@ -115,15 +115,15 @@ const TITLE = {
 };
 const SUB = { margin: "6px 0 0 0", opacity: 0.9 };
 
-// Handles = noms des fichiers .liquid de ton extension
+// Handles = noms des fichiers .liquid
 const APP_BLOCKS = [
-  { handle: "tls-header",          title: "Header simple (noir & rose)", desc: "Logo + menu horizontal + panier.", template: "index" },
-  { handle: "tls-banner-3",        title: "Bannière — 3 images",         desc: "Slider auto 3 visuels, sans crop.", template: "index" },
-  { handle: "tls-circle-marquee",  title: "Bandeau produits (cercle)",   desc: "Défilement continu, hover zoom.",   template: "index" },
-  { handle: "tls-product-card",    title: "Produit — Bloc vitrine",      desc: "Grande image + miniatures + CTA.",  template: "product" },
-  { handle: "tls-social-timer",    title: "Social + Timer",              desc: "IG / FB / TikTok / WhatsApp + timer.", template: "index" },
-  { handle: "tls-testimonials",    title: "Testimonials avancés",        desc: "Grille d’avis responsive.",         template: "index" },
-  { handle: "tls-footer",          title: "Footer (2 à 4 colonnes)",     desc: "Basé sur menus Shopify + paiements.", template: "index" },
+  { handle: "tls-header",         title: "Header simple (noir & rose)", desc: "Logo + menu horizontal + panier.",       template: "index" },
+  { handle: "tls-banner-3",       title: "Bannière — 3 images",         desc: "Slider auto 3 visuels, sans crop.",      template: "index" },
+  { handle: "tls-circle-marquee", title: "Bandeau produits (cercle)",   desc: "Défilement continu, hover zoom.",        template: "index" },
+  { handle: "tls-product-card",   title: "Produit — Bloc vitrine",      desc: "Grande image + miniatures + CTA.",       template: "product" },
+  { handle: "tls-social-timer",   title: "Social + Timer",              desc: "IG / FB / TikTok / WhatsApp + timer.",   template: "index" },
+  { handle: "tls-testimonials",   title: "Testimonials avancés",        desc: "Grille d’avis responsive.",              template: "index" },
+  { handle: "tls-footer",         title: "Footer (2 à 4 colonnes)",     desc: "Basé sur menus Shopify + paiements.",    template: "index" },
 ];
 
 export default function AppIndex() {
@@ -135,39 +135,18 @@ export default function AppIndex() {
 
   const ActionButtons = ({ b }) => (
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      <a
-        href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
-        target="_top"
-        rel="noreferrer"
-      >
-        <button
-          style={{
-            ...BUTTON_BASE,
-            background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)",
-            color: "#111",
-          }}
-        >
+      <a href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
           Add as Block
         </button>
       </a>
-      <a
-        href={linkAddSection({ shopSub, template: b.template, apiKey, handle: b.handle })}
-        target="_top"
-        rel="noreferrer"
-      >
+      <a href={linkAddSection({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
         <button style={{ ...BUTTON_BASE, background: "#000", color: "#fff" }}>
           Add as Section
         </button>
       </a>
       <a href={linkActivateApp({ shopSub, apiKey })} target="_top" rel="noreferrer">
-        <button
-          style={{
-            ...BUTTON_BASE,
-            background: "#111",
-            color: "#fff",
-            border: "1px solid rgba(200,162,77,.35)",
-          }}
-        >
+        <button style={{ ...BUTTON_BASE, background: "#111", color: "#fff", border: "1px solid rgba(200,162,77,.35)" }}>
           Open Editor (Apps)
         </button>
       </a>
@@ -185,9 +164,7 @@ export default function AppIndex() {
 
       {/* HEADER */}
       <section style={{ marginBottom: 10 }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>
-          Header
-        </div>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Header</div>
         {headerBlocks.map((b) => (
           <article key={b.handle} style={CARD_STYLE}>
             <div>
@@ -201,9 +178,7 @@ export default function AppIndex() {
 
       {/* CONTENT */}
       <section style={{ margin: "16px 0 10px" }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>
-          Content
-        </div>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Content</div>
         {contentBlocks.map((b) => (
           <article key={b.handle} style={CARD_STYLE}>
             <div>
@@ -217,9 +192,7 @@ export default function AppIndex() {
 
       {/* FOOTER */}
       <section style={{ marginTop: 16 }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>
-          Footer
-        </div>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Footer</div>
         {footerBlocks.map((b) => (
           <article key={b.handle} style={CARD_STYLE}>
             <div>
