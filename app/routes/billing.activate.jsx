@@ -2,7 +2,7 @@
 import { redirect } from "@remix-run/node";
 
 export const loader = async ({ request }) => {
-  const { authenticate } = await import("~/shopify.server");
+  const { authenticate } = await import("../shopify.server");
   const { billing } = await authenticate.admin(request);
 
   // Demande du plan (adapte selon ta config)
