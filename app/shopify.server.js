@@ -1,69 +1,46 @@
 // app/shopify.server.js
-import dotenv from "dotenv";
-dotenv.config();
-
 import "@shopify/shopify-app-remix/adapters/node";
-import { shopifyApp, ApiVersion, AppDistribution } from "@shopify/shopify-app-remix/server";
-import { BillingInterval } from "@shopify/shopify-api";
+import {
+  shopifyApp,
+  ApiVersion,
+  AppDistribution,
+  BillingInterval,   // <- prends-le d'ici, pas de @shopify/shopify-api
+} from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-const requiredEnv = ["SHOPIFY_API_KEY", "SHOPIFY_API_SECRET", "SHOPIFY_APP_URL", "SCOPES"];
-for (const k of requiredEnv) {
-  if (!process.env[k] || process.env[k].trim() === "") {
-    throw new Error(`Missing env var: ${k}`);
-  }
-}
-
-// ✅ NE CHANGE RIEN ICI: mêmes handles que tes liens
 export const PLAN_HANDLES = {
   monthly: "tls-premium-monthly",
   annual: "tls-premium-annual",
 };
 
-const shopify = shopifyApp({
+export const billing = {
+  [PLAN_HANDLES.monthly]: {
+    amount: 4.99,
+    currencyCode: "USD",
+    interval: BillingInterval.Every30Days,
+    trialDays: 14,
+  },
+  [PLAN_HANDLES.annual]: {
+    amount: 39.99,
+    currencyCode: "USD",
+    interval: BillingInterval.Annual,
+    trialDays: 14,
+  },
+};
+
+export const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
-  apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
+  apiSecretKey: process.env.SHOPIFY_API_SECRET,
   apiVersion: ApiVersion.January25,
-
-  appUrl: process.env.SHOPIFY_APP_URL || "",
-  scopes: process.env.SCOPES.split(",").map((s) => s.trim()).filter(Boolean),
+  appUrl: process.env.SHOPIFY_APP_URL,
+  scopes: process.env.SCOPES.split(",").map(s => s.trim()).filter(Boolean),
   authPathPrefix: "/auth",
-
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
-
-  // ✅ Important: billing avec tes handles
-  billing: {
-    plans: [
-      {
-        id: PLAN_HANDLES.monthly,
-        amount: 4.99,
-        currencyCode: "USD",
-        interval: BillingInterval.Every30Days,
-        trialDays: 14,
-      },
-      {
-        id: PLAN_HANDLES.annual,
-        amount: 39.99,
-        currencyCode: "USD",
-        interval: BillingInterval.Annual,
-        trialDays: 14,
-      },
-    ],
-  },
-
-  future: {
-    unstable_newEmbeddedAuthStrategy: true,
-    removeRest: true,
-  },
+  billing, // <-- objet mappé par handles
+  future: { unstable_newEmbeddedAuthStrategy: true, removeRest: true },
 });
 
-export default shopify;
 export const authenticate = shopify.authenticate;
-export const unauthenticated = shopify.unauthenticated;
-export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
-export const login = shopify.login;
-export const registerWebhooks = shopify.registerWebhooks;
-export const sessionStorage = shopify.sessionStorage;
-export const apiVersion = ApiVersion.January25;
+
