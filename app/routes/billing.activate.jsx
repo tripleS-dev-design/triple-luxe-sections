@@ -1,4 +1,4 @@
-// app/routes/billing.activate.jsx   →  /billing/activate
+// app/routes/billing.activate.jsx  →  /billing/activate
 import { redirect } from "@remix-run/node";
 import { authenticate, PLAN_HANDLES } from "../shopify.server";
 
@@ -7,9 +7,9 @@ const truthy = (v) =>
 
 function computeIsTest(shop, nodeEnv) {
   if (truthy(process.env.BILLING_TEST || "")) return true;
-  const devList = (process.env.DEV_STORES || "")
+  const dev = (process.env.DEV_STORES || "")
     .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (devList.length && shop && devList.includes(shop.toLowerCase())) return true;
+  if (dev.length && shop && dev.includes(shop.toLowerCase())) return true;
   if ((nodeEnv || "").toLowerCase() !== "production") return true;
   return false;
 }
@@ -20,11 +20,13 @@ export const loader = async ({ request }) => {
   const host = url.searchParams.get("host") || "";
   const plan = url.searchParams.get("plan") || PLAN_HANDLES.monthly;
 
+  const appOrigin = process.env.SHOPIFY_APP_URL || url.origin;
+
   try {
     const { billing } = await authenticate.admin(request);
 
-    const appUrl = process.env.SHOPIFY_APP_URL || url.origin;
-    const returnUrl = new URL("/billing/confirm", appUrl);
+    // URL de retour courte
+    const returnUrl = new URL("/billing/confirm", appOrigin);
     if (shop) returnUrl.searchParams.set("shop", shop);
     if (host) returnUrl.searchParams.set("host", host);
 
@@ -34,23 +36,23 @@ export const loader = async ({ request }) => {
       returnUrl: returnUrl.toString(),
     });
 
-    // Fallback vers pricing si jamais on retombe ici
-    const fb = new URL("/app/additional", appUrl); // <<< corrigé
+    // Normalement on ne passe pas ici (Shopify 302 → page d’approbation)
+    const fb = new URL("/app/additional", appOrigin);
     if (shop) fb.searchParams.set("shop", shop);
     if (host) fb.searchParams.set("host", host);
     return redirect(fb.toString());
-  } catch (err) {
-    if (err instanceof Response && err.status === 302) {
-      const appOrigin = process.env.SHOPIFY_APP_URL || url.origin;
-      const loc = err.headers.get("Location") || "/auth/login";
-      const finalTarget = new URL(loc, appOrigin).toString();
 
+  } catch (err) {
+    // IMPORTANT : on sort de l'iframe vers **la page d’approbation Shopify**
+    if (err instanceof Response && err.status === 302) {
+      const approvalUrl = err.headers.get("Location"); // <- Doit être une URL admin.shopify.com/charges/...
       const exit = new URL("/auth/exit-iframe", appOrigin);
       if (shop) exit.searchParams.set("shop", shop);
       if (host) exit.searchParams.set("host", host);
-      exit.searchParams.set("exitIframe", finalTarget);
+      exit.searchParams.set("exitIframe", approvalUrl || "/auth/login");
       return redirect(exit.toString());
     }
+
     console.error("billing.activate error:", err);
     return new Response("Billing activation failed", { status: 500 });
   }
