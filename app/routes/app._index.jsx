@@ -1,216 +1,147 @@
 // app/routes/app._index.jsx
 import React from "react";
-import { json } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
-/* ================================
-   Loader: auth + billing status + shop/apiKey
-=================================== */
+/* =============== Loader: auth + billing gating + shop/apiKey =============== */
 export const loader = async ({ request }) => {
   const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
+  const REQUIRED = [PLAN_HANDLES.monthly, PLAN_HANDLES.annual];
+
   const { billing, session } = await authenticate.admin(request);
 
+  // si pas abonné → pricing (en gardant shop/host)
   const url = new URL(request.url);
   const qs = url.searchParams.toString();
+  try {
+    await billing.require({ plans: REQUIRED });
+  } catch {
+    return redirect(`/app.additional${qs ? `?${qs}` : ""}`);
+  }
 
+  // données pour Settings UI
   const shopDomain = session.shop || "";
   const shopSub = shopDomain.replace(".myshopify.com", "");
   const apiKey = process.env.SHOPIFY_API_KEY || "";
 
-  // Vérifie l’accès (mensuel/annuel); ne redirige pas, on affiche l’UI avec CTA
-  let hasAccess = false;
-  try {
-    await billing.require({
-      plans: [PLAN_HANDLES?.monthly, PLAN_HANDLES?.annual].filter(Boolean),
-    });
-    hasAccess = true;
-  } catch (err) {
-    // Si Shopify demande un 302 (login / exit-iframe), on le laisse passer
-    if (err instanceof Response) return err;
-    hasAccess = false;
-  }
-
-  return json({
-    shopSub,
-    shop: shopDomain,
-    apiKey,
-    hasAccess,
-    qs,
-    planHandles: {
-      monthly: PLAN_HANDLES?.monthly || "tls-premium-monthly",
-      annual: PLAN_HANDLES?.annual || "tls-premium-annual",
-    },
-  });
+  return json({ shopSub, apiKey });
 };
 
-/* ================================
-   Helpers deep links
-   - addAppBlockId = <API_KEY>/<handle>
-   - addAppSectionId = <API_KEY>/<handle>
-=================================== */
+/* ============================== Styles ============================== */
+const BUTTON_BASE = { border: "none", borderRadius: "10px", padding: "12px 20px", fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,0,0,.18)", letterSpacing: ".2px" };
+const CONTAINER_STYLE = { maxWidth: "1080px", margin: "0 auto", padding: "18px 16px 80px", fontFamily: "system-ui, sans-serif" };
+const CARD_STYLE = { backgroundColor: "#111111", borderRadius: "14px", padding: "18px", marginBottom: "16px", border: "1px solid rgba(200,162,77,.25)", display: "grid", gridTemplateColumns: "1fr auto", gap: "14px", alignItems: "center", color: "#f5f5f5" };
+const HEADER_HERO = { background: "linear-gradient(135deg, #0a0a0a 35%, #1a1a1a 60%, #2a2a2a 100%)", border: "1px solid rgba(200,162,77,.35)", borderRadius: "16px", padding: "22px", marginBottom: "18px", color: "#fff", boxShadow: "0 12px 40px rgba(0,0,0,.25)" };
+const TITLE = { margin: 0, fontSize: "22px", fontWeight: 900, letterSpacing: ".3px", background: "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
+const SUB = { margin: "6px 0 0 0", opacity: 0.9 };
+
+/* =============== Deep-links (API KEY) =============== */
 function editorBase({ shopSub }) {
-  // admin.shopify.com = plus robuste que *.myshopify.com/admin
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
-
+function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "newAppsSection" }) {
+  const base = editorBase({ shopSub });
+  const p = new URLSearchParams({ context: "apps", template, target, addAppBlockId: `${apiKey}/${handle}` });
+  return `${base}?${p.toString()}`;
+}
+function linkAddSection({ shopSub, template = "index", apiKey, handle, target = "newAppsSection" }) {
+  const base = editorBase({ shopSub });
+  const p = new URLSearchParams({ context: "apps", template, target, addAppSectionId: `${apiKey}/${handle}` });
+  return `${base}?${p.toString()}`;
+}
 function linkActivateApp({ shopSub, apiKey }) {
   const base = editorBase({ shopSub });
-  const p = new URLSearchParams({
-    context: "apps",
-    activateAppId: apiKey,
-  });
+  const p = new URLSearchParams({ context: "apps", activateAppId: apiKey });
   return `${base}?${p.toString()}`;
 }
 
-function linkAddBlock({ shopSub, apiKey, handle, template = "index", target = "newAppsSection" }) {
-  const base = editorBase({ shopSub });
-  const p = new URLSearchParams({
-    context: "apps",
-    template,
-    target,
-    addAppBlockId: `${apiKey}/${handle}`,
-  });
-  return `${base}?${p.toString()}`;
-}
+/* =============== Tes blocks (handles = fichiers .liquid) =============== */
+const APP_BLOCKS = [
+  { handle: "tls-header",          title: "Header simple (noir & rose)", desc: "Logo + menu horizontal + panier.", template: "index" },
+  { handle: "tls-banner-3",        title: "Bannière — 3 images",         desc: "Slider auto 3 visuels, sans crop.", template: "index" },
+  { handle: "tls-circle-marquee",  title: "Bandeau produits (cercle)",   desc: "Défilement continu, hover zoom.",   template: "index" },
+  { handle: "tls-product-card",    title: "Produit — Bloc vitrine",      desc: "Grande image + miniatures + CTA.",  template: "product" },
+  { handle: "tls-social-timer",    title: "Social + Timer",              desc: "IG / FB / TikTok / WhatsApp + timer.", template: "index" },
+  { handle: "tls-testimonials",    title: "Testimonials avancés",        desc: "Grille d’avis responsive.",         template: "index" },
+  { handle: "tls-footer",          title: "Footer (2 à 4 colonnes)",     desc: "Basé sur menus Shopify + paiements.", template: "index" },
+];
 
-function linkAddSection({ shopSub, apiKey, handle, template = "index", target = "newAppsSection" }) {
-  const base = editorBase({ shopSub });
-  const p = new URLSearchParams({
-    context: "apps",
-    template,
-    target,
-    addAppSectionId: `${apiKey}/${handle}`,
-  });
-  return `${base}?${p.toString()}`;
-}
-
-/* ================================
-   UI
-=================================== */
-const WRAP = { maxWidth: 1080, margin: "24px auto 80px", padding: "0 16px", fontFamily: "system-ui, sans-serif" };
-const HERO = {
-  background: "linear-gradient(135deg,#0a0a0a 35%,#1a1a1a 60%,#2a2a2a 100%)",
-  color: "#fff",
-  border: "1px solid rgba(200,162,77,.35)",
-  borderRadius: 16,
-  padding: 22,
-  boxShadow: "0 12px 40px rgba(0,0,0,.25)",
-  marginBottom: 18,
-};
-const TITLE = {
-  margin: 0,
-  fontSize: 22,
-  fontWeight: 900,
-  letterSpacing: ".3px",
-  background: "linear-gradient(90deg,#d6b35b,#f0df9b 50%,#d6b35b 100%)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-};
-const ROW = { display: "grid", gridTemplateColumns: "1fr auto", gap: 14, alignItems: "center" };
-const CARD = { background: "#111", color: "#f5f5f5", borderRadius: 14, border: "1px solid rgba(200,162,77,.25)", padding: 18, marginBottom: 14, ...ROW };
-const BT = { border: "none", borderRadius: 10, padding: "12px 20px", fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,0,0,.18)", letterSpacing: ".2px" };
-
+/* ============================== UI (Settings) ============================== */
 export default function AppIndex() {
-  const { shopSub, apiKey, hasAccess, qs, planHandles } = useLoaderData();
+  const { shopSub, apiKey } = useLoaderData();
 
-  const blocks = [
-    { handle: "tls-header",         title: "Header (section group: header)", template: "index", targetBlock: "newAppsSection", targetSection: "sectionGroup:header" },
-    { handle: "tls-footer",         title: "Footer (section group: footer)", template: "index", targetBlock: "newAppsSection", targetSection: "sectionGroup:footer" },
-    { handle: "tls-testimonials",   title: "Testimonials (content)",         template: "index" },
-    { handle: "tls-banner-3",       title: "Bannière 3 images",              template: "index" },
-    { handle: "tls-circle-marquee", title: "Bandeau produits (cercle)",      template: "index" },
-    { handle: "tls-product-card",   title: "Produit — Bloc vitrine",         template: "product", targetBlock: "mainSection" },
-    { handle: "tls-social-timer",   title: "Social + Timer",                 template: "index" },
-  ];
+  const headerBlocks  = APP_BLOCKS.filter((b) => b.handle === "tls-header");
+  const footerBlocks  = APP_BLOCKS.filter((b) => b.handle === "tls-footer");
+  const contentBlocks = APP_BLOCKS.filter((b) => b.handle !== "tls-header" && b.handle !== "tls-footer");
+
+  const ActionButtons = ({ b }) => (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <a href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
+          Add as Block
+        </button>
+      </a>
+      <a href={linkAddSection({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "#000", color: "#fff" }}>
+          Add as Section
+        </button>
+      </a>
+      <a href={linkActivateApp({ shopSub, apiKey })} target="_top" rel="noreferrer">
+        <button style={{ ...BUTTON_BASE, background: "#111", color: "#fff", border: "1px solid rgba(200,162,77,.35)" }}>
+          Open Editor (Apps)
+        </button>
+      </a>
+    </div>
+  );
 
   return (
-    <main style={WRAP}>
-      <section style={HERO}>
-        <h1 style={TITLE}>Triple-Luxe-Sections — App</h1>
-        <p style={{ margin: "6px 0 0 0", opacity: 0.9 }}>
-          Page principale : ouvrez le Theme Editor, ajoutez vos blocks/sections, ou accédez aux Settings.
-        </p>
-        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Link to={`/settings${qs ? `?${qs}` : ""}`} prefetch="intent">
-            <button style={{ ...BT, background: "#000", color: "#fff" }}>Open Settings</button>
-          </Link>
-          <a href={linkActivateApp({ shopSub, apiKey })} target="_top" rel="noreferrer">
-            <button style={{ ...BT, background: "#111", color: "#fff", border: "1px solid rgba(200,162,77,.35)" }}>
-              Open Theme Editor (Apps)
-            </button>
-          </a>
-          {!hasAccess && (
-            <>
-              <a
-                href={`/billing.activate?plan=${encodeURIComponent(planHandles.monthly)}${qs ? `&${qs}` : ""}`}
-                target="_top"
-                rel="noreferrer"
-              >
-                <button style={{ ...BT, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
-                  Activer plan Mensuel
-                </button>
-              </a>
-              <a
-                href={`/billing.activate?plan=${encodeURIComponent(planHandles.annual)}${qs ? `&${qs}` : ""}`}
-                target="_top"
-                rel="noreferrer"
-              >
-                <button style={{ ...BT, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
-                  Activer plan Annuel
-                </button>
-              </a>
-              <Link to={`/app.additional${qs ? `?${qs}` : ""}`}>
-                <button style={{ ...BT, background: "#000", color: "#fff" }}>Voir Pricing</button>
-              </Link>
-            </>
-          )}
-        </div>
+    <div style={CONTAINER_STYLE}>
+      <section style={HEADER_HERO}>
+        <h1 style={TITLE}>Triple-Luxe-Sections — Settings</h1>
+        <p style={SUB}>Ajoutez vos éléments ci-dessous. Chaque bouton ouvre l’éditeur et pré-sélectionne le block/section.</p>
       </section>
 
-      {/* CARTES D’AJOUT RAPIDE */}
-      {blocks.map((b) => (
-        <article key={b.handle} style={CARD}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
-            <div style={{ opacity: 0.9, marginTop: 4 }}>
-              Handle: <code>{b.handle}</code> — Template: <code>{b.template}</code>
+      {/* HEADER */}
+      <section style={{ marginBottom: 10 }}>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Header</div>
+        {headerBlocks.map((b) => (
+          <article key={b.handle} style={CARD_STYLE}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
+              <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
             </div>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {/* Ajouter comme Block */}
-            <a
-              href={linkAddBlock({
-                shopSub,
-                apiKey,
-                handle: b.handle,
-                template: b.template,
-                target: b.targetBlock || "newAppsSection",
-              })}
-              target="_top"
-              rel="noreferrer"
-            >
-              <button style={{ ...BT, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
-                Add as Block
-              </button>
-            </a>
+            <ActionButtons b={b} />
+          </article>
+        ))}
+      </section>
 
-            {/* Ajouter comme Section */}
-            <a
-              href={linkAddSection({
-                shopSub,
-                apiKey,
-                handle: b.handle,
-                template: b.template,
-                target: b.targetSection || "newAppsSection",
-              })}
-              target="_top"
-              rel="noreferrer"
-            >
-              <button style={{ ...BT, background: "#000", color: "#fff" }}>Add as Section</button>
-            </a>
-          </div>
-        </article>
-      ))}
-    </main>
+      {/* CONTENT */}
+      <section style={{ margin: "16px 0 10px" }}>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Content</div>
+        {contentBlocks.map((b) => (
+          <article key={b.handle} style={CARD_STYLE}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
+              <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
+            </div>
+            <ActionButtons b={b} />
+          </article>
+        ))}
+      </section>
+
+      {/* FOOTER */}
+      <section style={{ marginTop: 16 }}>
+        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Footer</div>
+        {footerBlocks.map((b) => (
+          <article key={b.handle} style={CARD_STYLE}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
+              <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
+            </div>
+            <ActionButtons b={b} />
+          </article>
+        ))}
+      </section>
+    </div>
   );
 }
