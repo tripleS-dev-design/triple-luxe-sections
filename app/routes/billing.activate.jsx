@@ -1,7 +1,8 @@
-// app/routes/billing.activate.jsx
+// app/routes/billing.activate.jsx   →   /billing/activate
 import { redirect } from "@remix-run/node";
 import { authenticate, PLAN_HANDLES } from "../shopify.server";
 
+// Helpers (même logique que l’app 1)
 const truthy = (v) =>
   typeof v === "string" && ["true","1","yes","y","on"].includes(v.toLowerCase());
 
@@ -18,7 +19,7 @@ export const loader = async ({ request }) => {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop") || "";
   const host = url.searchParams.get("host") || "";
-  const plan = url.searchParams.get("plan") || PLAN_HANDLES.monthly; // <- défaut
+  const plan = url.searchParams.get("plan") || PLAN_HANDLES.monthly;
 
   try {
     const { billing } = await authenticate.admin(request);
@@ -28,15 +29,14 @@ export const loader = async ({ request }) => {
     if (shop) returnUrl.searchParams.set("shop", shop);
     if (host) returnUrl.searchParams.set("host", host);
 
-    const isTest = computeIsTest(shop, process.env.NODE_ENV);
-
     await billing.request({
       plan,
-      isTest,
-      returnUrl: returnUrl.toString(), // ⚠️ court (<=255)
+      isTest: computeIsTest(shop, process.env.NODE_ENV),
+      returnUrl: returnUrl.toString(), // <= 255 chars
     });
 
-    const fallback = new URL("/app.additional", appUrl); // ta page pricing
+    // Si jamais on revient ici, fallback vers pricing
+    const fallback = new URL("/app.additional", appUrl);
     if (shop) fallback.searchParams.set("shop", shop);
     if (host) fallback.searchParams.set("host", host);
     return redirect(fallback.toString());
