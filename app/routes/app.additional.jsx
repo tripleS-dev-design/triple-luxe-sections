@@ -18,9 +18,9 @@ export default function Pricing() {
   const { PLAN_HANDLES, qs } = useLoaderData();
 
   const BUTTON_BASE = { border: "none", borderRadius: "10px", padding: "12px 20px", fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,0,0,.18)", letterSpacing: ".2px" };
-  const CONTAINER_STYLE = { maxWidth: "1080px", margin: "0 auto", padding: "18px 16px 60px" };
+  const CONTAINER_STYLE = { maxWidth: "1080px", margin: "0 auto", padding: "18px 16px 60px", fontFamily: "system-ui, sans-serif" };
   const HEADER_HERO = { background: "linear-gradient(135deg, #0a0a0a 35%, #1a1a1a 60%, #2a2a2a 100%)", border: "1px solid rgba(200,162,77,.35)", borderRadius: "16px", padding: "22px", marginBottom: "18px", color: "#fff", boxShadow: "0 12px 40px rgba(0,0,0,.25)", textAlign: "center" };
-  const TITLE = { margin: 0, fontSize: "22px", fontWeight: 900, letterSpacing: ".3px", background: "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
+  const TITLE = { margin: 0, fontSize: "22px", fontWeight: 900, letterSpacing: ".3px", background: "linear-gradient(90deg,#d6b35b,#f0df9b 50%,#d6b35b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
   const GRID = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" };
   const GRID_MOBILE = { display: "grid", gridTemplateColumns: "1fr", gap: "16px" };
   const CARD = (highlight = false) => ({ backgroundColor: "#111111", borderRadius: "14px", padding: "22px", border: `1px solid rgba(200,162,77,${highlight ? ".55" : ".25"})`, color: "#f5f5f5", boxShadow: highlight ? "0 16px 44px rgba(0,0,0,.28)" : "0 10px 28px rgba(0,0,0,.2)" });
@@ -31,7 +31,7 @@ export default function Pricing() {
   const features = ["Sections Header / Content / Footer","Bannière 3 images","Bandeau produits (cercle)","Bloc vitrine produit","Social + Timer","Testimonials avancés","Mises à jour & support de base"];
 
   const Plan = ({ title, price, period, highlight, cta, planHandle }) => {
-    const href = `/billing.activate?plan=${encodeURIComponent(planHandle)}${qs ? `&${qs}` : ""}`;
+    const href = `/billing/activate?plan=${encodeURIComponent(planHandle)}${qs ? `&${qs}` : ""}`;
     return (
       <article style={CARD(highlight)}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
@@ -68,7 +68,7 @@ export default function Pricing() {
     <div style={CONTAINER_STYLE}>
       <section style={HEADER_HERO}>
         <h1 style={TITLE}>Tarifs — Triple-Luxe-Sections</h1>
-        <p style={{ margin: "6px 0 0 0", opacity: 0.9 }}>Choisissez votre plan — les deux incluent toutes les sections.</p>
+        <p style={{ margin: "6px 0 0 0", opacity: 0.9 }}>Choisissez votre plan — les deux incluent toutes les sections. Essai gratuit 14 jours.</p>
       </section>
 
       <section style={twoCols ? GRID : GRID_MOBILE}>
