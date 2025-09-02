@@ -1,4 +1,4 @@
-// app/routes/billing.confirm.jsx   →   /billing/confirm
+// app/routes/billing.confirm.jsx
 import { redirect } from "@remix-run/node";
 
 export async function loader({ request }) {
@@ -7,16 +7,17 @@ export async function loader({ request }) {
   const host = url.searchParams.get("host") || "";
 
   const appOrigin = process.env.SHOPIFY_APP_URL || url.origin;
-  const store = shop.replace(".myshopify.com", "");
 
-  // Retour dans l’onglet de l’app dans l’admin Shopify
-  const adminAppUrl =
-    `https://admin.shopify.com/store/${store}/apps/${process.env.SHOPIFY_API_KEY}` +
-    (shop || host ? `?${new URLSearchParams({ ...(shop && { shop }), ...(host && { host }) }).toString()}` : "");
+  // 🔁 Retour direct vers /app (app-index/Settings)
+  const backToApp = new URL("/app", appOrigin);
+  if (shop) backToApp.searchParams.set("shop", shop);
+  if (host) backToApp.searchParams.set("host", host);
 
   const exit = new URL("/auth/exit-iframe", appOrigin);
   if (shop) exit.searchParams.set("shop", shop);
   if (host) exit.searchParams.set("host", host);
-  exit.searchParams.set("exitIframe", adminAppUrl);
+  exit.searchParams.set("exitIframe", backToApp.toString());
+
   return redirect(exit.toString());
 }
+
