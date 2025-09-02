@@ -22,15 +22,14 @@ api_version = "2025-07"
   uri = "/webhooks/app/scopes_update"
 
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_products,write_products,read_themes,write_themes"
 
 [auth]
 redirect_urls = [
   "https://triple-luxe-sections-1.onrender.com/auth/callback",
   "https://triple-luxe-sections-1.onrender.com/auth/shopify/callback",
-  "https://triple-luxe-sections-1.onrender.com/api/auth/callback"
+  "https://triple-luxe-sections-1.onrender.com/api/auth/callback",
+  "https://triple-luxe-sections-1.onrender.com/billing/confirm"
 ]
 
-[pos]
-embedded = false
+
