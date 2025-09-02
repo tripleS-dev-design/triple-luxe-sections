@@ -1,27 +1,41 @@
 // app/routes/app._index.jsx
-import React from "react";
-import { json, redirect } from "@remix-run/node";
+import React, { useEffect } from "react";
+import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { useAppBridge } from "@shopify/app-bridge-react";
+import { Redirect } from "@shopify/app-bridge/actions";
+
+import { authenticate } from "../shopify.server";
+import { hasActiveSubscription, createSubscription } from "../services/billing.server";
 
 /* ===============================
- * LOADER: Auth + Billing gating
+ * LOADER: Auth + Billing (sans 302 serveur)
  * =============================== */
 export const loader = async ({ request }) => {
-  const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
-  const REQUIRED = [PLAN_HANDLES.monthly, PLAN_HANDLES.annual];
+  const { admin, session } = await authenticate.admin(request);
 
-  const { billing, session } = await authenticate.admin(request);
-
-  // Conserver shop/host dans la query
   const url = new URL(request.url);
-  const qs = url.searchParams.toString();
-  const suffix = qs ? `?${qs}` : "";
+  const origin = url.origin;
 
-  try {
-    await billing.require({ plans: REQUIRED });
-  } catch {
-    // ⛔ Pas abonné → Pricing
-    return redirect(`/app/additional${suffix}`);
+  // 1) Abonnement actif ?
+  const active = await hasActiveSubscription(admin);
+  if (!active) {
+    // 2) Pas actif → on crée l’abonnement et on renvoie l’URL de confirmation
+    const confirmationUrl = await createSubscription(admin, {
+      name: "tls-premium-monthly",
+      price: 9.99, // 💸 ton prix
+      interval: "EVERY_30_DAYS", // ou "ANNUAL"
+      returnUrl: `${origin}/app/billing/confirm`,
+      test: process.env.NODE_ENV !== "production",
+      currencyCode: "USD",
+    });
+
+    // On peut aussi renvoyer des infos shop pour l’UI derrière
+    const shopDomain = session.shop || "";
+    const shopSub = shopDomain.replace(".myshopify.com", "");
+    const apiKey = process.env.SHOPIFY_API_KEY || "";
+
+    return json({ confirmationUrl, shopSub, apiKey });
   }
 
   // ✅ Abonné → données pour l’UI
@@ -127,7 +141,18 @@ const APP_BLOCKS = [
 ];
 
 export default function AppIndex() {
-  const { shopSub, apiKey } = useLoaderData();
+  const data = useLoaderData();
+  const app = useAppBridge();
+
+  // Si le loader a renvoyé une URL de confirmation, on fait une redirection REMOTE (hors iframe)
+  useEffect(() => {
+    if (data?.confirmationUrl && app) {
+      const redirect = Redirect.create(app);
+      redirect.dispatch(Redirect.Action.REMOTE, data.confirmationUrl);
+    }
+  }, [data?.confirmationUrl, app]);
+
+  const { shopSub, apiKey } = data || {};
 
   const headerBlocks  = APP_BLOCKS.filter((b) => b.handle === "tls-header");
   const footerBlocks  = APP_BLOCKS.filter((b) => b.handle === "tls-footer");
@@ -152,6 +177,18 @@ export default function AppIndex() {
       </a>
     </div>
   );
+
+  // Pendant la redirection de billing, on affiche juste un "chargement"
+  if (data?.confirmationUrl) {
+    return (
+      <div style={{ ...CONTAINER_STYLE, color: "#fff" }}>
+        <section style={HEADER_HERO}>
+          <h1 style={TITLE}>Redirection vers la page de paiement…</h1>
+          <p style={SUB}>Merci de patienter, Shopify s’ouvre hors de l’iframe.</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div style={CONTAINER_STYLE}>
