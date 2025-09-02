@@ -1,24 +1,20 @@
+// app/routes/billing.confirm.jsx
 import { redirect } from "@remix-run/node";
+import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
+  const { billing } = await authenticate.admin(request);
+
+  // 3) Très important: finaliser la confirmation du paiement
+  //    Sans ça, billing.require(...) échoue et tu boucles vers Pricing.
+  await billing.handleConfirmation(request);
+
+  // 4) Puis retourne sur l’app (on garde les QS: shop/host…)
   const url = new URL(request.url);
-  const shop = url.searchParams.get("shop") || "";
-  const host = url.searchParams.get("host") || "";
-
-  const appOrigin = process.env.SHOPIFY_APP_URL || url.origin;
-
-  // Retourner dans l’onglet de l’app dans l’admin
-  const store = shop.replace(".myshopify.com", "");
-  const adminAppUrl =
-    `https://admin.shopify.com/store/${store}/apps/${process.env.SHOPIFY_API_KEY}` +
-    (shop || host
-      ? `?${new URLSearchParams({ ...(shop && { shop }), ...(host && { host }) }).toString()}`
-      : "");
-
-  const exit = new URL("/auth/exit-iframe", appOrigin);
-  if (shop) exit.searchParams.set("shop", shop);
-  if (host) exit.searchParams.set("host", host);
-  exit.searchParams.set("exitIframe", adminAppUrl);
-
-  return redirect(exit.toString());
+  const qs = url.searchParams.toString();
+  return redirect(`/app${qs ? `?${qs}` : ""}`);
 };
+
+export default function BillingConfirm() {
+  return null;
+}
