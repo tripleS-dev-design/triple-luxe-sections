@@ -2,7 +2,7 @@
 import { json } from "@remix-run/node";
 import { shopify } from "~/shopify.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }) {
   const url = new URL(request.url);
   const plan = url.searchParams.get("plan") || "tls-premium-monthly";
   const host = url.searchParams.get("host") || "";
