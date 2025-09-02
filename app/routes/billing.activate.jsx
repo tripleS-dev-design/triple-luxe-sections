@@ -1,8 +1,7 @@
-// app/routes/billing.activate.jsx   →   /billing/activate
+// app/routes/billing.activate.jsx   →  /billing/activate
 import { redirect } from "@remix-run/node";
 import { authenticate, PLAN_HANDLES } from "../shopify.server";
 
-// Helpers (même logique que l’app 1)
 const truthy = (v) =>
   typeof v === "string" && ["true","1","yes","y","on"].includes(v.toLowerCase());
 
@@ -32,14 +31,14 @@ export const loader = async ({ request }) => {
     await billing.request({
       plan,
       isTest: computeIsTest(shop, process.env.NODE_ENV),
-      returnUrl: returnUrl.toString(), // <= 255 chars
+      returnUrl: returnUrl.toString(),
     });
 
-    // Si jamais on revient ici, fallback vers pricing
-    const fallback = new URL("/app.additional", appUrl);
-    if (shop) fallback.searchParams.set("shop", shop);
-    if (host) fallback.searchParams.set("host", host);
-    return redirect(fallback.toString());
+    // Fallback vers pricing si jamais on retombe ici
+    const fb = new URL("/app/additional", appUrl); // <<< corrigé
+    if (shop) fb.searchParams.set("shop", shop);
+    if (host) fb.searchParams.set("host", host);
+    return redirect(fb.toString());
   } catch (err) {
     if (err instanceof Response && err.status === 302) {
       const appOrigin = process.env.SHOPIFY_APP_URL || url.origin;
