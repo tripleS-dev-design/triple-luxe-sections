@@ -2,8 +2,7 @@
 import React, { useEffect } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { Redirect } from "@shopify/app-bridge/actions";
+
 
 import { authenticate } from "../shopify.server";
 import { hasActiveSubscription, createSubscription } from "../services/billing.server";
