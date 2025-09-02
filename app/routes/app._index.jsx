@@ -4,13 +4,12 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
 /* ===============================
- * LOADER: Auth (sans billing)
+ * LOADER: Auth (no billing gate)
  * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { session } = await authenticate.admin(request);
 
-  // ✅ Abonné ou pas, on laisse passer (Managed pricing => pas d'API Billing)
   const shopDomain = session.shop || "";
   const shopSub = shopDomain.replace(".myshopify.com", "");
   const apiKey = process.env.SHOPIFY_API_KEY || "";
@@ -19,7 +18,7 @@ export const loader = async ({ request }) => {
 };
 
 /* ===============================
- * Deep links (API KEY)
+ * Theme Editor deep links
  * addAppBlockId / addAppSectionId = <API_KEY>/<handle>
  * =============================== */
 function editorBase({ shopSub }) {
@@ -35,6 +34,7 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "n
   });
   return `${base}?${p.toString()}`;
 }
+// Kept for parity (unused in UI, safe to keep)
 function linkAddSection({ shopSub, template = "index", apiKey, handle, target = "newAppsSection" }) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
@@ -52,143 +52,222 @@ function linkActivateApp({ shopSub, apiKey }) {
 }
 
 /* ===============================
- * UI (SETTINGS) — Page principale
+ * CONTACT LINKS (edit if you want)
  * =============================== */
-const BUTTON_BASE = {
-  border: "none",
-  borderRadius: "10px",
-  padding: "12px 20px",
-  fontWeight: 800,
-  cursor: "pointer",
-  boxShadow: "0 6px 18px rgba(0,0,0,.18)",
-  letterSpacing: ".2px",
+const CONTACT = {
+  whatsapp: "https://wa.me/0000000000", // ← put your number
+  video: "https://youtu.be/dQw4w9WgXcQ", // ← put your tutorial link
 };
-const CONTAINER_STYLE = {
-  maxWidth: "1080px",
-  margin: "0 auto",
-  padding: "18px 16px 80px",
-  fontFamily: "system-ui, sans-serif",
+
+/* ===============================
+ * DESIGN TOKENS (Shopify-like grays)
+ * =============================== */
+const COLORS = {
+  bg: "#F6F6F7",
+  surface: "#FFFFFF",
+  text: "#202223",
+  subtext: "#5C5F62",
+  border: "#E1E3E5",
+  borderSoft: "#F0F1F2",
+  black: "#000000",
+  white: "#FFFFFF",
 };
-const CARD_STYLE = {
-  backgroundColor: "#111111",
-  borderRadius: "14px",
-  padding: "18px",
-  marginBottom: "16px",
-  border: "1px solid rgba(200,162,77,.25)",
+const FONTS =
+  "-apple-system, BlinkMacSystemFont, Inter, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji','Segoe UI Emoji', 'Segoe UI Symbol', sans-serif";
+
+/* ===============================
+ * UI STYLES
+ * =============================== */
+const PAGE = {
+  minHeight: "100vh",
+  background: COLORS.bg,
+  fontFamily: FONTS,
+  color: COLORS.text,
+};
+const WRAP = { maxWidth: 1100, margin: "0 auto", padding: "20px 18px 80px" };
+
+const TOPBAR = {
+  position: "sticky",
+  top: 0,
+  zIndex: 50,
+  background: COLORS.surface,
+  borderBottom: `1px solid ${COLORS.border}`,
+};
+const TOPBAR_INNER = {
+  ...WRAP,
+  display: "grid",
+  gridTemplateColumns: "160px 1fr 160px",
+  alignItems: "center",
+  gap: 12,
+  padding: "12px 18px",
+};
+const BRAND = { fontWeight: 800, letterSpacing: ".3px" };
+const TAGLINE = { textAlign: "center", color: COLORS.subtext, fontSize: 14 };
+
+const TOPBTN = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: 36,
+  padding: "0 12px",
+  borderRadius: 8,
+  border: `1px solid ${COLORS.border}`,
+  background: COLORS.surface,
+  color: COLORS.text,
+  textDecoration: "none",
+  fontWeight: 600,
+  gap: 8,
+};
+
+const SECTION_TITLE = { margin: "18px 0 10px", fontSize: 14, color: COLORS.subtext, fontWeight: 800 };
+
+const CARD = {
+  background: COLORS.surface,
+  borderRadius: 14,
+  border: `1px solid ${COLORS.border}`,
+  padding: 16,
+  marginBottom: 12,
+  boxShadow: "0 1px 0 rgba(22, 29, 37, 0.04)",
   display: "grid",
   gridTemplateColumns: "1fr auto",
-  gap: "14px",
+  gap: 12,
   alignItems: "center",
-  color: "#f5f5f5",
 };
-const HEADER_HERO = {
-  background: "linear-gradient(135deg, #0a0a0a 35%, #1a1a1a 60%, #2a2a2a 100%)",
-  border: "1px solid rgba(200,162,77,.35)",
-  borderRadius: "16px",
-  padding: "22px",
-  marginBottom: "18px",
-  color: "#fff",
-  boxShadow: "0 12px 40px rgba(0,0,0,.25)",
-};
-const TITLE = {
-  margin: 0,
-  fontSize: "22px",
-  fontWeight: 900,
-  letterSpacing: ".3px",
-  background: "linear-gradient(90deg, #d6b35b, #f0df9b 50%, #d6b35b 100%)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-};
-const SUB = { margin: "6px 0 0 0", opacity: 0.9 };
 
-// Handles = noms des fichiers .liquid
+const CARD_TITLE = { margin: 0, fontSize: 16, fontWeight: 800, letterSpacing: ".2px" };
+const CARD_DESC = { margin: "6px 0 0", color: COLORS.subtext, fontSize: 14, lineHeight: 1.4 };
+
+const BTN_ADD = {
+  background: COLORS.black,
+  color: COLORS.white,
+  border: "none",
+  borderRadius: 10,
+  padding: "10px 16px",
+  fontWeight: 800,
+  letterSpacing: ".2px",
+  cursor: "pointer",
+};
+
+/* ===============================
+ * BLOCKS (English)
+ * =============================== */
 const APP_BLOCKS = [
-  { handle: "tls-header",         title: "Header simple (noir & rose)", desc: "Logo + menu horizontal + panier.",       template: "index" },
-  { handle: "tls-banner-3",       title: "Bannière — 3 images",         desc: "Slider auto 3 visuels, sans crop.",      template: "index" },
-  { handle: "tls-circle-marquee", title: "Bandeau produits (cercle)",   desc: "Défilement continu, hover zoom.",        template: "index" },
-  { handle: "tls-product-card",   title: "Produit — Bloc vitrine",      desc: "Grande image + miniatures + CTA.",       template: "product" },
-  { handle: "tls-social-timer",   title: "Social + Timer",              desc: "IG / FB / TikTok / WhatsApp + timer.",   template: "index" },
-  { handle: "tls-testimonials",   title: "Testimonials avancés",        desc: "Grille d’avis responsive.",              template: "index" },
-  { handle: "tls-footer",         title: "Footer (2 à 4 colonnes)",     desc: "Basé sur menus Shopify + paiements.",    template: "index" },
+  {
+    handle: "tls-header",
+    title: "Simple header (dark & pink)",
+    desc: "Logo, horizontal menu, and cart. Clean and responsive.",
+    template: "index",
+  },
+  {
+    handle: "tls-banner-3",
+    title: "Banner — 3 images",
+    desc: "Auto slider with 3 visuals. Keeps original ratio (no crop).",
+    template: "index",
+  },
+  {
+    handle: "tls-circle-marquee",
+    title: "Product marquee (circle)",
+    desc: "Continuous scrolling list of products with hover zoom.",
+    template: "index",
+  },
+  {
+    handle: "tls-product-card",
+    title: "Product — Showcase card",
+    desc: "Large main image, thumbnails, price, and primary CTA.",
+    template: "product",
+  },
+  {
+    handle: "tls-social-timer",
+    title: "Social + Countdown",
+    desc: "Instagram / Facebook / TikTok / WhatsApp icons with a live timer.",
+    template: "index",
+  },
+  {
+    handle: "tls-testimonials",
+    title: "Advanced testimonials",
+    desc: "Responsive grid for customer quotes and ratings.",
+    template: "index",
+  },
+  {
+    handle: "tls-footer",
+    title: "Footer (2 to 4 columns)",
+    desc: "Built from Shopify menus + payment icons. Fully responsive.",
+    template: "index",
+  },
 ];
 
+/* ===============================
+ * PAGE
+ * =============================== */
 export default function AppIndex() {
   const { shopSub, apiKey } = useLoaderData();
 
-  const headerBlocks  = APP_BLOCKS.filter((b) => b.handle === "tls-header");
-  const footerBlocks  = APP_BLOCKS.filter((b) => b.handle === "tls-footer");
+  const headerBlocks = APP_BLOCKS.filter((b) => b.handle === "tls-header");
+  const footerBlocks = APP_BLOCKS.filter((b) => b.handle === "tls-footer");
   const contentBlocks = APP_BLOCKS.filter((b) => b.handle !== "tls-header" && b.handle !== "tls-footer");
 
-  const ActionButtons = ({ b }) => (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      <a href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
-        <button style={{ ...BUTTON_BASE, background: "linear-gradient(90deg,#d6b35b,#f0df9b 70%,#d6b35b)", color: "#111" }}>
-          Add as Block
-        </button>
-      </a>
-      <a href={linkAddSection({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" rel="noreferrer">
-        <button style={{ ...BUTTON_BASE, background: "#000", color: "#fff" }}>
-          Add as Section
-        </button>
-      </a>
-      <a href={linkActivateApp({ shopSub, apiKey })} target="_top" rel="noreferrer">
-        <button style={{ ...BUTTON_BASE, background: "#111", color: "#fff", border: "1px solid rgba(200,162,77,.35)" }}>
-          Open Editor (Apps)
-        </button>
-      </a>
-    </div>
+  const AddButton = ({ b }) => (
+    <a
+      href={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
+      target="_top"
+      rel="noreferrer"
+    >
+      <button style={BTN_ADD}>Add to theme</button>
+    </a>
+  );
+
+  const BlockItem = ({ b }) => (
+    <article style={CARD} key={b.handle}>
+      <div>
+        <h3 style={CARD_TITLE}>{b.title}</h3>
+        <p style={CARD_DESC}>{b.desc}</p>
+      </div>
+      <AddButton b={b} />
+    </article>
   );
 
   return (
-    <div style={CONTAINER_STYLE}>
-      <section style={HEADER_HERO}>
-        <h1 style={TITLE}>Triple-Luxe-Sections — Settings</h1>
-        <p style={SUB}>
-          Ajoutez vos éléments ci-dessous. Chaque bouton ouvre l’éditeur et pré-sélectionne le block/section.
-        </p>
-      </section>
+    <div style={PAGE}>
+      {/* Top bar */}
+      <header style={TOPBAR}>
+        <div style={TOPBAR_INNER}>
+          <a href={CONTACT.whatsapp} style={TOPBTN} target="_blank" rel="noreferrer">
+            {/* simple emoji to avoid extra deps */}
+            <span>🟢</span>
+            <span>WhatsApp</span>
+          </a>
 
-      {/* HEADER */}
-      <section style={{ marginBottom: 10 }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Header</div>
+          <div style={TAGLINE}>
+            <strong style={BRAND}>Triple-Luxe Sections</strong> — Build premium sections in seconds.
+          </div>
+
+          <a href={CONTACT.video} style={{ ...TOPBTN, justifySelf: "end" }} target="_blank" rel="noreferrer">
+            <span>▶️</span>
+            <span>Video guide</span>
+          </a>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main style={WRAP}>
+        {/* Header */}
+        <div style={SECTION_TITLE}>Header</div>
         {headerBlocks.map((b) => (
-          <article key={b.handle} style={CARD_STYLE}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
-              <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
-            </div>
-            <ActionButtons b={b} />
-          </article>
+          <BlockItem key={b.handle} b={b} />
         ))}
-      </section>
 
-      {/* CONTENT */}
-      <section style={{ margin: "16px 0 10px" }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Content</div>
+        {/* Content */}
+        <div style={SECTION_TITLE}>Content</div>
         {contentBlocks.map((b) => (
-          <article key={b.handle} style={CARD_STYLE}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
-              <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
-            </div>
-            <ActionButtons b={b} />
-          </article>
+          <BlockItem key={b.handle} b={b} />
         ))}
-      </section>
 
-      {/* FOOTER */}
-      <section style={{ marginTop: 16 }}>
-        <div style={{ color: "#111", fontWeight: 900, letterSpacing: ".3px", margin: "0 0 10px 2px" }}>Footer</div>
+        {/* Footer */}
+        <div style={SECTION_TITLE}>Footer</div>
         {footerBlocks.map((b) => (
-          <article key={b.handle} style={CARD_STYLE}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 900 }}>{b.title}</div>
-              <div style={{ opacity: 0.9, marginTop: 4 }}>{b.desc}</div>
-            </div>
-            <ActionButtons b={b} />
-          </article>
+          <BlockItem key={b.handle} b={b} />
         ))}
-      </section>
+      </main>
     </div>
   );
 }
