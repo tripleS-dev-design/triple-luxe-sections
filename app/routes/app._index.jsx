@@ -339,30 +339,9 @@ export default function AppIndex() {
 
             {/* Pills: YouTube (rouge) + WhatsApp (vert) */}
             <div style={PILLS}>
-              <a
-                href="https://www.youtube.com/"
-                target="_blank"
-                rel="noreferrer"
-                style={pill("linear-gradient(135deg,#ff4d4f,#ff1f1f)", "#fff")}
-                aria-label="YouTube"
-                title="YouTube"
-              >
-                <IconYouTube /> YouTube
-              </a>
-              <a
-                href="https://wa.me/0000000000"
-                target="_blank"
-                rel="noreferrer"
-                style={pill("linear-gradient(135deg,#25D366,#0cb04b)", "#fff")}
-                aria-label="WhatsApp"
-                title="WhatsApp"
-              >
-                <span style={{
-                  width: 8, height: 8, borderRadius: 999, background: "#fff",
-                  display: "inline-block", opacity: .95
-                }} />
-                <IconWhatsApp /> WhatsApp
-              </a>
+           
+            
+              
             </div>
           </div>
         </header>
