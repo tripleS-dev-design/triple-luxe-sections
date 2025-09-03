@@ -3,9 +3,9 @@ import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
-/* =========================================
- * LOADER: Auth uniquement (Managed pricing)
- * ========================================= */
+/* ===============================
+ * LOADER: Auth (Managed pricing)
+ * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { session } = await authenticate.admin(request);
@@ -17,9 +17,9 @@ export const loader = async ({ request }) => {
   return json({ shopSub, apiKey });
 };
 
-/* =========================================
+/* ===============================
  * Deep links (Theme editor)
- * ========================================= */
+ * =============================== */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
@@ -34,9 +34,9 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "n
   return `${base}?${p.toString()}`;
 }
 
-/* =========================================
- * Styles de base (look Shopify, clair)
- * ========================================= */
+/* ===============================
+ * Styles
+ * =============================== */
 const COLORS = {
   bg: "#f5f7fb",
   card: "#ffffff",
@@ -82,9 +82,9 @@ const APP_TITLE = { margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: ".2
 const APP_SUB = { margin: "2px 0 0 0", opacity: 0.95, fontSize: 13, fontWeight: 500 };
 
 const PILLS = { display: "flex", gap: 10, flexWrap: "wrap" };
-const pill = (bg = "#fff") => ({
+const pill = (bg = "#fff", fg) => ({
   background: bg,
-  color: bg === "#fff" ? COLORS.pillText : "#fff",
+  color: fg || (bg === "#fff" ? COLORS.pillText : "#fff"),
   borderRadius: 999,
   padding: "8px 12px",
   display: "inline-flex",
@@ -123,10 +123,9 @@ const NAME = { margin: 0, fontWeight: 800, fontSize: 16 };
 const DESC = { margin: "3px 0 0 0", color: COLORS.sub, fontSize: 13 };
 
 const BTN_ADD = {
-  background:
-    "linear-gradient(135deg, #3a7fff 0%, #6252ff 55%, #8b44ff 100%)",
+  background: "linear-gradient(135deg, #3a7fff 0%, #6252ff 55%, #8b44ff 100%)",
   color: COLORS.btnText,
-  border: "0",
+  border: 0,
   borderRadius: 12,
   padding: "10px 16px",
   fontWeight: 800,
@@ -135,9 +134,9 @@ const BTN_ADD = {
   whiteSpace: "nowrap",
 };
 
-/* =========================================
- * Icônes (inline SVG + carrés dégradés)
- * ========================================= */
+/* ===============================
+ * Icônes (inline)
+ * =============================== */
 const SQUARE = (size = 44) => ({
   width: size,
   height: size,
@@ -163,7 +162,6 @@ const SquareIcon = ({ size = 44, grad = "violet", children }) => {
   );
 };
 
-// Petites icônes pour "Header / Content / Footer"
 const TinyBadge = ({ emoji, grad = "violet" }) => (
   <SquareIcon size={28} grad={grad}>
     <span style={{ fontSize: 14, filter: "drop-shadow(0 1px 1px rgba(0,0,0,.25))" }}>
@@ -172,7 +170,7 @@ const TinyBadge = ({ emoji, grad = "violet" }) => (
   </SquareIcon>
 );
 
-// Glyphs principaux (SVG)
+// Glyphs principaux
 const GlyphWindow = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <rect x="3" y="5" width="18" height="14" rx="3" fill="#ffffff" opacity="0.95" />
@@ -211,9 +209,26 @@ const GlyphStar = ({ size = 22 }) => (
   </svg>
 );
 
-/* =========================================
+/* Icônes des pills */
+const IconYouTube = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+    {/* triangle play blanc */}
+    <path d="M10 8l6 4-6 4z" fill="#fff" />
+  </svg>
+);
+const IconWhatsApp = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+    {/* bulle + combiné simplifiés en blanc */}
+    <path
+      fill="#fff"
+      d="M12 3a9 9 0 00-7.8 13.5L3 21l4.7-1.2A9 9 0 1012 3zm-4 6.9c.1-.2.3-.3.6-.3h.5c.1 0 .2 0 .3.2l.7 1.6c.1.2 0 .3 0 .4l-.3.5c-.1.1 0 .3.1.4l1 .9c.1.1.3.1.4.1l.5-.2c.1 0 .2 0 .3.1l1.5.8c.2.1.2.3.2.4l-.1.6c0 .2-.2.4-.4.5-.5.3-1.1.4-1.8.3-1.5-.2-3.2-1.3-4.3-2.6-1.1-1.2-1.9-2.9-1.7-4.3.1-.6.3-1.1.6-1.4z"
+    />
+  </svg>
+);
+
+/* ===============================
  * Données des blocs
- * ========================================= */
+ * =============================== */
 const APP_BLOCKS = [
   {
     handle: "tls-header",
@@ -309,7 +324,7 @@ export default function AppIndex() {
   return (
     <div style={WRAP}>
       <div style={CONTAINER}>
-        {/* Top hero */}
+        {/* Hero */}
         <header style={HERO}>
           <div style={HERO_TOP}>
             <div style={TITLE_WRAP}>
@@ -321,22 +336,32 @@ export default function AppIndex() {
                 <p style={APP_SUB}>Build premium sections in seconds</p>
               </div>
             </div>
+
+            {/* Pills: YouTube (rouge) + WhatsApp (vert) */}
             <div style={PILLS}>
               <a
-                href="https://www.youtube.com"
+                href="https://www.youtube.com/"
                 target="_blank"
                 rel="noreferrer"
-                style={pill("#ffffff")}
+                style={pill("linear-gradient(135deg,#ff4d4f,#ff1f1f)", "#fff")}
+                aria-label="YouTube"
+                title="YouTube"
               >
-                <span>▶</span> Video guide
+                <IconYouTube /> YouTube
               </a>
               <a
                 href="https://wa.me/0000000000"
                 target="_blank"
                 rel="noreferrer"
-                style={pill("linear-gradient(135deg,#22c55e,#16a34a)")}
+                style={pill("linear-gradient(135deg,#25D366,#0cb04b)", "#fff")}
+                aria-label="WhatsApp"
+                title="WhatsApp"
               >
-                <span>🟢</span> WhatsApp
+                <span style={{
+                  width: 8, height: 8, borderRadius: 999, background: "#fff",
+                  display: "inline-block", opacity: .95
+                }} />
+                <IconWhatsApp /> WhatsApp
               </a>
             </div>
           </div>
