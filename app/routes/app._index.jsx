@@ -1,8 +1,8 @@
-// app/routes/app._index.jsx — Polaris edition
+// app/routes/app._index.jsx — Polaris edition (safe build)
 import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { Page, Layout, Card, Button, Badge, Stack } from "@shopify/polaris";
+import { Page, Layout, Card, Button, Badge } from "@shopify/polaris";
 
 /* ===============================
  * LOADER: Auth (Managed pricing)
@@ -36,7 +36,7 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "n
 }
 
 /* ===============================
- * Icônes inline (on garde tes SVG pour fiabilité)
+ * Icônes inline (SVGs conservés)
  * =============================== */
 const SQUARE = (size = 44) => ({
   width: size,
@@ -107,69 +107,13 @@ const GlyphStar = ({ size = 22 }) => (
  * Données des blocs
  * =============================== */
 const APP_BLOCKS = [
-  {
-    handle: "tls-header",
-    template: "index",
-    title: "Simple header (dark & pink)",
-    desc: "Logo, horizontal menu, and cart. Clean and responsive.",
-    icon: <GlyphWindow />,
-    grad: "violet",
-    group: "Header",
-  },
-  {
-    handle: "tls-banner-3",
-    template: "index",
-    title: "Banner – 3 images",
-    desc: "Auto slider with 3 visuals. Keeps original ratio (no crop).",
-    icon: <GlyphGallery />,
-    grad: "blue",
-    group: "Content",
-  },
-  {
-    handle: "tls-circle-marquee",
-    template: "index",
-    title: "Product marquee (circle)",
-    desc: "Continuous scrolling list of products with hover zoom.",
-    icon: <GlyphMarquee />,
-    grad: "violet",
-    group: "Content",
-  },
-  {
-    handle: "tls-product-card",
-    template: "product",
-    title: "Product – Showcase card",
-    desc: "Large main image, thumbnails, price, and a primary CTA.",
-    icon: <GlyphCard />,
-    grad: "pink",
-    group: "Content",
-  },
-  {
-    handle: "tls-social-timer",
-    template: "index",
-    title: "Social + Countdown",
-    desc: "Instagram / Facebook / TikTok / WhatsApp icons with live timer.",
-    icon: <GlyphStar />,
-    grad: "aqua",
-    group: "Content",
-  },
-  {
-    handle: "tls-testimonials",
-    template: "index",
-    title: "Testimonials grid",
-    desc: "Responsive customer reviews presented in a clean grid.",
-    icon: <GlyphStar />,
-    grad: "violet",
-    group: "Content",
-  },
-  {
-    handle: "tls-footer",
-    template: "index",
-    title: "Footer (2–4 columns)",
-    desc: "Uses Shopify menus and payment icons. Fully responsive.",
-    icon: <GlyphWindow />,
-    grad: "blue",
-    group: "Footer",
-  },
+  { handle: "tls-header", template: "index", title: "Simple header (dark & pink)", desc: "Logo, horizontal menu, and cart. Clean and responsive.", icon: <GlyphWindow />, grad: "violet", group: "Header" },
+  { handle: "tls-banner-3", template: "index", title: "Banner – 3 images", desc: "Auto slider with 3 visuals. Keeps original ratio (no crop).", icon: <GlyphGallery />, grad: "blue", group: "Content" },
+  { handle: "tls-circle-marquee", template: "index", title: "Product marquee (circle)", desc: "Continuous scrolling list of products with hover zoom.", icon: <GlyphMarquee />, grad: "violet", group: "Content" },
+  { handle: "tls-product-card", template: "product", title: "Product – Showcase card", desc: "Large main image, thumbnails, price, and a primary CTA.", icon: <GlyphCard />, grad: "pink", group: "Content" },
+  { handle: "tls-social-timer", template: "index", title: "Social + Countdown", desc: "Instagram / Facebook / TikTok / WhatsApp icons with live timer.", icon: <GlyphStar />, grad: "aqua", group: "Content" },
+  { handle: "tls-testimonials", template: "index", title: "Testimonials grid", desc: "Responsive customer reviews presented in a clean grid.", icon: <GlyphStar />, grad: "violet", group: "Content" },
+  { handle: "tls-footer", template: "index", title: "Footer (2–4 columns)", desc: "Uses Shopify menus and payment icons. Fully responsive.", icon: <GlyphWindow />, grad: "blue", group: "Footer" },
 ];
 
 export default function AppIndex() {
@@ -180,15 +124,10 @@ export default function AppIndex() {
     { key: "Content", emoji: "🧩" },
     { key: "Footer", emoji: "📦" },
   ];
-
   const byGroup = (g) => APP_BLOCKS.filter((b) => b.group === g);
 
   const AddButton = ({ b }) => (
-    <Button variant="primary"
-      url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
-      external
-      target="_top"
-    >
+    <Button url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" variant="primary">
       Add to theme
     </Button>
   );
@@ -198,10 +137,10 @@ export default function AppIndex() {
       title="Triple-Luxe-Sections"
       subtitle="Build premium sections in seconds"
       secondaryActions={[
-        { content: "YouTube", url: "https://youtube.com", external: true, target: "_blank" },
-        { content: "WhatsApp", url: "https://wa.me/", external: true, target: "_blank" },
-      ]}>
-
+        { content: "YouTube", url: "https://youtube.com/", target: "_blank" },
+        { content: "WhatsApp", url: "https://wa.me/212XXXXXXXXX", target: "_blank" },
+      ]}
+    >
       <Layout>
         {groups.map((g) => (
           <Layout.Section key={g.key}>
@@ -211,7 +150,7 @@ export default function AppIndex() {
             </div>
 
             <Card>
-              <Stack vertical spacing="tight">
+              <div style={{ display: "grid", gap: 12 }}>
                 {byGroup(g.key).map((b, i) => (
                   <div
                     key={b.handle}
@@ -221,7 +160,7 @@ export default function AppIndex() {
                       alignItems: "center",
                       gap: 14,
                       padding: "10px 6px",
-                      borderTop: i === 0 ? "none" : "1px solid var(--p-color-bg-surface-tertiary, #f1f2f4)",
+                      borderTop: i === 0 ? "none" : "1px solid #f1f2f4",
                     }}
                   >
                     <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
@@ -234,20 +173,19 @@ export default function AppIndex() {
                     <AddButton b={b} />
                   </div>
                 ))}
-              </Stack>
+              </div>
             </Card>
           </Layout.Section>
         ))}
 
-        {/* Bandeau d'info "Build for Shopify" (facultatif) */}
         <Layout.Section>
           <Card>
-            <Stack spacing="loose" alignment="center">
-              <Badge status="success">Build for Shopify</Badge>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Badge tone="success">Build for Shopify</Badge>
               <div style={{ color: "#637381" }}>
-                UI basée sur Polaris pour un look & feel natif de l'Admin Shopify.
+                UI Polaris pour un rendu natif dans l'Admin Shopify.
               </div>
-            </Stack>
+            </div>
           </Card>
         </Layout.Section>
       </Layout>
