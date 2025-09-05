@@ -3,10 +3,10 @@ import { Outlet } from "@remix-run/react";
 import { AppProvider } from "@shopify/polaris";
 import en from "@shopify/polaris/locales/en.json";
 
-// ✅ charge la CSS sans links(), donc pas de variable polarisStyles
-import "@shopify/polaris/build/styles.css";
-// (si jamais ça casse chez toi, essaie l’autre chemin:)
-// import "@shopify/polaris/build/esm/styles.css";
+// 🔒 Pas d'import variable : on pointe la CSS via CDN (version à adapter à ton package.json)
+export const links = () => [
+  { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.13.0/build/styles.css" },
+];
 
 export default function AppLayout() {
   return (
