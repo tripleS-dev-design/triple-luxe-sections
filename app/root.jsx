@@ -9,15 +9,15 @@ import {
 } from "@remix-run/react";
 
 import { AppProvider } from "@shopify/polaris";
-// Choisis ta langue : en/fr (ex. import fr from "@shopify/polaris/locales/fr.json")
 import en from "@shopify/polaris/locales/en.json";
 
+// 👉 Importe l'URL de la feuille de style Polaris pour Remix (Vite)
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-// Injecte les feuilles de style
 export const links = () => [
   { rel: "preconnect", href: "https://cdn.shopify.com" },
   { rel: "stylesheet", href: "https://cdn.shopify.com/static/fonts/inter/v4/styles.css" },
-  { rel: "stylesheet", href: polarisStyles },
+  { rel: "stylesheet", href: polarisStyles }, // ✅ maintenant défini
 ];
 
 export default function App() {
@@ -28,7 +28,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        {/* Polaris provider avec i18n obligatoire */}
+        {/* Un seul Polaris AppProvider global suffit */}
         <AppProvider i18n={en}>
           <Outlet />
         </AppProvider>
