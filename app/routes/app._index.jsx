@@ -1,11 +1,11 @@
-// app/routes/app._index.jsx — TLS Builder + 3 Themes (Header / Content / Footer)
+// app/routes/app._index.jsx — TLS · Rail 3 thèmes → liste Header/Content/Footer
 import React, { useEffect, useMemo, useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { Page, Card, Button, Badge } from "@shopify/polaris";
 
 /* ===============================
- * LOADER: shopSub + apiKey
+ * LOADER: shopSub + apiKey (auth Remix + Admin)
  * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
@@ -36,7 +36,7 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "m
 }
 
 /* ===============================
- * CSS layout 3 colonnes
+ * CSS layout (3 colonnes)
  * =============================== */
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
@@ -54,13 +54,13 @@ const LAYOUT_CSS = `
   .tls-center-col { display:grid; gap:16px; }
   .tls-panel      { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; }
   .tls-section-h  { font-weight:800; letter-spacing:.2px; background:#F2F6FF; color:#0C4A6E; border:1px solid #CFE0FF; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
-  .tls-block-row  { display:grid; grid-template-columns:56px 1fr auto; gap:14px; alignItems:center; padding:10px 6px; border-top:1px solid #F1F2F4; }
+  .tls-block-row  { display:grid; grid-template-columns:56px 1fr auto; gap:14px; align-items:center; padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
 
   .tls-preview-col { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
   .tls-preview-card{ background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; display:grid; gap:12px; }
 
-  .tls-theme-chip { display:inline-grid; place-items:center; padding:8px 12px; border-radius:999px; border:1px solid #E5E7EB; background:#fff; cursor:pointer; font-weight:700; }
+  .tls-theme-chip { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid #E5E7EB; background:#fff; cursor:pointer; font-weight:700; }
   .tls-theme-chip[data-on="1"] { outline:2px solid #2563EB; }
 
   @media (max-width: 1200px) { .tls-editor { grid-template-columns: 240px 2fr 1fr; } }
@@ -77,7 +77,7 @@ function useInjectCss(){
 }
 
 /* ===============================
- * Icônes inline
+ * Icônes inline (SVG)
  * =============================== */
 const SQUARE = (size = 44) => ({
   width: size,
@@ -137,28 +137,32 @@ const GlyphStar = ({ size = 22 }) => (
 );
 
 /* ===============================
- * Bibliothèque de blocks (pour la vue “Library” classique)
+ * Métadonnées (icône / gradient / description) par handle
+ * Pour tes futurs .liquid, tu pourras compléter ce mapping.
  * =============================== */
-const APP_BLOCKS = [
-  { handle: "tls-header",         template: "index",   title: "Simple header (dark & pink)",  desc: "Logo, menu horizontal, cart — clean et responsive.", icon: <GlyphWindow/>,  grad: "violet", group: "Header",  section: "Headers" },
-  { handle: "tls-banner-3",       template: "index",   title: "Banner – 3 images",            desc: "Slider auto avec 3 visuels, ratio d’origine (sans crop).", icon: <GlyphGallery/>, grad: "blue",   group: "Content", section: "Banners" },
-  { handle: "tls-circle-marquee", template: "index",   title: "Product marquee (circle)",     desc: "Défilement continu de produits avec zoom au survol.", icon: <GlyphMarquee/>, grad: "violet", group: "Content", section: "Collections" },
-  { handle: "tls-product-card",   template: "product", title: "Product – Showcase card",      desc: "Grande image, vignettes, prix et CTA principal.", icon: <GlyphCard/>,    grad: "pink",   group: "Content", section: "Product page" },
-  { handle: "tls-social-timer",   template: "index",   title: "Social + Countdown",           desc: "Icônes Instagram/Facebook/TikTok/WhatsApp + timer.", icon: <GlyphStar/>,   grad: "aqua",   group: "Content", section: "Social & timers" },
-  { handle: "tls-testimonials",   template: "index",   title: "Testimonials grid",            desc: "Avis clients en grille responsive (propre).",         icon: <GlyphStar/>,   grad: "violet", group: "Content", section: "Social proof" },
-  { handle: "tls-footer",         template: "index",   title: "Footer (2–4 columns)",         desc: "Menus Shopify + icônes paiement, full responsive.",   icon: <GlyphWindow/>,  grad: "blue",   group: "Footer",  section: "Footers" },
-];
+const META = {
+  "tls-header":         { icon: <GlyphWindow/>,  grad: "violet", desc: "Logo, menu et cart — clean et responsive." },
+  "tls-banner-3":       { icon: <GlyphGallery/>, grad: "blue",   desc: "Slider auto (3 visuels), ratio d’origine." },
+  "tls-circle-marquee": { icon: <GlyphMarquee/>, grad: "violet", desc: "Défilement continu de produits (circle)." },
+  "tls-product-card":   { icon: <GlyphCard/>,    grad: "pink",   desc: "Vitrine produit : grande image + CTA." },
+  "tls-social-timer":   { icon: <GlyphStar/>,    grad: "aqua",   desc: "Social icons + countdown (promo/urgences)." },
+  "tls-testimonials":   { icon: <GlyphStar/>,    grad: "violet", desc: "Avis clients en grille responsive." },
+  "tls-footer":         { icon: <GlyphWindow/>,  grad: "blue",   desc: "Footer 2–4 colonnes, menus + paiements." },
+};
+
+/* Helper pour fusionner meta */
+const withMeta = (b) => ({ ...b, ...(META[b.handle] || {}) });
 
 /* ===============================
  * 3 THÈMES — chaque thème = header + content[] + footer
- * Tu pourras changer les handles par tes propres .liquid plus tard.
+ * (remplace juste les handles quand tu ajoutes tes .liquid)
  * =============================== */
 const THEMES = [
   {
     key: "classic-bold",
     label: "Classic Bold",
     emoji: "🧱",
-    desc: "Héros + produits + preuves sociales, look contrasté.",
+    desc: "Héros + produits + social proof, look contrasté.",
     header:  { handle: "tls-header", template: "index", title: "Header – Simple" },
     content: [
       { handle: "tls-banner-3",       template: "index",   title: "Banner 3 images" },
@@ -193,53 +197,94 @@ const THEMES = [
   },
 ];
 
-/* Utils */
-function groupBySection(blocks) {
-  const map = new Map();
-  for (const b of blocks) {
-    const k = b.section || "General";
-    if (!map.has(k)) map.set(k, []);
-    map.get(k).push(b);
-  }
-  return Array.from(map.entries()); // [ [sectionName, [blocks...]], ... ]
+/* ===============================
+ * Composant liste de blocks (ligne)
+ * =============================== */
+function BlockRow({ shopSub, apiKey, block }) {
+  const b = withMeta(block);
+  return (
+    <div className="tls-block-row">
+      <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
+
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize:16, fontWeight:700, lineHeight:1.2 }}>{b.title || b.handle}</div>
+        {b.desc && <div style={{ marginTop:4, color:"#637381", fontSize:13 }}>{b.desc}</div>}
+        {b.template === "product" && (
+          <div style={{ marginTop:6, fontSize:12, color:"#0F172A", opacity:0.7 }}>
+            Template : <b>product</b> — ajoute-le depuis une page produit.
+          </div>
+        )}
+      </div>
+
+      <div style={{ display:"grid", gap:8, justifyItems:"end" }}>
+        <Button
+          url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
+          target="_top"
+          variant="primary"
+        >
+          Add to theme
+        </Button>
+        <Button url={editorBase({ shopSub })} target="_blank" external>
+          Open editor
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 /* ===============================
- * Page
+ * Colonne centrale : affiche Header / Content / Footer du thème choisi
+ * =============================== */
+function ThemeBlocksView({ theme, shopSub, apiKey }) {
+  return (
+    <>
+      <div className="tls-panel">
+        <div className="tls-section-h">Header</div>
+        <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.header} />
+      </div>
+
+      <div className="tls-panel">
+        <div className="tls-section-h">Content</div>
+        <div>
+          {theme.content.map((blk) => (
+            <BlockRow key={blk.handle} shopSub={shopSub} apiKey={apiKey} block={blk} />
+          ))}
+        </div>
+      </div>
+
+      <div className="tls-panel">
+        <div className="tls-section-h">Footer</div>
+        <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.footer} />
+      </div>
+    </>
+  );
+}
+
+/* ===============================
+ * Page principale
  * =============================== */
 export default function TLSBuilderIndex() {
   useInjectCss();
   const { shopSub, apiKey } = useLoaderData();
 
-  /* ========== 1) Rail gauche: catégories “Library” ========== */
-  const CATEGORIES = [
-    { key: "Header",  label: "Header",  emoji: "🧱" },
-    { key: "Content", label: "Content", emoji: "🧩" },
-    { key: "Footer",  label: "Footer",  emoji: "📦" },
-  ];
-  const [selCat, setSelCat] = useState("Content");
-  const blocksInCat = useMemo(() => APP_BLOCKS.filter(b => b.group === selCat), [selCat]);
-  const grouped = useMemo(() => groupBySection(blocksInCat), [blocksInCat]);
-
-  /* ========== 2) Theme picker (3 thèmes) ========== */
-  const [themeKey, setThemeKey] = useState(() => localStorage.getItem("tls_selected_theme") || "classic-bold");
+  // Sélection du thème (stockée localement)
+  const [themeKey, setThemeKey] = useState(THEMES[0].key);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("tls_selected_theme");
+      if (saved && THEMES.some(t => t.key === saved)) setThemeKey(saved);
+    } catch {}
+  }, []);
   useEffect(() => { try { localStorage.setItem("tls_selected_theme", themeKey); } catch {} }, [themeKey]);
+
   const theme = useMemo(() => THEMES.find(t => t.key === themeKey) || THEMES[0], [themeKey]);
 
-  const AddButton = ({ b }) => (
-    <Button
-      url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
-      target="_top"
-      variant="primary"
-    >
-      Add to theme
-    </Button>
-  );
+  const countBlocks = (t) => 1 + (t.content?.length || 0) + 1;
 
   return (
     <Page
       title="Triple-Luxe-Sections"
-      subtitle="Build premium sections in seconds"
+      subtitle="Pick a theme • Add blocks in 1 click"
       secondaryActions={[
         { content: "YouTube", url: "https://youtube.com/", target: "_blank" },
         { content: "WhatsApp", url: "https://wa.me/212XXXXXXXXX", target: "_blank" },
@@ -248,36 +293,32 @@ export default function TLSBuilderIndex() {
       <div className="tls-shell">
         <div className="tls-editor">
 
-          {/* Rail gauche : 3 éléments “Library” */}
+          {/* Rail gauche : 3 types de thèmes */}
           <div className="tls-rail">
             <div className="tls-rail-card">
-              <div className="tls-rail-head">Library</div>
+              <div className="tls-rail-head">Themes</div>
               <div className="tls-rail-list">
-                {CATEGORIES.map((c) => (
+                {THEMES.map((t) => (
                   <div
-                    key={c.key}
+                    key={t.key}
                     className="tls-rail-item"
-                    data-sel={selCat===c.key?1:0}
-                    onClick={()=>setSelCat(c.key)}
+                    data-sel={themeKey===t.key?1:0}
+                    onClick={()=>setThemeKey(t.key)}
+                    title={t.desc}
                   >
-                    <div style={{ fontSize:18 }}>{c.emoji}</div>
-                    <div style={{ fontWeight:700 }}>{c.label}</div>
-                    <div><Badge>{APP_BLOCKS.filter(b=>b.group===c.key).length}</Badge></div>
+                    <div style={{ fontSize:18 }}>{t.emoji}</div>
+                    <div style={{ fontWeight:700 }}>{t.label}</div>
+                    <div><Badge>{countBlocks(t)}</Badge></div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Colonne centre : Theme picker + Library */}
+          {/* Colonne centrale : blocks du thème sélectionné (Header / Content / Footer) */}
           <div className="tls-center-col">
-
-            {/* ---- (A) THEME PICKER & APPLY ---- */}
             <div className="tls-panel">
-              <div className="tls-section-h">Theme presets (3)</div>
-
-              {/* Choix des 3 thèmes */}
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"center" }}>
                 {THEMES.map(t => (
                   <button
                     key={t.key}
@@ -285,92 +326,16 @@ export default function TLSBuilderIndex() {
                     className="tls-theme-chip"
                     data-on={themeKey===t.key?1:0}
                     onClick={()=>setThemeKey(t.key)}
-                    title={t.desc}
                   >
-                    <span style={{ marginRight:6 }}>{t.emoji}</span>{t.label}
+                    <span>{t.emoji}</span>
+                    <span>{t.label}</span>
                   </button>
                 ))}
               </div>
-
-              {/* Étapes d’application du thème choisi */}
-              <Card>
-                <div style={{ display:"grid", gap:12 }}>
-                  <div style={{ fontWeight:800 }}>{theme.label}</div>
-                  <div style={{ color:"#637381" }}>{theme.desc}</div>
-
-                  {/* Step 1 — Header */}
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr auto", alignItems:"center", gap:12 }}>
-                    <div>
-                      <div style={{ fontWeight:700 }}>1) Header</div>
-                      <div style={{ fontSize:13, color:"#637381" }}>{theme.header.title}</div>
-                    </div>
-                    <AddButton b={theme.header} />
-                  </div>
-
-                  {/* Step 2 — Content (N blocks) */}
-                  <div>
-                    <div style={{ fontWeight:700, marginBottom:6 }}>2) Content</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {theme.content.map((blk, i) => (
-                        <div key={blk.handle} style={{ display:"grid", gridTemplateColumns:"1fr auto", alignItems:"center", gap:12 }}>
-                          <div>
-                            <div style={{ fontSize:13, color:"#6B7280" }}>Block {i+1}</div>
-                            <div style={{ fontWeight:600 }}>{blk.title}</div>
-                            {blk.template==="product" && (
-                              <div style={{ fontSize:12, color:"#0F172A", opacity:.75 }}>Template : <b>product</b></div>
-                            )}
-                          </div>
-                          <AddButton b={blk} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Step 3 — Footer */}
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr auto", alignItems:"center", gap:12 }}>
-                    <div>
-                      <div style={{ fontWeight:700 }}>3) Footer</div>
-                      <div style={{ fontSize:13, color:"#637381" }}>{theme.footer.title}</div>
-                    </div>
-                    <AddButton b={theme.footer} />
-                  </div>
-
-                  <div style={{ fontSize:12, color:"#6B7280" }}>
-                    Astuce : pour des raisons de sécurité du Theme Editor, l’ajout se fait **bloc par bloc** (un lien par block).
-                  </div>
-                </div>
-              </Card>
+              <div style={{ marginTop:8, color:"#637381" }}>{theme.desc}</div>
             </div>
 
-            {/* ---- (B) LIBRARY par catégories (optionnel, déjà existant) ---- */}
-            {grouped.map(([sectionName, blocks]) => (
-              <div key={sectionName} className="tls-panel">
-                <div className="tls-section-h">{sectionName}</div>
-                <div>
-                  {blocks.map((b) => (
-                    <div key={b.handle} className="tls-block-row">
-                      <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize:16, fontWeight:700, lineHeight:1.2 }}>{b.title}</div>
-                        <div style={{ marginTop:4, color:"#637381", fontSize:13 }}>{b.desc}</div>
-                        {b.template === "product" && (
-                          <div style={{ marginTop:6, fontSize:12, color:"#0F172A", opacity:0.7 }}>
-                            Template : <b>product</b> — tip : teste ce block depuis une page produit.
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ display:"grid", gap:8, justifyItems:"end" }}>
-                        <AddButton b={b} />
-                        <Button url={editorBase({ shopSub })} target="_blank" external>
-                          Open editor
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-
+            <ThemeBlocksView theme={theme} shopSub={shopSub} apiKey={apiKey} />
           </div>
 
           {/* Colonne droite : infos rapides */}
@@ -399,9 +364,10 @@ export default function TLSBuilderIndex() {
               <Card>
                 <div style={{ fontWeight:800, marginBottom:8 }}>Tips</div>
                 <ul style={{ margin:0, paddingLeft:18, color:"#374151" }}>
+                  <li>Clique sur un thème à gauche pour voir ses blocks.</li>
                   <li>“Add to theme” ouvre l’éditeur avec le block déjà sélectionné.</li>
                   <li>Les blocks <b>product</b> s’ajoutent sur le template produit.</li>
-                  <li>Garde la navigation dans l’admin avec <code>target="_top"</code>.</li>
+                  <li>Utilise <code>target="_top"</code> pour rester dans l’Admin.</li>
                 </ul>
               </Card>
             </div>
