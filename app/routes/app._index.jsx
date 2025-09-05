@@ -184,8 +184,7 @@ export default function AppIndex() {
   const byGroup = (g) => APP_BLOCKS.filter((b) => b.group === g);
 
   const AddButton = ({ b }) => (
-    <Button
-      primary
+    <Button variant="primary"
       url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
       external
       target="_top"
@@ -198,11 +197,11 @@ export default function AppIndex() {
     <Page
       title="Triple-Luxe-Sections"
       subtitle="Build premium sections in seconds"
-      secondaryActions=[
+      secondaryActions={[
         { content: "YouTube", url: "https://youtube.com", external: true, target: "_blank" },
         { content: "WhatsApp", url: "https://wa.me/", external: true, target: "_blank" },
-      ]
-    >
+      ]}>
+
       <Layout>
         {groups.map((g) => (
           <Layout.Section key={g.key}>
@@ -211,7 +210,7 @@ export default function AppIndex() {
               <h2 style={{ margin: 0, fontSize: 18 }}>{g.key}</h2>
             </div>
 
-            <Card sectioned>
+            <Card>
               <Stack vertical spacing="tight">
                 {byGroup(g.key).map((b, i) => (
                   <div
@@ -242,7 +241,7 @@ export default function AppIndex() {
 
         {/* Bandeau d'info "Build for Shopify" (facultatif) */}
         <Layout.Section>
-          <Card sectioned>
+          <Card>
             <Stack spacing="loose" alignment="center">
               <Badge status="success">Build for Shopify</Badge>
               <div style={{ color: "#637381" }}>
