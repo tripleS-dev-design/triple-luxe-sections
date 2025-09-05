@@ -2,12 +2,8 @@
 import { Outlet } from "@remix-run/react";
 import { AppProvider } from "@shopify/polaris";
 import en from "@shopify/polaris/locales/en.json";
+import "@shopify/polaris/build/esm/styles.css";
 
-// ✅ charge la CSS Polaris sans variable ni links()
-import "@shopify/polaris/build/styles.css";
-// (si ça ne marche pas chez toi, essaie :
-// import "@shopify/polaris/build/esm/styles.css";
-// )
 
 export default function AppLayout() {
   return (
