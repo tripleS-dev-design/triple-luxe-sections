@@ -1,11 +1,11 @@
-// app/routes/app._index.jsx — Polaris edition (safe build)
-import React from "react";
+// app/routes/app._index.jsx — TLS Builder (rail gauche + sections)
+import React, { useEffect, useMemo, useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { Page, Layout, Card, Button, Badge } from "@shopify/polaris";
+import { Page, Card, Button, Badge } from "@shopify/polaris";
 
 /* ===============================
- * LOADER: Auth (Managed pricing)
+ * LOADER: récupère shopSub + apiKey
  * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
@@ -19,12 +19,12 @@ export const loader = async ({ request }) => {
 };
 
 /* ===============================
- * Deep links (Theme editor)
+ * Deep links vers Theme Editor
  * =============================== */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
-function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "newAppsSection" }) {
+function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "main" }) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
     context: "apps",
@@ -36,7 +36,45 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "n
 }
 
 /* ===============================
- * Icônes inline (SVGs conservés)
+ * CSS (layout 3 colonnes)
+ * =============================== */
+const LAYOUT_CSS = `
+  html, body { margin:0; background:#F6F7F9; }
+  .Polaris-Page, .Polaris-Page__Content { max-width:none!important; padding-left:0!important; padding-right:0!important; }
+  .tls-shell { padding:16px; }
+  .tls-editor { display:grid; grid-template-columns: 260px 2.3fr 1fr; gap:16px; align-items:start; }
+
+  .tls-rail      { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
+  .tls-rail-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; }
+  .tls-rail-head { padding:10px 12px; border-bottom:1px solid #E5E7EB; font-weight:800; }
+  .tls-rail-list { padding:8px; display:grid; gap:8px; }
+  .tls-rail-item { display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; background:#fff; border:1px solid #E5E7EB; border-radius:10px; padding:10px; cursor:pointer; }
+  .tls-rail-item[data-sel="1"] { outline:2px solid #2563EB; }
+
+  .tls-center-col { display:grid; gap:16px; }
+  .tls-panel      { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; }
+  .tls-section-h  { font-weight:800; letter-spacing:.2px; background:#F2F6FF; color:#0C4A6E; border:1px solid #CFE0FF; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
+  .tls-block-row  { display:grid; grid-template-columns:56px 1fr auto; gap:14px; align-items:center; padding:10px 6px; border-top:1px solid #F1F2F4; }
+  .tls-block-row:first-of-type { border-top:none; }
+
+  .tls-preview-col { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
+  .tls-preview-card{ background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; display:grid; gap:12px; }
+
+  @media (max-width: 1200px) { .tls-editor { grid-template-columns: 240px 2fr 1fr; } }
+  @media (max-width: 980px)  { .tls-editor { grid-template-columns: 1fr; } .tls-rail, .tls-preview-col { position:static; max-height:none; } }
+`;
+function useInjectCss(){
+  useEffect(()=>{
+    const t=document.createElement("style");
+    t.id="tls-layout-css";
+    t.appendChild(document.createTextNode(LAYOUT_CSS));
+    document.head.appendChild(t);
+    return ()=>t.remove();
+  },[]);
+}
+
+/* ===============================
+ * Icônes inline
  * =============================== */
 const SQUARE = (size = 44) => ({
   width: size,
@@ -46,7 +84,6 @@ const SQUARE = (size = 44) => ({
   placeItems: "center",
   boxShadow: "inset 0 1px 0 rgba(255,255,255,.45), 0 10px 28px rgba(70,78,255,.15)",
 });
-
 const SquareIcon = ({ size = 44, grad = "violet", children }) => {
   const bg =
     grad === "violet"
@@ -58,12 +95,6 @@ const SquareIcon = ({ size = 44, grad = "violet", children }) => {
       : "linear-gradient(135deg,#6366f1 0%,#22d3ee 100%)";
   return <div style={{ ...SQUARE(size), background: bg }}>{children}</div>;
 };
-
-const TinyBadge = ({ emoji }) => (
-  <div style={{ display: "inline-grid", placeItems: "center", width: 28, height: 28 }}>
-    <span style={{ fontSize: 16 }}>{emoji}</span>
-  </div>
-);
 
 const GlyphWindow = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -104,30 +135,57 @@ const GlyphStar = ({ size = 22 }) => (
 );
 
 /* ===============================
- * Données des blocs
+ * Données des blocks TLS
+ * group = Header | Content | Footer
+ * section = sous-catégorie d'affichage
  * =============================== */
 const APP_BLOCKS = [
-  { handle: "tls-header", template: "index", title: "Simple header (dark & pink)", desc: "Logo, horizontal menu, and cart. Clean and responsive.", icon: <GlyphWindow />, grad: "violet", group: "Header" },
-  { handle: "tls-banner-3", template: "index", title: "Banner – 3 images", desc: "Auto slider with 3 visuals. Keeps original ratio (no crop).", icon: <GlyphGallery />, grad: "blue", group: "Content" },
-  { handle: "tls-circle-marquee", template: "index", title: "Product marquee (circle)", desc: "Continuous scrolling list of products with hover zoom.", icon: <GlyphMarquee />, grad: "violet", group: "Content" },
-  { handle: "tls-product-card", template: "product", title: "Product – Showcase card", desc: "Large main image, thumbnails, price, and a primary CTA.", icon: <GlyphCard />, grad: "pink", group: "Content" },
-  { handle: "tls-social-timer", template: "index", title: "Social + Countdown", desc: "Instagram / Facebook / TikTok / WhatsApp icons with live timer.", icon: <GlyphStar />, grad: "aqua", group: "Content" },
-  { handle: "tls-testimonials", template: "index", title: "Testimonials grid", desc: "Responsive customer reviews presented in a clean grid.", icon: <GlyphStar />, grad: "violet", group: "Content" },
-  { handle: "tls-footer", template: "index", title: "Footer (2–4 columns)", desc: "Uses Shopify menus and payment icons. Fully responsive.", icon: <GlyphWindow />, grad: "blue", group: "Footer" },
+  { handle: "tls-header",         template: "index",   title: "Simple header (dark & pink)",  desc: "Logo, menu horizontal, cart — clean et responsive.", icon: <GlyphWindow/>,  grad: "violet", group: "Header", section: "Headers" },
+  { handle: "tls-banner-3",       template: "index",   title: "Banner – 3 images",            desc: "Slider auto avec 3 visuels, ratio d’origine (sans crop).", icon: <GlyphGallery/>, grad: "blue",   group: "Content", section: "Banners" },
+  { handle: "tls-circle-marquee", template: "index",   title: "Product marquee (circle)",     desc: "Défilement continu de produits avec zoom au survol.", icon: <GlyphMarquee/>, grad: "violet", group: "Content", section: "Collections" },
+  { handle: "tls-product-card",   template: "product", title: "Product – Showcase card",      desc: "Grande image, vignettes, prix et CTA principal.", icon: <GlyphCard/>,    grad: "pink",   group: "Content", section: "Product page" },
+  { handle: "tls-social-timer",   template: "index",   title: "Social + Countdown",           desc: "Icônes Instagram/Facebook/TikTok/WhatsApp + timer.", icon: <GlyphStar/>,   grad: "aqua",   group: "Content", section: "Social & timers" },
+  { handle: "tls-testimonials",   template: "index",   title: "Testimonials grid",            desc: "Avis clients en grille responsive (propre).",         icon: <GlyphStar/>,   grad: "violet", group: "Content", section: "Social proof" },
+  { handle: "tls-footer",         template: "index",   title: "Footer (2–4 columns)",         desc: "Menus Shopify + icônes paiement, full responsive.",   icon: <GlyphWindow/>,  grad: "blue",   group: "Footer",  section: "Footers" },
 ];
 
-export default function AppIndex() {
-  const { shopSub, apiKey } = useLoaderData();
+/* Regroupe par 'section' (dans une même catégorie) */
+function groupBySection(blocks) {
+  const map = new Map();
+  for (const b of blocks) {
+    const k = b.section || "General";
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(b);
+  }
+  return Array.from(map.entries()); // [ [sectionName, [blocks...]], ... ]
+}
 
-  const groups = [
-    { key: "Header", emoji: "🧱" },
-    { key: "Content", emoji: "🧩" },
-    { key: "Footer", emoji: "📦" },
+/* ===============================
+ * Composant principal
+ * =============================== */
+export default function TLSBuilderIndex() {
+  useInjectCss();
+
+  const { shopSub, apiKey } = useLoaderData();
+  const CATEGORIES = [
+    { key: "Header",  label: "Header",  emoji: "🧱" },
+    { key: "Content", label: "Content", emoji: "🧩" },
+    { key: "Footer",  label: "Footer",  emoji: "📦" },
   ];
-  const byGroup = (g) => APP_BLOCKS.filter((b) => b.group === g);
+  const [selCat, setSelCat] = useState("Content");
+
+  const blocksInCat = useMemo(
+    () => APP_BLOCKS.filter(b => b.group === selCat),
+    [selCat]
+  );
+  const grouped = useMemo(() => groupBySection(blocksInCat), [blocksInCat]);
 
   const AddButton = ({ b }) => (
-    <Button url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })} target="_top" variant="primary">
+    <Button
+      url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
+      target="_top"
+      variant="primary"
+    >
       Add to theme
     </Button>
   );
@@ -141,54 +199,101 @@ export default function AppIndex() {
         { content: "WhatsApp", url: "https://wa.me/212XXXXXXXXX", target: "_blank" },
       ]}
     >
-      <Layout>
-        {groups.map((g) => (
-          <Layout.Section key={g.key}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <TinyBadge emoji={g.emoji} />
-              <h2 style={{ margin: 0, fontSize: 18 }}>{g.key}</h2>
-            </div>
+      <div className="tls-shell">
+        <div className="tls-editor">
 
-            <Card>
-              <div style={{ display: "grid", gap: 12 }}>
-                {byGroup(g.key).map((b, i) => (
+          {/* Rail gauche : 3 éléments */}
+          <div className="tls-rail">
+            <div className="tls-rail-card">
+              <div className="tls-rail-head">Library</div>
+              <div className="tls-rail-list">
+                {CATEGORIES.map((c) => (
                   <div
-                    key={b.handle}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "56px 1fr auto",
-                      alignItems: "center",
-                      gap: 14,
-                      padding: "10px 6px",
-                      borderTop: i === 0 ? "none" : "1px solid #f1f2f4",
-                    }}
+                    key={c.key}
+                    className="tls-rail-item"
+                    data-sel={selCat===c.key?1:0}
+                    onClick={()=>setSelCat(c.key)}
                   >
-                    <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
-
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: 16 }}>{b.title}</h3>
-                      <p style={{ margin: "4px 0 0 0", color: "#637381", fontSize: 13 }}>{b.desc}</p>
-                    </div>
-
-                    <AddButton b={b} />
+                    <div style={{ fontSize:18 }}>{c.emoji}</div>
+                    <div style={{ fontWeight:700 }}>{c.label}</div>
+                    <div><Badge>{APP_BLOCKS.filter(b=>b.group===c.key).length}</Badge></div>
                   </div>
                 ))}
               </div>
-            </Card>
-          </Layout.Section>
-        ))}
-
-        <Layout.Section>
-          <Card>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Badge tone="success">Build for Shopify</Badge>
-              <div style={{ color: "#637381" }}>
-                UI Polaris pour un rendu natif dans l'Admin Shopify.
-              </div>
             </div>
-          </Card>
-        </Layout.Section>
-      </Layout>
+          </div>
+
+          {/* Colonne centrale : sections du groupe sélectionné */}
+          <div className="tls-center-col">
+            {grouped.map(([sectionName, blocks]) => (
+              <div key={sectionName} className="tls-panel">
+                <div className="tls-section-h">{sectionName}</div>
+
+                <div>
+                  {blocks.map((b, i) => (
+                    <div key={b.handle} className="tls-block-row">
+                      <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
+
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize:16, fontWeight:700, lineHeight:1.2 }}>{b.title}</div>
+                        <div style={{ marginTop:4, color:"#637381", fontSize:13 }}>{b.desc}</div>
+                        {b.template === "product" && (
+                          <div style={{ marginTop:6, fontSize:12, color:"#0F172A", opacity:0.7 }}>
+                            Template : <b>product</b> — tip : teste ce block depuis une page produit.
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display:"grid", gap:8, justifyItems:"end" }}>
+                        <AddButton b={b} />
+                        <Button
+                          url={editorBase({ shopSub })}
+                          target="_blank"
+                          external
+                        >
+                          Open editor
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Colonne droite : preview/infos rapides */}
+          <div className="tls-preview-col">
+            <div className="tls-preview-card">
+               
+
+              <Card>
+                <div style={{ fontWeight:800, marginBottom:8 }}>Quick links</div>
+                <div style={{ display:"grid", gap:8 }}>
+                  <Button url={editorBase({ shopSub })} target="_blank" external>
+                    Open Theme Editor
+                  </Button>
+                  <Button url={linkAddBlock({ shopSub, template:"index", apiKey, handle:"tls-banner-3" })} target="_top">
+                    Try · Banner 3 images
+                  </Button>
+                  <Button url={linkAddBlock({ shopSub, template:"product", apiKey, handle:"tls-product-card" })} target="_top">
+                    Try · Product card
+                  </Button>
+                </div>
+              </Card>
+
+              <Card>
+                <div style={{ fontWeight:800, marginBottom:8 }}>Tips</div>
+                <ul style={{ margin:0, paddingLeft:18, color:"#374151" }}>
+                  <li>“Add to theme” ouvre l’éditeur avec le block déjà sélectionné.</li>
+                  <li>Les blocks <b>product</b> s’ajoutent sur le template produit.</li>
+                  <li>Garde la navigation dans l’admin avec <code>target="_top"</code>.</li>
+                </ul>
+              </Card>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </Page>
   );
 }
