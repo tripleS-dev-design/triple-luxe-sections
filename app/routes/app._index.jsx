@@ -1,7 +1,8 @@
-// app/routes/app._index.jsx
+// app/routes/app._index.jsx — Polaris edition
 import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { Page, Layout, Card, Button, Badge, Stack } from "@shopify/polaris";
 
 /* ===============================
  * LOADER: Auth (Managed pricing)
@@ -35,107 +36,7 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "n
 }
 
 /* ===============================
- * Styles
- * =============================== */
-const COLORS = {
-  bg: "#f5f7fb",
-  card: "#ffffff",
-  text: "#101113",
-  sub: "#5b667a",
-  line: "#e9edf5",
-  btnText: "#ffffff",
-  pillText: "#0f172a",
-};
-
-const WRAP = {
-  background: COLORS.bg,
-  minHeight: "100vh",
-  fontFamily:
-    "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif",
-  color: COLORS.text,
-};
-
-const CONTAINER = {
-  maxWidth: 1100,
-  margin: "28px auto 64px",
-  padding: "0 18px",
-};
-
-const HERO = {
-  background: "linear-gradient(135deg,#32a5ff 0%,#5b6bff 40%,#7a4fff 100%)",
-  borderRadius: 16,
-  padding: 22,
-  color: "#fff",
-  boxShadow: "0 14px 40px rgba(62, 47, 176, .25)",
-  position: "relative",
-};
-
-const HERO_TOP = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 12,
-};
-
-const TITLE_WRAP = { display: "flex", alignItems: "center", gap: 12 };
-const APP_TITLE = { margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: ".2px" };
-const APP_SUB = { margin: "2px 0 0 0", opacity: 0.95, fontSize: 13, fontWeight: 500 };
-
-const PILLS = { display: "flex", gap: 10, flexWrap: "wrap" };
-const pill = (bg = "#fff", fg) => ({
-  background: bg,
-  color: fg || (bg === "#fff" ? COLORS.pillText : "#fff"),
-  borderRadius: 999,
-  padding: "8px 12px",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  fontWeight: 700,
-  fontSize: 13,
-  textDecoration: "none",
-  boxShadow: "0 6px 18px rgba(0,0,0,.15)",
-});
-
-const SECTION_TITLE = {
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  fontWeight: 900,
-  color: "#0f172a",
-  margin: "22px 0 12px",
-};
-
-const LIST = { display: "grid", gap: 12 };
-
-const CARD = {
-  background: COLORS.card,
-  borderRadius: 14,
-  border: `1px solid ${COLORS.line}`,
-  padding: 14,
-  display: "grid",
-  gridTemplateColumns: "56px 1fr auto",
-  alignItems: "center",
-  gap: 14,
-  boxShadow: "0 8px 28px rgba(16,17,19,.04)",
-};
-
-const NAME = { margin: 0, fontWeight: 800, fontSize: 16 };
-const DESC = { margin: "3px 0 0 0", color: COLORS.sub, fontSize: 13 };
-
-const BTN_ADD = {
-  background: "linear-gradient(135deg, #3a7fff 0%, #6252ff 55%, #8b44ff 100%)",
-  color: COLORS.btnText,
-  border: 0,
-  borderRadius: 12,
-  padding: "10px 16px",
-  fontWeight: 800,
-  cursor: "pointer",
-  boxShadow: "0 10px 24px rgba(98,82,255,.35)",
-  whiteSpace: "nowrap",
-};
-
-/* ===============================
- * Icônes (inline)
+ * Icônes inline (on garde tes SVG pour fiabilité)
  * =============================== */
 const SQUARE = (size = 44) => ({
   width: size,
@@ -155,22 +56,15 @@ const SquareIcon = ({ size = 44, grad = "violet", children }) => {
       : grad === "pink"
       ? "linear-gradient(135deg,#ec4899 0%,#8b5cf6 100%)"
       : "linear-gradient(135deg,#6366f1 0%,#22d3ee 100%)";
-  return (
-    <div style={{ ...SQUARE(size), background: bg }}>
-      {children}
-    </div>
-  );
+  return <div style={{ ...SQUARE(size), background: bg }}>{children}</div>;
 };
 
-const TinyBadge = ({ emoji, grad = "violet" }) => (
-  <SquareIcon size={28} grad={grad}>
-    <span style={{ fontSize: 14, filter: "drop-shadow(0 1px 1px rgba(0,0,0,.25))" }}>
-      {emoji}
-    </span>
-  </SquareIcon>
+const TinyBadge = ({ emoji }) => (
+  <div style={{ display: "inline-grid", placeItems: "center", width: 28, height: 28 }}>
+    <span style={{ fontSize: 16 }}>{emoji}</span>
+  </div>
 );
 
-// Glyphs principaux
 const GlyphWindow = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <rect x="3" y="5" width="18" height="14" rx="3" fill="#ffffff" opacity="0.95" />
@@ -206,23 +100,6 @@ const GlyphCard = ({ size = 22 }) => (
 const GlyphStar = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 3.5l2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.8 6.9 19l1-5.6-4.1-4 5.7-.8L12 3.5z" fill="#fff" />
-  </svg>
-);
-
-/* Icônes des pills */
-const IconYouTube = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-    {/* triangle play blanc */}
-    <path d="M10 8l6 4-6 4z" fill="#fff" />
-  </svg>
-);
-const IconWhatsApp = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-    {/* bulle + combiné simplifiés en blanc */}
-    <path
-      fill="#fff"
-      d="M12 3a9 9 0 00-7.8 13.5L3 21l4.7-1.2A9 9 0 1012 3zm-4 6.9c.1-.2.3-.3.6-.3h.5c.1 0 .2 0 .3.2l.7 1.6c.1.2 0 .3 0 .4l-.3.5c-.1.1 0 .3.1.4l1 .9c.1.1.3.1.4.1l.5-.2c.1 0 .2 0 .3.1l1.5.8c.2.1.2.3.2.4l-.1.6c0 .2-.2.4-.4.5-.5.3-1.1.4-1.8.3-1.5-.2-3.2-1.3-4.3-2.6-1.1-1.2-1.9-2.9-1.7-4.3.1-.6.3-1.1.6-1.4z"
-    />
   </svg>
 );
 
@@ -307,70 +184,74 @@ export default function AppIndex() {
   const byGroup = (g) => APP_BLOCKS.filter((b) => b.group === g);
 
   const AddButton = ({ b }) => (
-    <a
-      href={linkAddBlock({
-        shopSub,
-        template: b.template,
-        apiKey,
-        handle: b.handle,
-      })}
+    <Button
+      primary
+      url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
+      external
       target="_top"
-      rel="noreferrer"
     >
-      <button style={BTN_ADD}>Add to theme</button>
-    </a>
+      Add to theme
+    </Button>
   );
 
   return (
-    <div style={WRAP}>
-      <div style={CONTAINER}>
-        {/* Hero */}
-        <header style={HERO}>
-          <div style={HERO_TOP}>
-            <div style={TITLE_WRAP}>
-              <SquareIcon grad="aqua">
-                <GlyphWindow />
-              </SquareIcon>
-              <div>
-                <h1 style={APP_TITLE}>Triple-Luxe-Sections</h1>
-                <p style={APP_SUB}>Build premium sections in seconds</p>
-              </div>
-            </div>
-
-            {/* Pills: YouTube (rouge) + WhatsApp (vert) */}
-            <div style={PILLS}>
-           
-            
-              
-            </div>
-          </div>
-        </header>
-
-        {/* Sections */}
+    <Page
+      title="Triple-Luxe-Sections"
+      subtitle="Build premium sections in seconds"
+      secondaryActions=[
+        { content: "YouTube", url: "https://youtube.com", external: true, target: "_blank" },
+        { content: "WhatsApp", url: "https://wa.me/", external: true, target: "_blank" },
+      ]
+    >
+      <Layout>
         {groups.map((g) => (
-          <section key={g.key} style={{ marginTop: 18 }}>
-            <div style={SECTION_TITLE}>
+          <Layout.Section key={g.key}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <TinyBadge emoji={g.emoji} />
-              <span style={{ fontSize: 18 }}>{g.key}</span>
+              <h2 style={{ margin: 0, fontSize: 18 }}>{g.key}</h2>
             </div>
 
-            <div style={LIST}>
-              {byGroup(g.key).map((b) => (
-                <article key={b.handle} style={CARD}>
-                  <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
+            <Card sectioned>
+              <Stack vertical spacing="tight">
+                {byGroup(g.key).map((b, i) => (
+                  <div
+                    key={b.handle}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "56px 1fr auto",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "10px 6px",
+                      borderTop: i === 0 ? "none" : "1px solid var(--p-color-bg-surface-tertiary, #f1f2f4)",
+                    }}
+                  >
+                    <SquareIcon grad={b.grad}>{b.icon}</SquareIcon>
 
-                  <div>
-                    <h3 style={NAME}>{b.title}</h3>
-                    <p style={DESC}>{b.desc}</p>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: 16 }}>{b.title}</h3>
+                      <p style={{ margin: "4px 0 0 0", color: "#637381", fontSize: 13 }}>{b.desc}</p>
+                    </div>
+
+                    <AddButton b={b} />
                   </div>
-
-                  <AddButton b={b} />
-                </article>
-              ))}
-            </div>
-          </section>
+                ))}
+              </Stack>
+            </Card>
+          </Layout.Section>
         ))}
-      </div>
-    </div>
+
+        {/* Bandeau d'info "Build for Shopify" (facultatif) */}
+        <Layout.Section>
+          <Card sectioned>
+            <Stack spacing="loose" alignment="center">
+              <Badge status="success">Build for Shopify</Badge>
+              <div style={{ color: "#637381" }}>
+                UI basée sur Polaris pour un look & feel natif de l'Admin Shopify.
+              </div>
+            </Stack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
