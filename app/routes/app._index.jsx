@@ -19,11 +19,11 @@ import {
   ThemeEditIcon,
   ProductsIcon,
   ImageIcon,
-  StarFilledIcon,
+  StarIcon,
   ViewIcon,
 } from "@shopify/polaris-icons";
 
-/* ========== LOADER ========== */
+/* LOADER */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { session } = await authenticate.admin(request);
@@ -35,7 +35,7 @@ export const loader = async ({ request }) => {
   return json({ shopSub, apiKey });
 };
 
-/* ========== Deep links Theme Editor ========== */
+/* Deep links Theme Editor */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
@@ -50,7 +50,7 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "m
   return `${base}?${p.toString()}`;
 }
 
-/* ========== CSS léger ========== */
+/* CSS léger */
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
   .Polaris-Page, .Polaris-Page__Content { max-width:none!important; padding-left:0!important; padding-right:0!important; }
@@ -83,13 +83,13 @@ function useInjectCss() {
   }, []);
 }
 
-/* ========== META (Polaris icons) ========== */
+/* META (icônes Polaris uniquement) */
 const META = {
   // Thème 1 — Informatique
   "header-informatique": { title: "Header — Informatique", icon: ThemeEditIcon,  desc: "Logo, recherche, utils, liens rapides." },
   "banner-kenburns":     { title: "Bannière Ken Burns",    icon: ImageIcon,      desc: "3 slides, fade + zoom/pan doux." },
   "carousel-cercle":     { title: "Carrousel cercle",      icon: ProductsIcon,   desc: "Défilement circulaire d’images." },
-  "packs-descriptifs":   { title: "Packs descriptifs",     icon: StarFilledIcon, desc: "Cartes produits + listes & badges." },
+  "packs-descriptifs":   { title: "Packs descriptifs",     icon: StarIcon,       desc: "Cartes produits + listes & badges." },
   "product-grid-glow":   { title: "Grille produits (Glow)",icon: ProductsIcon,   desc: "Vitrine produits carte blanche + glow." },
   "social-icons":        { title: "Icônes sociaux",        icon: AppsIcon,       desc: "Liens réseaux stylés, variants." },
   "footer-liens":        { title: "Footer — Liens",        icon: ViewIcon,       desc: "2–4 colonnes de liens (sans paiements)." },
@@ -99,18 +99,18 @@ const META = {
   "t2-hero-runway":      { title: "Hero — Runway",         icon: ImageIcon,      desc: "Hero défilé avec CTA collection." },
   "t2-categories-pills": { title: "Catégories (pills)",     icon: AppsIcon,       desc: "Filtres/onglets type pilules." },
   "t2-products-grid":    { title: "Grille produits (T2)",  icon: ProductsIcon,   desc: "Grille responsive adaptée à la mode." },
-  "t2-social-proof":     { title: "Preuves sociales",      icon: StarFilledIcon, desc: "Témoignages / notes clients." },
+  "t2-social-proof":     { title: "Preuves sociales",      icon: StarIcon,       desc: "Témoignages / notes clients." },
 
   // Thème 3 — Branding Triple-S (pro)
   "tls3-hero-brand-video-pro": { title: "Hero vidéo — Brand Pro", icon: ImageIcon,      desc: "Grand hero vidéo ou visuel clé." },
   "tls3-marquee-wordmark-pro": { title: "Marquee — Wordmark",     icon: AppsIcon,       desc: "Défilement marque/wordmarks." },
   "tls3-press-logos-pro":      { title: "Logos presse",            icon: AppsIcon,       desc: "Logos médias / partenaires." },
-  "tls3-values-grid-pro":      { title: "Valeurs (grille)",        icon: StarFilledIcon, desc: "3–6 cartes valeurs de marque." },
+  "tls3-values-grid-pro":      { title: "Valeurs (grille)",        icon: StarIcon,       desc: "3–6 cartes valeurs de marque." },
   "tls3-timeline-pro":         { title: "Timeline — Histoire",     icon: AppsIcon,       desc: "Étapes clés / jalons." },
-  "tls3-founders-story-pro":   { title: "Histoire des fondateurs", icon: StarFilledIcon, desc: "Storytelling & photo." },
+  "tls3-founders-story-pro":   { title: "Histoire des fondateurs", icon: StarIcon,       desc: "Storytelling & photo." },
 };
 
-/* ========== Thèmes -> handles EXACTS ========== */
+/* Thèmes -> handles EXACTS (ton dossier /blocks) */
 const THEMES = [
   {
     key: "informatique",
@@ -159,7 +159,7 @@ const THEMES = [
   },
 ];
 
-/* ========== UI Block Row ========== */
+/* UI Block Row */
 function BlockRow({ shopSub, apiKey, block }) {
   const meta = META[block.handle] || {};
   const IconSrc = meta.icon || AppsIcon;
@@ -199,7 +199,7 @@ function BlockRow({ shopSub, apiKey, block }) {
   );
 }
 
-/* ========== Liste Header / Content / Footer ========== */
+/* Liste Header / Content / Footer */
 function ThemeBlocksView({ theme, shopSub, apiKey }) {
   return (
     <BlockStack gap="400">
@@ -240,7 +240,7 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
   );
 }
 
-/* ========== Page principale ========== */
+/* Page principale */
 export default function TLSBuilderIndex() {
   useInjectCss();
   const { shopSub, apiKey } = useLoaderData();
