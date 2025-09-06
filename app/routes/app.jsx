@@ -1,8 +1,10 @@
-// app/routes/app.jsx
 import { Outlet } from "@remix-run/react";
-
+import { AppProvider } from "@shopify/polaris";
 
 export default function AppLayout() {
-  // Le AppProvider est déjà appliqué globalement dans root.jsx
-  return <Outlet />;
+  return (
+    <AppProvider i18n={{}}>
+      <Outlet />
+    </AppProvider>
+  );
 }
