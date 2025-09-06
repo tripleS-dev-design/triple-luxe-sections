@@ -1,0 +1,157 @@
+{% comment %}
+Vitrine produits — Thème 2
+- Mode Collection (auto) OU Manuel (blocs)
+- Hover zoom + carte clean, bouton CTA configurable
+{% endcomment %}
+
+<section class="t2-grid"
+  style="
+    --g-bg: {{ section.settings.bg }};
+    --g-fg: {{ section.settings.fg }};
+    --g-ac: {{ section.settings.accent }};
+    --g-cols: {{ section.settings.columns }};
+    --g-gap: {{ section.settings.gap }}px;
+    --g-rad: {{ section.settings.radius }}px;
+    --g-bd: {{ section.settings.card_border }};
+  "
+  aria-label="Produits">
+  <div class="g-wrap">
+    {% if section.settings.title != blank %}
+      <header class="g-head">
+        <h2 class="g-title">{{ section.settings.title }}</h2>
+        {% if section.settings.subtitle != blank %}<p class="g-sub">{{ section.settings.subtitle }}</p>{% endif %}
+      </header>
+    {% endif %}
+
+    <div class="g-grid">
+      {% assign use_manual = section.settings.mode == 'manual' and section.blocks.size > 0 %}
+      {% if use_manual %}
+        {% for block in section.blocks %}
+          {% if block.type == 'product_item' and block.settings.product != blank %}
+            {% assign p = block.settings.product %}
+            <article class="g-card" {{ block.shopify_attributes }}>
+              <a class="g-media" href="{{ p.url }}" aria-label="{{ p.title | escape }}">
+                {% if p.featured_image %}
+                  {{ p.featured_image | image_url: width: 800 | image_tag: alt: p.title, loading: 'lazy' }}
+                {% endif %}
+              </a>
+              <div class="g-body">
+                <h3 class="g-name"><a href="{{ p.url }}">{{ p.title }}</a></h3>
+                {% if section.settings.show_vendor and p.vendor %}<div class="g-vendor">{{ p.vendor }}</div>{% endif %}
+                {% assign desc = block.settings.custom_desc | default: p.description | strip_html | strip %}
+                {% if desc != blank %}<p class="g-desc">{{ desc | truncatewords: section.settings.desc_words, '…' }}</p>{% endif %}
+                <div class="g-price">
+                  <span class="price">{{ p.price | money }}</span>
+                  {% if section.settings.show_compare and p.compare_at_price > p.price %}
+                    <span class="compare">{{ p.compare_at_price | money }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="g-actions">
+                <a class="g-btn" href="{{ p.url }}">{{ block.settings.custom_btn | default: section.settings.btn_label }}</a>
+              </div>
+            </article>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {% if section.settings.collection != blank %}
+          {% for p in section.settings.collection.products limit: section.settings.limit %}
+            <article class="g-card">
+              <a class="g-media" href="{{ p.url }}" aria-label="{{ p.title | escape }}">
+                {% if p.featured_image %}
+                  {{ p.featured_image | image_url: width: 800 | image_tag: alt: p.title, loading: 'lazy' }}
+                {% endif %}
+              </a>
+              <div class="g-body">
+                <h3 class="g-name"><a href="{{ p.url }}">{{ p.title }}</a></h3>
+                {% if section.settings.show_vendor and p.vendor %}<div class="g-vendor">{{ p.vendor }}</div>{% endif %}
+                {% assign desc = p.description | strip_html | strip %}
+                {% if desc != blank %}<p class="g-desc">{{ desc | truncatewords: section.settings.desc_words, '…' }}</p>{% endif %}
+                <div class="g-price">
+                  <span class="price">{{ p.price | money }}</span>
+                  {% if section.settings.show_compare and p.compare_at_price > p.price %}
+                    <span class="compare">{{ p.compare_at_price | money }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="g-actions">
+                <a class="g-btn" href="{{ p.url }}">{{ section.settings.btn_label }}</a>
+              </div>
+            </article>
+          {% endfor %}
+        {% else %}
+          <div class="g-empty">Sélectionnez une collection ou ajoutez des produits en mode manuel.</div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<style>
+.t2-grid{background:var(--g-bg,#fff); color:var(--g-fg,#111827); padding:28px 0}
+.g-wrap{max-width:1200px; margin:0 auto; padding:0 16px}
+.g-head{margin-bottom:14px}
+.g-title{margin:0; font-size:clamp(18px,2.6vw,28px); font-weight:900}
+.g-sub{margin:6px 0 0; color:#6b7280}
+.g-grid{display:grid; gap:var(--g-gap,16px); grid-template-columns: repeat(var(--g-cols,3), minmax(0,1fr))}
+@media (max-width: 990px){ .g-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width: 640px){ .g-grid{grid-template-columns:1fr} }
+
+.g-card{display:flex; flex-direction:column; background:#fff; border-radius:var(--g-rad,14px); overflow:hidden; border:1px solid var(--g-bd,#eee); transition:transform .2s ease, box-shadow .2s ease}
+.g-card:hover{transform:translateY(-2px); box-shadow:0 10px 26px rgba(0,0,0,.08)}
+.g-media{aspect-ratio:4/3; position:relative; overflow:hidden}
+.g-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .35s ease}
+.g-card:hover .g-media img{transform:scale(1.06)}
+.g-body{padding:12px}
+.g-name{margin:0 0 6px; font-size:16px; font-weight:800}
+.g-name a{text-decoration:none; color:inherit}
+.g-desc{margin:0 0 10px; color:#6b7280; font-size:14px}
+.g-price{display:flex; align-items:center; gap:8px; font-weight:800; margin:0 0 10px}
+.g-price .compare{color:#9ca3af; text-decoration:line-through; font-weight:400}
+.g-actions{padding:0 12px 12px; margin-top:auto}
+.g-btn{display:inline-block; width:100%; text-align:center; padding:10px 14px; border-radius:999px; text-decoration:none; font-weight:800; background:var(--g-ac,#e11d48); color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.15) inset, 0 6px 14px rgba(225,29,72,.25)}
+.g-btn:hover{filter:brightness(1.06)}
+.g-empty{padding:20px; background:#f5f7fb; border-radius:12px; text-align:center; color:#6b7280}
+</style>
+
+{% schema %}
+{
+  "name": "T2 — Vitrine produits",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Titre", "default": "Tendances du moment" },
+    { "type": "text", "id": "subtitle", "label": "Sous-titre", "default": "Nos sélections pour toi" },
+
+    { "type": "select", "id": "mode", "label": "Source des produits", "default": "collection",
+      "options": [ { "value": "collection", "label": "Collection" }, { "value": "manual", "label": "Sélection manuelle (blocs)" } ] },
+    { "type": "collection", "id": "collection", "label": "Collection (si mode = Collection)" },
+    { "type": "number", "id": "limit", "label": "Nombre (Collection)", "default": 6 },
+
+    { "type": "select", "id": "columns", "label": "Colonnes (desktop)", "default": "3",
+      "options": [ { "value": "2", "label": "2" }, { "value": "3", "label": "3" }, { "value": "4", "label": "4" } ] },
+    { "type": "number", "id": "gap", "label": "Espace (px)", "default": 16 },
+    { "type": "number", "id": "radius", "label": "Arrondi (px)", "default": 14 },
+    { "type": "number", "id": "desc_words", "label": "Mots description", "default": 18 },
+
+    { "type": "checkbox", "id": "show_vendor", "label": "Afficher le vendeur", "default": false },
+    { "type": "checkbox", "id": "show_compare", "label": "Afficher prix barré", "default": true },
+
+    { "type": "color", "id": "bg", "label": "Fond", "default": "#ffffff" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
+    { "type": "color", "id": "accent", "label": "Bouton", "default": "#e11d48" },
+
+    { "type": "color", "id": "card_border", "label": "Bordure carte", "default": "#eeeeee" },
+    { "type": "text", "id": "btn_label", "label": "Libellé bouton", "default": "Voir le produit" }
+  ],
+  "blocks": [
+    { "type": "product_item", "name": "Produit (manuel)", "settings": [
+      { "type": "product", "id": "product", "label": "Produit" },
+      { "type": "text", "id": "custom_desc", "label": "Description courte (optionnel)" },
+      { "type": "text", "id": "custom_btn", "label": "Texte bouton (optionnel)" }
+    ] }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    { "name": "T2 — Vitrine produits", "blocks": [ { "type": "product_item" }, { "type": "product_item" }, { "type": "product_item" } ] }
+  ]
+}
+{% endschema %}
