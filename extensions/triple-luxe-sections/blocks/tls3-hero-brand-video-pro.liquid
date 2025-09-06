@@ -1,0 +1,115 @@
+{%- comment -%}
+Brand — Hero Video (Triple S)
+- Vidéo MP4 auto (mute+loop) OU image de fond
+- Overlay + titre/soustitre + 1 ou 2 CTA
+- Marquee optionnelle "TRIPLE S" en bas
+{%- endcomment -%}
+
+<section id="tls3-hero-{{ section.id }}" class="tls3-hero"
+  style="
+    --h-min: {{ section.settings.min_height }}vh;
+    --fg: {{ section.settings.fg }};
+    --overlay: {{ section.settings.overlay }};
+    --overlay-opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --accent: {{ section.settings.accent }};
+  "
+  aria-label="Hero de marque"
+>
+  <div class="tls3-hero__media">
+    {% if section.settings.video_url_mp4 != blank %}
+      <video class="tls3-hero__video" autoplay muted loop playsinline poster="{{ section.settings.poster | image_url: width: 2400 }}">
+        <source src="{{ section.settings.video_url_mp4 }}" type="video/mp4">
+      </video>
+    {% elsif section.settings.poster != blank %}
+      {{ section.settings.poster | image_url: width: 2400 | image_tag: class: 'tls3-hero__image', alt: section.settings.title | escape, loading: 'eager' }}
+    {% endif %}
+    <div class="tls3-hero__overlay"></div>
+  </div>
+
+  <div class="tls3-hero__inner">
+    {% if section.settings.kicker != blank %}
+      <div class="tls3-hero__kicker">{{ section.settings.kicker }}</div>
+    {% endif %}
+    {% if section.settings.title != blank %}
+      <h1 class="tls3-hero__title">{{ section.settings.title }}</h1>
+    {% endif %}
+    {% if section.settings.subtitle != blank %}
+      <p class="tls3-hero__sub">{{ section.settings.subtitle }}</p>
+    {% endif %}
+
+    <div class="tls3-hero__ctas">
+      {% if section.settings.btn_label_1 != blank and section.settings.btn_url_1 != blank %}
+        <a class="tls3-btn tls3-btn--primary" href="{{ section.settings.btn_url_1 }}">{{ section.settings.btn_label_1 }}</a>
+      {% endif %}
+      {% if section.settings.btn_label_2 != blank and section.settings.btn_url_2 != blank %}
+        <a class="tls3-btn tls3-btn--ghost" href="{{ section.settings.btn_url_2 }}">{{ section.settings.btn_label_2 }}</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if section.settings.show_marquee %}
+  <div class="tls3-hero__marquee" aria-hidden="true">
+    <div class="tls3-hero__track">
+      {% assign text = section.settings.marquee_text | default: 'TRIPLE S' %}
+      {% for i in (1..12) %}
+        <span class="m-it">{{ text }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<style>
+#tls3-hero-{{ section.id }}.tls3-hero{
+  --h-min: 70vh; --fg:#fff; --overlay:#0b0f1a; --overlay-opacity:.45; --accent:#7c3aed;
+  position:relative; min-height:var(--h-min); color:var(--fg); display:grid; place-items:center; overflow:hidden;
+}
+#tls3-hero-{{ section.id }} .tls3-hero__media{position:absolute; inset:0; z-index:0}
+#tls3-hero-{{ section.id }} .tls3-hero__video,
+#tls3-hero-{{ section.id }} .tls3-hero__image{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+#tls3-hero-{{ section.id }} .tls3-hero__overlay{position:absolute; inset:0; background:var(--overlay); opacity:var(--overlay-opacity)}
+#tls3-hero-{{ section.id }} .tls3-hero__inner{position:relative; z-index:1; text-align:center; padding: clamp(16px,4vw,32px)}
+#tls3-hero-{{ section.id }} .tls3-hero__kicker{letter-spacing:.28em; text-transform:uppercase; opacity:.9; font-size:12px}
+#tls3-hero-{{ section.id }} .tls3-hero__title{margin:.2em 0 .3em; font-size: clamp(28px, 5.4vw, 64px); font-weight:900; letter-spacing:.3px}
+#tls3-hero-{{ section.id }} .tls3-hero__sub{max-width:820px; margin:0 auto; opacity:.95; font-size: clamp(14px,1.4vw,18px)}
+#tls3-hero-{{ section.id }} .tls3-hero__ctas{margin-top:18px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+#tls3-hero-{{ section.id }} .tls3-btn{display:inline-block; padding:11px 16px; border-radius:999px; text-decoration:none; font-weight:800}
+#tls3-hero-{{ section.id }} .tls3-btn--primary{background:var(--accent); color:#fff; box-shadow:0 8px 28px rgba(124,58,237,.35)}
+#tls3-hero-{{ section.id }} .tls3-btn--primary:hover{filter:brightness(1.05)}
+#tls3-hero-{{ section.id }} .tls3-btn--ghost{border:1px solid rgba(255,255,255,.55); color:#fff}
+#tls3-hero-{{ section.id }} .tls3-btn--ghost:hover{background:rgba(255,255,255,.08)}
+/* marquee */
+#tls3-hero-{{ section.id }} .tls3-hero__marquee{position:absolute; left:0; right:0; bottom:6px; overflow:hidden}
+#tls3-hero-{{ section.id }} .tls3-hero__track{display:flex; gap:24px; width:max-content; animation:tls3-m{{ section.id }} 18s linear infinite; font-weight:900; letter-spacing:.2em; opacity:.75}
+#tls3-hero-{{ section.id }} .m-it{color:#fff; text-shadow:0 0 12px rgba(124,58,237,.45)}
+@keyframes tls3-m{{ section.id }}{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+</style>
+
+{% schema %}
+{
+  "name": "Brand — Hero (Triple S)",
+  "settings": [
+    { "type": "text", "id": "kicker", "label": "Kicker (sur-titre)", "default": "TRIPLE S — SIGNATURE" },
+    { "type": "text", "id": "title", "label": "Titre", "default": "Une identité de marque forte" },
+    { "type": "text", "id": "subtitle", "label": "Sous-titre", "default": "Design, mouvement et caractère pour votre boutique." },
+
+    { "type": "image_picker", "id": "poster", "label": "Image de fond (fallback/poster)" },
+    { "type": "text", "id": "video_url_mp4", "label": "Vidéo MP4 (URL)" },
+
+    { "type": "range", "id": "min_height", "label": "Hauteur minimale (vh)", "min": 50, "max": 100, "step": 5, "default": 70 },
+    { "type": "color", "id": "fg", "label": "Couleur du texte", "default": "#ffffff" },
+    { "type": "color", "id": "overlay", "label": "Couleur overlay", "default": "#0b0f1a" },
+    { "type": "range", "id": "overlay_opacity", "label": "Opacité overlay (0–100)", "min": 0, "max": 100, "step": 1, "default": 45 },
+    { "type": "color", "id": "accent", "label": "Couleur accent", "default": "#7c3aed" },
+
+    { "type": "checkbox", "id": "show_marquee", "label": "Afficher la frise «TRIPLE S»", "default": true },
+    { "type": "text", "id": "marquee_text", "label": "Texte de la frise", "default": "TRIPLE S" },
+
+    { "type": "text", "id": "btn_label_1", "label": "Bouton principal — libellé", "default": "Découvrir nos sections" },
+    { "type": "url",  "id": "btn_url_1",   "label": "Bouton principal — lien" },
+    { "type": "text", "id": "btn_label_2", "label": "Second bouton — libellé", "default": "Voir l’histoire" },
+    { "type": "url",  "id": "btn_url_2",   "label": "Second bouton — lien" }
+  ],
+  "presets": [{ "name": "Brand — Hero (Triple S)" }]
+}
+{% endschema %}
