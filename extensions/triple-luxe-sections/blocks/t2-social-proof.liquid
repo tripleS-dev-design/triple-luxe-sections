@@ -1,0 +1,63 @@
+{% comment %}
+Social proof — messages défilants (marquee) pour rassurer l’utilisateur
+Exemples: Livraison rapide • Retours 7 jours • Support réactif • +1000 avis
+{% endcomment %}
+
+<section class="t2-sp" style="--sp-bg: {{ section.settings.bg }}; --sp-fg: {{ section.settings.fg }}; --sp-ac: {{ section.settings.accent }}; --sp-speed: {{ section.settings.speed }}s;" aria-label="Confiance">
+  <div class="sp-viewport">
+    <div class="sp-track">
+      {% for block in section.blocks %}
+        {% if block.type == 'item' %}
+          <div class="sp-item" {{ block.shopify_attributes }}>
+            {% if block.settings.emoji != blank %}<span class="sp-emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
+            <span class="sp-text">{{ block.settings.text }}</span>
+          </div>
+        {% endif %}
+      {% endfor %}
+      {% for block in section.blocks %}
+        {% if block.type == 'item' %}
+          <div class="sp-item">
+            {% if block.settings.emoji != blank %}<span class="sp-emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
+            <span class="sp-text">{{ block.settings.text }}</span>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+.t2-sp{background:var(--sp-bg,#0f172a); color:var(--sp-fg,#fff); padding:8px 0; border-top:1px solid rgba(255,255,255,.08); border-bottom:1px solid rgba(255,255,255,.08)}
+.sp-viewport{overflow:hidden}
+.sp-track{display:flex; gap:18px; padding:6px 10px; width:max-content; animation:sp-scroll var(--sp-speed,28s) linear infinite}
+.sp-item{display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); font-weight:800; letter-spacing:.2px; white-space:nowrap}
+.sp-emo{filter:drop-shadow(0 2px 3px rgba(0,0,0,.15))}
+@keyframes sp-scroll{from{transform:translateX(0)} to{transform:translateX(-50%)}}
+</style>
+
+{% schema %}
+{
+  "name": "T2 — Social proof (marquee)",
+  "settings": [
+    { "type": "color", "id": "bg", "label": "Fond", "default": "#0f172a" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#ffffff" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#e11d48" },
+    { "type": "range", "id": "speed", "label": "Vitesse (s)", "min": 8, "max": 60, "step": 1, "default": 28 }
+  ],
+  "blocks": [
+    { "type": "item", "name": "Message", "settings": [
+      { "type": "text", "id": "emoji", "label": "Emoji", "default": "🚚" },
+      { "type": "text", "id": "text", "label": "Texte", "default": "Livraison rapide" }
+    ] }
+  ],
+  "max_blocks": 10,
+  "presets": [
+    { "name": "T2 — Social proof", "blocks": [
+      { "type": "item", "settings": { "emoji":"🚚", "text":"Livraison rapide" } },
+      { "type": "item", "settings": { "emoji":"🔁", "text":"Retours 7 jours" } },
+      { "type": "item", "settings": { "emoji":"💬", "text":"Support réactif" } },
+      { "type": "item", "settings": { "emoji":"⭐️", "text":"+1000 avis" } }
+    ] }
+  ]
+}
+{% endschema %}
