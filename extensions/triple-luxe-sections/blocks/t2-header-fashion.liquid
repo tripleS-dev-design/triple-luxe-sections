@@ -1,0 +1,145 @@
+{% comment %}
+Header — Thème 2 (Vêtements & Accessoires)
+- Deux lignes : (Logo | Recherche | Icônes) + (Liens rapides configurables par blocs)
+- Couleurs et stickiness réglables
+- Pas de paiements
+{% endcomment %}
+
+<section class="t2-header {% if section.settings.sticky %}t2-header--sticky{% endif %}"
+  style="
+    --t2-bg-top: {{ section.settings.bg_top }};
+    --t2-bg-bottom: {{ section.settings.bg_bottom }};
+    --t2-fg: {{ section.settings.fg }};
+    --t2-accent: {{ section.settings.accent }};
+    --t2-border: {{ section.settings.border }};
+  "
+  aria-label="En-tête du site">
+  <div class="t2-header__top">
+    <div class="t2-logo">
+      <a href="{{ routes.root_url }}" class="t2-logo__link">
+        {% if section.settings.logo != blank %}
+          {{ section.settings.logo | image_url: width: 240 | image_tag: alt: section.settings.store_name | escape }}
+        {% else %}
+          <strong class="t2-logo__text">{{ section.settings.store_name | default: shop.name }}</strong>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="t2-search">
+      <form action="{{ routes.search_url }}" method="get" role="search" aria-label="Recherche">
+        <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ section.settings.search_placeholder | escape }}" class="t2-search__input" />
+        <button type="submit" class="t2-search__btn" aria-label="Rechercher">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="t2-utils">
+      {% if section.settings.show_wishlist %}
+        <a href="{{ section.settings.wishlist_url | default: routes.root_url }}" class="t2-util" aria-label="{{ section.settings.wishlist_label }}">
+          <span class="t2-util__ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20.8 8.6c0 5.7-8.8 9.8-8.8 9.8S3.2 14.3 3.2 8.6A4.6 4.6 0 0112 7.4a4.6 4.6 0 018.8 1.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </span><span class="t2-util__label">{{ section.settings.wishlist_label }}</span>
+        </a>
+      {% endif %}
+
+      <a href="{{ routes.cart_url }}" class="t2-util" aria-label="{{ section.settings.cart_label }}">
+        <span class="t2-util__ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.5 12H19l2-8H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.6" fill="currentColor"/><circle cx="17" cy="20" r="1.6" fill="currentColor"/></svg>
+        </span><span class="t2-util__label">{{ section.settings.cart_label }}</span>
+        {% if cart.item_count > 0 %}<span class="t2-badge">{{ cart.item_count }}</span>{% endif %}
+      </a>
+
+      {% if section.settings.show_account %}
+        <a href="{{ routes.account_url }}" class="t2-util" aria-label="{{ section.settings.account_label }}">
+          <span class="t2-util__ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M5 19a7 7 0 0114 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </span><span class="t2-util__label">{{ section.settings.account_label }}</span>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="t2-header__bottom" aria-label="Liens rapides">
+    <nav class="t2-quick" role="navigation">
+      {% for block in section.blocks %}
+        {% if block.type == 'quick_link' %}
+          <a href="{{ block.settings.url | default: '#' }}" class="t2-quick__link" {{ block.shopify_attributes }}>
+            {% if block.settings.emoji != blank %}<span class="t2-quick__emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
+            <span class="t2-quick__txt">{{ block.settings.label }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+  </div>
+</section>
+
+<style>
+.t2-header{--_top: var(--t2-bg-top,#fff); --_bot: var(--t2-bg-bottom,#fff); --_fg: var(--t2-fg,#111827); --_ac: var(--t2-accent,#e11d48); --_bd: var(--t2-border,#eee);}
+.t2-header{background: linear-gradient(0deg,var(--_bot),var(--_top)); color:var(--_fg); border-bottom:1px solid var(--_bd);}
+.t2-header--sticky{position:sticky; top:0; z-index:40; backdrop-filter:saturate(1.2) blur(6px)}
+.t2-header__top{display:grid; grid-template-columns:1fr 2fr 1fr; gap:14px; align-items:center; padding:10px 14px}
+.t2-logo__link{text-decoration:none; color:var(--_fg); font-weight:900; font-size:18px; letter-spacing:.3px}
+.t2-search form{display:flex; background:#fff; border:1px solid var(--_bd); border-radius:8px; overflow:hidden}
+.t2-search__input{flex:1; padding:10px 12px; border:0; outline:0; font-size:14px}
+.t2-search__btn{width:42px; border:0; background:var(--_ac); color:#fff; cursor:pointer}
+.t2-utils{display:flex; justify-content:flex-end; gap:14px; align-items:center}
+.t2-util{position:relative; display:inline-flex; align-items:center; gap:6px; color:inherit; text-decoration:none}
+.t2-util__ico{display:inline-flex; color:var(--_ac)}
+.t2-util__label{font-size:13px}
+.t2-badge{position:absolute; top:-6px; right:-8px; min-width:18px; height:18px; padding:0 4px; background:var(--_ac); color:#fff; border-radius:12px; font-size:12px; display:grid; place-items:center}
+.t2-header__bottom{border-top:1px solid var(--_bd); padding:8px 10px}
+.t2-quick{display:flex; gap:22px; flex-wrap:wrap}
+.t2-quick__link{display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px; text-decoration:none; color:var(--_fg); background:rgba(225,29,72,.06); border:1px solid rgba(225,29,72,.12); transition:transform .15s ease, box-shadow .15s ease}
+.t2-quick__link:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(225,29,72,.15)}
+@media (max-width: 990px){
+  .t2-header__top{grid-template-columns:1fr 1fr; grid-template-areas:"logo utils" "search search";}
+  .t2-logo{grid-area:logo} .t2-utils{grid-area:utils} .t2-search{grid-area:search}
+  .t2-util__label{display:none}
+  .t2-quick{gap:12px; overflow-x:auto; -webkit-overflow-scrolling:touch}
+}
+</style>
+
+{% schema %}
+{
+  "name": "T2 — Fashion Header",
+  "settings": [
+    { "type": "checkbox", "id": "sticky", "label": "Collant (sticky)", "default": true },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "text", "id": "store_name", "label": "Nom de la boutique (fallback)" },
+    { "type": "text", "id": "search_placeholder", "label": "Placeholder recherche", "default": "Rechercher des articles" },
+
+    { "type": "checkbox", "id": "show_wishlist", "label": "Afficher Wishlist", "default": true },
+    { "type": "url", "id": "wishlist_url", "label": "Lien Wishlist" },
+    { "type": "text", "id": "wishlist_label", "label": "Libellé Wishlist", "default": "Favoris" },
+
+    { "type": "text", "id": "cart_label", "label": "Libellé Panier", "default": "Panier" },
+    { "type": "checkbox", "id": "show_account", "label": "Afficher Compte", "default": true },
+    { "type": "text", "id": "account_label", "label": "Libellé Compte", "default": "Compte" },
+
+    { "type": "color", "id": "bg_top", "label": "Fond (haut)", "default": "#ffffff" },
+    { "type": "color", "id": "bg_bottom", "label": "Fond (bas)", "default": "#ffffff" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
+    { "type": "color", "id": "accent", "label": "Couleur d’accent", "default": "#e11d48" },
+    { "type": "color", "id": "border", "label": "Bordure", "default": "#e5e7eb" }
+  ],
+  "blocks": [
+    {
+      "type": "quick_link",
+      "name": "Lien rapide",
+      "settings": [
+        { "type": "text", "id": "emoji", "label": "Emoji (optionnel)", "default": "✨" },
+        { "type": "text", "id": "label", "label": "Texte", "default": "Nouveautés" },
+        { "type": "url",  "id": "url", "label": "Lien" }
+      ]
+    }
+  ],
+  "max_blocks": 10,
+  "presets": [{ "name": "T2 — Fashion Header", "blocks": [
+    { "type": "quick_link", "settings": { "emoji": "✨", "label": "Nouveautés" } },
+    { "type": "quick_link", "settings": { "emoji": "👜", "label": "Sacs" } },
+    { "type": "quick_link", "settings": { "emoji": "👟", "label": "Chaussures" } },
+    { "type": "quick_link", "settings": { "emoji": "🧥", "label": "Vestes" } }
+  ]}]
+}
+{% endschema %}
