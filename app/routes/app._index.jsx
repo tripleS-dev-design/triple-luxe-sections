@@ -19,14 +19,11 @@ import {
   ThemeEditIcon,
   ProductsIcon,
   ImageIcon,
-  MagicIcon,
   StarFilledIcon,
   ViewIcon,
 } from "@shopify/polaris-icons";
 
-/* ===============================
- * LOADER: shopSub + apiKey (Admin auth)
- * =============================== */
+/* ========== LOADER ========== */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { session } = await authenticate.admin(request);
@@ -38,9 +35,7 @@ export const loader = async ({ request }) => {
   return json({ shopSub, apiKey });
 };
 
-/* ===============================
- * Theme editor deep links
- * =============================== */
+/* ========== Deep links Theme Editor ========== */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
@@ -55,9 +50,7 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "m
   return `${base}?${p.toString()}`;
 }
 
-/* ===============================
- * Small layout CSS (no custom icons)
- * =============================== */
+/* ========== CSS léger ========== */
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
   .Polaris-Page, .Polaris-Page__Content { max-width:none!important; padding-left:0!important; padding-right:0!important; }
@@ -90,9 +83,7 @@ function useInjectCss() {
   }, []);
 }
 
-/* ===============================
- * Meta (Polaris icons only) — titres/desc par HANDLE
- * =============================== */
+/* ========== META (Polaris icons) ========== */
 const META = {
   // Thème 1 — Informatique
   "header-informatique": { title: "Header — Informatique", icon: ThemeEditIcon,  desc: "Logo, recherche, utils, liens rapides." },
@@ -119,9 +110,7 @@ const META = {
   "tls3-founders-story-pro":   { title: "Histoire des fondateurs", icon: StarFilledIcon, desc: "Storytelling & photo." },
 };
 
-/* ===============================
- * 3 THÈMES — mapping => handles EXACTS (dossier blocks/)
- * =============================== */
+/* ========== Thèmes -> handles EXACTS ========== */
 const THEMES = [
   {
     key: "informatique",
@@ -157,7 +146,7 @@ const THEMES = [
     label: "Branding Triple-S",
     emoji: "✨",
     desc: "Brand hero vidéo, logos presse, valeurs, timeline & story.",
-    header:  { handle: "header-informatique", template: "index" }, // header générique
+    header:  { handle: "header-informatique", template: "index" },
     content: [
       { handle: "tls3-hero-brand-video-pro", template: "index" },
       { handle: "tls3-marquee-wordmark-pro", template: "index" },
@@ -170,9 +159,7 @@ const THEMES = [
   },
 ];
 
-/* ===============================
- * UI — une ligne de block (Polaris only)
- * =============================== */
+/* ========== UI Block Row ========== */
 function BlockRow({ shopSub, apiKey, block }) {
   const meta = META[block.handle] || {};
   const IconSrc = meta.icon || AppsIcon;
@@ -212,9 +199,7 @@ function BlockRow({ shopSub, apiKey, block }) {
   );
 }
 
-/* ===============================
- * Liste Header / Content / Footer
- * =============================== */
+/* ========== Liste Header / Content / Footer ========== */
 function ThemeBlocksView({ theme, shopSub, apiKey }) {
   return (
     <BlockStack gap="400">
@@ -255,9 +240,7 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
   );
 }
 
-/* ===============================
- * Page principale
- * =============================== */
+/* ========== Page principale ========== */
 export default function TLSBuilderIndex() {
   useInjectCss();
   const { shopSub, apiKey } = useLoaderData();
