@@ -1,21 +1,31 @@
-// app/routes/app._index.jsx — TLS · 3 thèmes → Header / Content / Footer
+// app/routes/app._index.jsx — TLS · 3 thèmes (Polaris only icons)
 import React, { useEffect, useMemo, useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { Page, Card, Button, Badge, Icon } from "@shopify/polaris";
 import {
-  OnlineStoreMajor,
-  ImageMajor,
-  ProductsMajor,
-  MarketingMajor,
-  CustomersMajor,
-  SettingsMajor,
-  CollectionsMajor,
-  OrdersMajor,
+  Page,
+  Card,
+  Button,
+  Badge,
+  BlockStack,
+  InlineStack,
+  Text,
+  Box,
+  Banner,
+  Icon,
+} from "@shopify/polaris";
+import {
+  AppsIcon,
+  ThemeEditIcon,
+  ProductsIcon,
+  OrdersIcon,
+  ImageIcon,
+  WandIcon,
+  StarIcon,
 } from "@shopify/polaris-icons";
 
 /* ===============================
- * LOADER: shopSub + apiKey (auth Remix + Admin)
+ * LOADER: shopSub + apiKey
  * =============================== */
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
@@ -46,200 +56,151 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "m
 }
 
 /* ===============================
- * CSS layout (3 colonnes)
- * =============================== */
-const LAYOUT_CSS = `
-  html, body { margin:0; background:#F6F7F9; }
-  .Polaris-Page, .Polaris-Page__Content { max-width:none!important; padding-left:0!important; padding-right:0!important; }
-  .tls-shell { padding:16px; }
-  .tls-editor { display:grid; grid-template-columns: 260px 2.3fr 1fr; gap:16px; align-items:start; }
-
-  .tls-rail      { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
-  .tls-rail-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; }
-  .tls-rail-head { padding:10px 12px; border-bottom:1px solid #E5E7EB; font-weight:800; }
-  .tls-rail-list { padding:8px; display:grid; gap:8px; }
-  .tls-rail-item { display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; background:#fff; border:1px solid #E5E7EB; border-radius:10px; padding:10px; cursor:pointer; }
-  .tls-rail-item[data-sel="1"] { outline:2px solid #2563EB; }
-
-  .tls-center-col { display:grid; gap:16px; }
-  .tls-panel      { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; }
-  .tls-section-h  { font-weight:800; letter-spacing:.2px; background:#F2F6FF; color:#0C4A6E; border:1px solid #CFE0FF; border-radius:10px; padding:10px 12px; margin-bottom:12px; }
-  .tls-block-row  { display:grid; grid-template-columns:56px 1fr auto; gap:14px; align-items:center; padding:10px 6px; border-top:1px solid #F1F2F4; }
-  .tls-block-row:first-of-type { border-top:none; }
-
-  .tls-preview-col { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
-  .tls-preview-card{ background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; display:grid; gap:12px; }
-
-  .tls-theme-chip { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid #E5E7EB; background:#fff; cursor:pointer; font-weight:700; }
-  .tls-theme-chip[data-on="1"] { outline:2px solid #2563EB; }
-
-  .tls-square { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; color:#fff; }
-  .tls-square[data-grad="violet"] { background:linear-gradient(135deg,#7c3aed 0%,#3b82f6 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 28px rgba(70,78,255,.15); }
-  .tls-square[data-grad="blue"]   { background:linear-gradient(135deg,#3b82f6 0%,#22c1c3 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 28px rgba(70,78,255,.15); }
-  .tls-square[data-grad="pink"]   { background:linear-gradient(135deg,#ec4899 0%,#8b5cf6 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 28px rgba(70,78,255,.15); }
-
-  @media (max-width: 1200px) { .tls-editor { grid-template-columns: 240px 2fr 1fr; } }
-  @media (max-width: 980px)  { .tls-editor { grid-template-columns: 1fr; } .tls-rail, .tls-preview-col { position:static; max-height:none; } }
-`;
-function useInjectCss(){
-  useEffect(()=>{
-    const t=document.createElement("style");
-    t.id="tls-layout-css";
-    t.appendChild(document.createTextNode(LAYOUT_CSS));
-    document.head.appendChild(t);
-    return ()=>t.remove();
-  },[]);
-}
-
-/* ===============================
- * META par handle (icône Polaris + description)
+ * Métadonnées visuelles (Polaris icons)
  * =============================== */
 const META = {
-  // Thème 1 — Informatique
-  "tls1-header-informatique-pro":               { icon: OnlineStoreMajor,  grad: "violet", desc: "Header clair avec recherche et accès compte/panier." },
-  "tls1-banner-informatique-kenburns-pro":      { icon: ImageMajor,        grad: "blue",   desc: "Bannière Ken Burns (fondu + zoom) en 3 slides." },
-  "tls1-packs-descriptifs-pro":                 { icon: ProductsMajor,     grad: "pink",   desc: "Cartes produits descriptives avec CTA." },
-  "tls1-social-icons-pro":                      { icon: MarketingMajor,    grad: "violet", desc: "Réseaux sociaux (icônes Polaris) — labels optionnels." },
-  "tls1-footer-bgimage-pro":                    { icon: SettingsMajor,     grad: "blue",   desc: "Footer image de fond + menus configurables." },
+  // Thème 1 (informatique)
+  "tls-header":         { title: "Header – Simple",       icon: ThemeEditIcon,  desc: "Logo / menu / panier." },
+  "tls-banner-3":       { title: "Bannière 3 images",     icon: ImageIcon,      desc: "Slider auto, ratio d’origine." },
+  "tls-circle-marquee": { title: "Marquee produits (cercle)", icon: ProductsIcon, desc: "Défilement continu d’images." },
+  "tls-testimonials":   { title: "Témoignages (grille)",  icon: StarIcon,       desc: "Social proof, responsive." },
+  "tls-footer":         { title: "Footer 2–4 colonnes",   icon: ThemeEditIcon,  desc: "Menus + infos utiles." },
 
-  // Thème 2 — Vêtements & Accessoires
-  "tls2-header-fashion-pro":                    { icon: OnlineStoreMajor,  grad: "violet", desc: "Header mode, minimal et responsive." },
-  "tls2-hero-fashion-pro":                      { icon: ImageMajor,        grad: "blue",   desc: "Hero plein écran ou ratio fixe, texte & bouton." },
-  "tls2-grid-fashion-pro":                      { icon: CollectionsMajor,  grad: "pink",   desc: "Grille éditoriale (collections / visuels lookbook)." },
-  "tls2-social-timer-pro":                      { icon: MarketingMajor,    grad: "violet", desc: "Barre sociale + compteur (offres limitées)." },
-  "tls2-footer-fashion-pro":                    { icon: SettingsMajor,     grad: "blue",   desc: "Footer compact, colonnes adaptatives." },
+  // Thème 2 (vêtements & accessoires)
+  "tls-hero-lookbook":   { title: "Hero Lookbook",         icon: ImageIcon,     desc: "Hero animé + CTA collection." },
+  "tls-collection-tabs": { title: "Collections onglets",   icon: ProductsIcon,  desc: "Catégories en onglets." },
+  "tls-sticky-promo":    { title: "Bandeau sticky promo",  icon: WandIcon,      desc: "Bandeau sticky (remise/code)." },
 
-  // Thème 3 — Triple S Brand
-  "tls3-header-brand-pro":                      { icon: OnlineStoreMajor,  grad: "violet", desc: "Header branding premium." },
-  "tls3-hero-brand-video-pro":                  { icon: ImageMajor,        grad: "blue",   desc: "Hero vidéo/poster avec overlay et CTA." },
-  "tls3-press-logos-pro":                       { icon: CollectionsMajor,  grad: "pink",   desc: "Barre logos presse/partenaires (auto défilement)." },
-  "tls3-founders-story-pro":                    { icon: CustomersMajor,    grad: "violet", desc: "Bloc “story” fondateurs (texte + portrait)." },
-  "tls3-values-grid-pro":                       { icon: SettingsMajor,     grad: "blue",   desc: "Valeurs de marque en tuiles." },
-  "tls3-timeline-pro":                          { icon: OrdersMajor,       grad: "pink",   desc: "Timeline milestones (dates clés de la marque)." },
-  "tls3-footer-brand-pro":                      { icon: SettingsMajor,     grad: "blue",   desc: "Footer éditorial / liens essentiels." },
-};
-
-const withMeta = (b) => {
-  const m = META[b.handle] || {};
-  return { ...b, icon: m.icon || OnlineStoreMajor, grad: m.grad || "violet", desc: b.desc || m.desc };
+  // Thème 3 (design adapté / branding Triple-S)
+  "tls-brand-hero":    { title: "Brand Hero",       icon: ThemeEditIcon,  desc: "Visuel branding + message clé." },
+  "tls-brand-cards":   { title: "Brand Cards",      icon: AppsIcon,       desc: "3 cartes valeurs/engagements." },
+  "tls-brand-reels":   { title: "Brand Reels",      icon: ImageIcon,      desc: "Grid légère de visuels/motion." },
 };
 
 /* ===============================
- * 3 THÈMES — header + content[] + footer (handles alignés)
+ * 3 THÈMES — handles des blocs .liquid
+ * (adapte les handles selon tes fichiers block)
  * =============================== */
 const THEMES = [
   {
     key: "theme-informatique",
     label: "Informatique",
     emoji: "💻",
-    desc: "Héros animé + packs descriptifs + réseaux — design propre et rapide.",
-    header:  { handle: "tls1-header-informatique-pro", template: "index", title: "Header — Informatique" },
+    desc: "Héros + produits + preuves sociales (clair & efficace).",
+    header:  { handle: "tls-header", template: "index" },
     content: [
-      { handle: "tls1-banner-informatique-kenburns-pro", template: "index",   title: "Banner — Ken Burns" },
-      { handle: "tls1-packs-descriptifs-pro",             template: "index",   title: "Packs descriptifs" },
-      { handle: "tls1-social-icons-pro",                  template: "index",   title: "Réseaux sociaux" },
+      { handle: "tls-banner-3",       template: "index" },
+      { handle: "tls-circle-marquee", template: "index" },
+      { handle: "tls-testimonials",   template: "index" },
     ],
-    footer:  { handle: "tls1-footer-bgimage-pro", template: "index", title: "Footer — BG Image" },
+    footer:  { handle: "tls-footer", template: "index" },
   },
   {
-    key: "theme-vetements-accessoires",
+    key: "theme-vetements",
     label: "Vêtements & Accessoires",
-    emoji: "👗",
-    desc: "Lookbook aéré, grille éditoriale et social bar pour l’engagement.",
-    header:  { handle: "tls2-header-fashion-pro", template: "index", title: "Header — Fashion" },
+    emoji: "🧥",
+    desc: "Lookbook, catégories en onglets et promo sticky.",
+    header:  { handle: "tls-header", template: "index" },
     content: [
-      { handle: "tls2-hero-fashion-pro",     template: "index",   title: "Hero — Fashion" },
-      { handle: "tls2-grid-fashion-pro",     template: "index",   title: "Grille éditoriale" },
-      { handle: "tls2-social-timer-pro",     template: "index",   title: "Social + Timer" },
+      { handle: "tls-hero-lookbook",   template: "index" },
+      { handle: "tls-collection-tabs", template: "index" },
+      { handle: "tls-sticky-promo",    template: "index" },
     ],
-    footer:  { handle: "tls2-footer-fashion-pro", template: "index", title: "Footer — Fashion" },
+    footer:  { handle: "tls-footer", template: "index" },
   },
   {
-    key: "theme-triple-s-brand",
-    label: "Triple S Brand",
+    key: "theme-brand",
+    label: "Design — Triple-S",
     emoji: "✨",
-    desc: "Branding premium : vidéo, logos presse, story, valeurs et timeline.",
-    header:  { handle: "tls3-header-brand-pro", template: "index", title: "Header — Brand" },
+    desc: "Branding poussé, sections identitaires et motion léger.",
+    header:  { handle: "tls-header", template: "index" },
     content: [
-      { handle: "tls3-hero-brand-video-pro", template: "index",   title: "Hero — Vidéo" },
-      { handle: "tls3-press-logos-pro",      template: "index",   title: "Logos presse" },
-      { handle: "tls3-founders-story-pro",   template: "index",   title: "Founders story" },
-      { handle: "tls3-values-grid-pro",      template: "index",   title: "Valeurs de marque" },
-      { handle: "tls3-timeline-pro",         template: "index",   title: "Timeline" }
+      { handle: "tls-brand-hero",  template: "index" },
+      { handle: "tls-brand-cards", template: "index" },
+      { handle: "tls-brand-reels", template: "index" },
     ],
-    footer:  { handle: "tls3-footer-brand-pro", template: "index", title: "Footer — Brand" },
+    footer:  { handle: "tls-footer", template: "index" },
   },
 ];
 
 /* ===============================
- * UI helpers
- * =============================== */
-function SquarePolarisIcon({ source, grad = "violet" }) {
-  return (
-    <div className="tls-square" data-grad={grad} aria-hidden="true">
-      <Icon source={source} />
-    </div>
-  );
-}
-
-/* ===============================
- * Ligne block (Header / Content / Footer)
+ * UI — une ligne “block” avec actions
  * =============================== */
 function BlockRow({ shopSub, apiKey, block }) {
-  const b = withMeta(block);
+  const meta = META[block.handle] || {};
+  const IconComp = meta.icon ? meta.icon : AppsIcon;
+
   return (
-    <div className="tls-block-row">
-      <SquarePolarisIcon source={b.icon} grad={b.grad} />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize:16, fontWeight:700, lineHeight:1.2 }}>{b.title || b.handle}</div>
-        {b.desc && <div style={{ marginTop:4, color:"#637381", fontSize:13 }}>{b.desc}</div>}
-        {b.template === "product" && (
-          <div style={{ marginTop:6, fontSize:12, color:"#0F172A", opacity:0.7 }}>
-            Template : <b>product</b> — ajoute-le depuis une page produit.
-          </div>
-        )}
-      </div>
-      <div style={{ display:"grid", gap:8, justifyItems:"end" }}>
-        <Button
-          url={linkAddBlock({ shopSub, template: b.template, apiKey, handle: b.handle })}
-          target="_top"
-          variant="primary"
-        >
-          Add to theme
-        </Button>
-        <Button url={editorBase({ shopSub })} target="_blank" external>
-          Open editor
-        </Button>
-      </div>
-    </div>
+    <Box paddingBlock="200" paddingInline="100" borderBlockStartWidth="025">
+      <InlineStack align="space-between" blockAlign="center" gap="400" wrap={false}>
+        <InlineStack gap="300" blockAlign="center">
+          <Icon source={IconComp} />
+          <Box>
+            <Text as="h3" variant="headingSm">{meta.title || block.handle}</Text>
+            {meta.desc && (
+              <Text as="p" tone="subdued">
+                {meta.desc}{block.template === "product" ? " • (à ajouter sur template produit)" : ""}
+              </Text>
+            )}
+          </Box>
+        </InlineStack>
+        <InlineStack gap="200">
+          <Button
+            url={linkAddBlock({ shopSub, template: block.template, apiKey, handle: block.handle })}
+            target="_top"
+            variant="primary"
+          >
+            Add to theme
+          </Button>
+          <Button url={editorBase({ shopSub })} target="_blank" external>
+            Open editor
+          </Button>
+        </InlineStack>
+      </InlineStack>
+    </Box>
   );
 }
 
 /* ===============================
- * Colonne centrale : Header / Content / Footer du thème choisi
+ * Liste Header / Content / Footer
  * =============================== */
 function ThemeBlocksView({ theme, shopSub, apiKey }) {
   return (
-    <>
-      <div className="tls-panel">
-        <div className="tls-section-h">Header</div>
+    <BlockStack gap="400">
+      <Card>
+        <Box padding="300" borderRadius="300" background="bg-surface-secondary">
+          <InlineStack gap="200" blockAlign="center">
+            <Icon source={ThemeEditIcon} />
+            <Text as="h2" variant="headingSm">Header</Text>
+          </InlineStack>
+        </Box>
         <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.header} />
-      </div>
+      </Card>
 
-      <div className="tls-panel">
-        <div className="tls-section-h">Content</div>
-        <div>
+      <Card>
+        <Box padding="300" borderRadius="300" background="bg-surface-secondary">
+          <InlineStack gap="200" blockAlign="center">
+            <Icon source={ProductsIcon} />
+            <Text as="h2" variant="headingSm">Content</Text>
+          </InlineStack>
+        </Box>
+        <BlockStack gap="0">
           {theme.content.map((blk) => (
             <BlockRow key={blk.handle} shopSub={shopSub} apiKey={apiKey} block={blk} />
           ))}
-        </div>
-      </div>
+        </BlockStack>
+      </Card>
 
-      <div className="tls-panel">
-        <div className="tls-section-h">Footer</div>
+      <Card>
+        <Box padding="300" borderRadius="300" background="bg-surface-secondary">
+          <InlineStack gap="200" blockAlign="center">
+            <Icon source={ThemeEditIcon} />
+            <Text as="h2" variant="headingSm">Footer</Text>
+          </InlineStack>
+        </Box>
         <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.footer} />
-      </div>
-    </>
+      </Card>
+    </BlockStack>
   );
 }
 
@@ -247,112 +208,95 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
  * Page principale
  * =============================== */
 export default function TLSBuilderIndex() {
-  useInjectCss();
   const { shopSub, apiKey } = useLoaderData();
 
-  // Sélection du thème (persisté localStorage)
+  // Sélection du thème (persisté côté navigateur uniquement)
   const [themeKey, setThemeKey] = useState(THEMES[0].key);
   useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
       const saved = localStorage.getItem("tls_selected_theme");
-      if (saved && THEMES.some(t => t.key === saved)) setThemeKey(saved);
+      if (saved && THEMES.some((t) => t.key === saved)) setThemeKey(saved);
     } catch {}
   }, []);
-  useEffect(() => { try { localStorage.setItem("tls_selected_theme", themeKey); } catch {} }, [themeKey]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem("tls_selected_theme", themeKey);
+    } catch {}
+  }, [themeKey]);
 
-  const theme = useMemo(() => THEMES.find(t => t.key === themeKey) || THEMES[0], [themeKey]);
+  const theme = useMemo(
+    () => THEMES.find((t) => t.key === themeKey) || THEMES[0],
+    [themeKey]
+  );
+
   const countBlocks = (t) => 1 + (t.content?.length || 0) + 1;
 
   return (
     <Page
-      title="Triple-Luxe Sections"
-      subtitle="Choisis un thème • Ajoute les blocks en 1 clic"
+      title="Triple-Luxe-Sections"
+      subtitle="Choisissez un thème • Ajoutez les blocks en 1 clic"
+      primaryAction={null}
       secondaryActions={[
-        { content: "Open Theme Editor", url: editorBase({ shopSub }), target: "_blank" },
+        { content: "Theme editor", url: editorBase({ shopSub }), target: "_blank" },
       ]}
     >
-      <div className="tls-shell">
-        <div className="tls-editor">
-          {/* Rail gauche : 3 thèmes */}
-          <div className="tls-rail">
-            <div className="tls-rail-card">
-              <div className="tls-rail-head">Thèmes</div>
-              <div className="tls-rail-list">
-                {THEMES.map((t) => (
-                  <div
-                    key={t.key}
-                    className="tls-rail-item"
-                    data-sel={themeKey===t.key?1:0}
-                    onClick={()=>setThemeKey(t.key)}
-                    title={t.desc}
-                  >
-                    <div style={{ fontSize:18 }}>{t.emoji}</div>
-                    <div style={{ fontWeight:700 }}>{t.label}</div>
-                    <div><Badge>{countBlocks(t)}</Badge></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      <BlockStack gap="400">
 
-          {/* Colonne centrale : blocks du thème sélectionné */}
-          <div className="tls-center-col">
-            <div className="tls-panel">
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"center" }}>
-                {THEMES.map(t => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    className="tls-theme-chip"
-                    data-on={themeKey===t.key?1:0}
-                    onClick={()=>setThemeKey(t.key)}
-                  >
-                    <span>{t.emoji}</span>
-                    <span>{t.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div style={{ marginTop:8, color:"#637381" }}>{theme.desc}</div>
-            </div>
+        {/* Bandeau info Polaris */}
+        <Banner
+          tone="success"
+          title="Build for Shopify (Polaris)"
+        >
+          <p>Icônes & UI 100% Polaris. Les liens ouvrent l’éditeur de thème avec le block pré-sélectionné.</p>
+        </Banner>
 
-            <ThemeBlocksView theme={theme} shopSub={shopSub} apiKey={apiKey} />
-          </div>
+        {/* Choix du thème */}
+        <Card>
+          <Box padding="300">
+            <InlineStack gap="200" wrap>
+              {THEMES.map((t) => (
+                <Button
+                  key={t.key}
+                  pressed={t.key === themeKey}
+                  onClick={() => setThemeKey(t.key)}
+                  accessibilityLabel={`Choisir ${t.label}`}
+                >
+                  {t.emoji} {t.label} <Badge tone="new">{countBlocks(t)}</Badge>
+                </Button>
+              ))}
+            </InlineStack>
+            <Box paddingBlockStart="200">
+              <Text as="p" tone="subdued">{theme.desc}</Text>
+            </Box>
+          </Box>
+        </Card>
 
-          {/* Colonne droite : infos rapides */}
-          <div className="tls-preview-col">
-            <div className="tls-preview-card">
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <Badge tone="success">Built for Shopify</Badge>
-                <div style={{ color:"#637381" }}>UI Polaris — rendu natif dans l’Admin.</div>
-              </div>
+        {/* Liste des blocks du thème sélectionné */}
+        <ThemeBlocksView theme={theme} shopSub={shopSub} apiKey={apiKey} />
 
-              <Card>
-                <div style={{ fontWeight:800, marginBottom:8 }}>Raccourcis</div>
-                <div style={{ display:"grid", gap:8 }}>
-                  <Button url={editorBase({ shopSub })} target="_blank" external>
-                    Ouvrir l’éditeur
-                  </Button>
-                  <Button url={linkAddBlock({ shopSub, template:"index", apiKey, handle:"tls1-banner-informatique-kenburns-pro" })} target="_top">
-                    Tester · Banner Ken Burns
-                  </Button>
-                  <Button url={linkAddBlock({ shopSub, template:"index", apiKey, handle:"tls3-hero-brand-video-pro" })} target="_top">
-                    Tester · Hero vidéo (Brand)
-                  </Button>
-                </div>
-              </Card>
+        {/* Liens rapides */}
+        <Card>
+          <Box padding="300">
+            <Text as="h3" variant="headingSm">Liens rapides</Text>
+            <BlockStack gap="200">
+              <Button url={editorBase({ shopSub })} target="_blank" external>
+                Ouvrir Theme Editor
+              </Button>
+              <InlineStack gap="200" wrap>
+                <Button url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "tls-banner-3" })} target="_top">
+                  Try · Banner 3 images
+                </Button>
+                <Button url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "tls-footer" })} target="_top">
+                  Try · Footer
+                </Button>
+              </InlineStack>
+            </BlockStack>
+          </Box>
+        </Card>
 
-              <Card>
-                <div style={{ fontWeight:800, marginBottom:8 }}>Conseils</div>
-                <ul style={{ margin:0, paddingLeft:18, color:"#374151" }}>
-                  <li>Clique un thème pour voir ses blocks.</li>
-                  <li>“Add to theme” ouvre l’éditeur avec le block déjà sélectionné.</li>
-                </ul>
-              </Card>
-            </div>
-          </div>
-
-        </div>
-      </div>
+      </BlockStack>
     </Page>
   );
 }
