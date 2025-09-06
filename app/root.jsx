@@ -1,41 +1,27 @@
-// app/root.jsx
+import type { LinksFunction } from "@remix-run/node";
 import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  LiveReload,
+  Links, Meta, Outlet, Scripts, ScrollRestoration
 } from "@remix-run/react";
-
 import { AppProvider } from "@shopify/polaris";
-import en from "@shopify/polaris/locales/en.json";
-
-// 👉 Importe l'URL de la feuille de style Polaris pour Remix (Vite)
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-export const links = () => [
-  { rel: "preconnect", href: "https://cdn.shopify.com" },
-  { rel: "stylesheet", href: "https://cdn.shopify.com/static/fonts/inter/v4/styles.css" },
-  { rel: "stylesheet", href: polarisStyles }, // ✅ maintenant défini
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: polarisStyles },
 ];
 
 export default function App() {
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
         <Meta />
         <Links />
       </head>
       <body>
-        {/* Un seul Polaris AppProvider global suffit */}
-        <AppProvider i18n={en}>
+        <AppProvider i18n={{}}>
           <Outlet />
         </AppProvider>
-
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );
