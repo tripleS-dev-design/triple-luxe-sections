@@ -1,0 +1,68 @@
+{%- comment -%}
+Brand — Timeline
+- Frise verticale (années + textes)
+- Petite animation d’apparition
+{%- endcomment -%}
+
+<section id="tls3-tl-{{ section.id }}" class="tls3-tl"
+  style="--bg: {{ section.settings.bg }}; --fg: {{ section.settings.fg }}; --accent: {{ section.settings.accent }};">
+  <div class="tls3-tl__wrap">
+    {% if section.settings.title != blank %}<h2 class="title">{{ section.settings.title }}</h2>{% endif %}
+    <ol class="list">
+      {% for block in section.blocks %}
+      {% if block.type == 'step' %}
+      <li class="it" {{ block.shopify_attributes }}>
+        <div class="dot"></div>
+        <div class="body">
+          <div class="year">{{ block.settings.year }}</div>
+          <div class="h">{{ block.settings.heading }}</div>
+          {% if block.settings.text != blank %}<div class="p">{{ block.settings.text }}</div>{% endif %}
+        </div>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+<style>
+#tls3-tl-{{ section.id }}.tls3-tl{background:var(--bg,#0f0f12); color:var(--fg,#fff); padding:28px 0}
+#tls3-tl-{{ section.id }} .tls3-tl__wrap{max-width:900px; margin:0 auto; padding:0 16px}
+#tls3-tl-{{ section.id }} .title{margin:0 0 12px; font-size:clamp(18px,3vw,28px); font-weight:900; text-align:center}
+#tls3-tl-{{ section.id }} .list{list-style:none; margin:0; padding:0; position:relative}
+#tls3-tl-{{ section.id }} .list::before{content:""; position:absolute; left:16px; top:0; bottom:0; width:2px; background:linear-gradient(var(--accent,#7c3aed), transparent)}
+#tls3-tl-{{ section.id }} .it{display:grid; grid-template-columns:40px 1fr; gap:12px; align-items:start; padding:10px 0; opacity:0; transform:translateY(6px); animation:tl-show .6s ease forwards}
+#tls3-tl-{{ section.id }} .it:nth-child(1){animation-delay:.05s} .it:nth-child(2){animation-delay:.12s} .it:nth-child(3){animation-delay:.2s} .it:nth-child(4){animation-delay:.28s}
+#tls3-tl-{{ section.id }} .dot{width:12px; height:12px; background:var(--accent,#7c3aed); border-radius:50%; margin:6px 0 0 10px; box-shadow:0 0 0 4px rgba(124,58,237,.18)}
+#tls3-tl-{{ section.id }} .year{font-weight:900; color:var(--accent,#7c3aed)}
+#tls3-tl-{{ section.id }} .h{font-weight:800; margin:2px 0 4px}
+#tls3-tl-{{ section.id }} .p{opacity:.92}
+@keyframes tl-show{to{opacity:1; transform:translateY(0)}}
+</style>
+
+{% schema %}
+{
+  "name": "Brand — Timeline",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Titre", "default": "Notre trajectoire" },
+    { "type": "color", "id": "bg", "label": "Fond", "default": "#0f0f12" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#ffffff" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#7c3aed" }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Étape",
+      "settings": [
+        { "type": "text", "id": "year", "label": "Année", "default": "2025" },
+        { "type": "text", "id": "heading", "label": "Titre", "default": "Lancement de Triple S Brand" },
+        { "type": "textarea", "id": "text", "label": "Texte", "default": "Création des sections de marque hautement personnalisables." }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    { "name": "Brand — Timeline", "blocks": [{ "type": "step" }, { "type": "step" }, { "type": "step" }] }
+  ]
+}
+{% endschema %}
