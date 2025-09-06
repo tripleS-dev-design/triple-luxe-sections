@@ -1,0 +1,90 @@
+{% comment %}
+Catégories — Pills défilantes (hover pop) pour guider l’utilisateur
+- Chaque bloc = emoji + label + lien
+{% endcomment %}
+
+<section class="t2-pills"
+  style="
+    --p-gap: {{ section.settings.gap }}px;
+    --p-size: {{ section.settings.size }}px;
+    --p-bg: {{ section.settings.bg }};
+    --p-fg: {{ section.settings.fg }};
+    --p-ac: {{ section.settings.accent }};
+    --p-speed: {{ section.settings.speed }}s;
+  "
+  aria-label="Catégories">
+  {% if section.settings.title != blank %}
+    <header class="p-head">
+      <h2 class="p-title">{{ section.settings.title }}</h2>
+      {% if section.settings.subtitle != blank %}<p class="p-sub">{{ section.settings.subtitle }}</p>{% endif %}
+    </header>
+  {% endif %}
+
+  <div class="p-viewport">
+    <div class="p-track">
+      {% for block in section.blocks %}
+        {% if block.type == 'pill' %}
+          <a class="p-pill" href="{{ block.settings.url | default: '#' }}" {{ block.shopify_attributes }}>
+            {% if block.settings.emoji != blank %}<span class="p-emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
+            <span class="p-txt">{{ block.settings.label }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+      {%- comment -%} dupli pour défilement continu {%- endcomment -%}
+      {% for block in section.blocks %}
+        {% if block.type == 'pill' %}
+          <a class="p-pill p-dup" href="{{ block.settings.url | default: '#' }}">
+            {% if block.settings.emoji != blank %}<span class="p-emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
+            <span class="p-txt">{{ block.settings.label }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+.t2-pills{background:var(--p-bg,#fff); color:var(--p-fg,#111827); padding:18px 0; border-bottom:1px solid rgba(0,0,0,.06)}
+.p-head{max-width:1200px; margin:0 auto 8px; padding:0 16px}
+.p-title{margin:0; font-size:clamp(18px,2.4vw,26px); font-weight:900}
+.p-sub{margin:6px 0 0; color:#6b7280}
+.p-viewport{overflow:hidden}
+.p-track{display:flex; gap:var(--p-gap,12px); width:max-content; animation:p-scroll var(--p-speed,24s) linear infinite; padding:6px 10px}
+.p-viewport:hover .p-track{animation-play-state:paused}
+.p-pill{display:inline-flex; align-items:center; gap:8px; height:var(--p-size,38px); padding:0 12px; border-radius:999px; text-decoration:none; color:var(--p-fg,#111827); background:rgba(225,29,72,.06); border:1px solid rgba(225,29,72,.12); font-weight:700; letter-spacing:.2px; transition:transform .15s ease, box-shadow .15s ease}
+.p-pill:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(225,29,72,.15)}
+.p-emo{filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+@keyframes p-scroll { from{transform:translateX(0)} to{transform:translateX(calc(-50% - var(--p-gap)/2))} }
+</style>
+
+{% schema %}
+{
+  "name": "T2 — Catégories (pills)",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Titre", "default": "Explorer par catégories" },
+    { "type": "text", "id": "subtitle", "label": "Sous-titre", "default": "Trouve vite ce qu’il te faut" },
+    { "type": "range", "id": "gap", "label": "Espace (px)", "min": 6, "max": 40, "step": 1, "default": 12 },
+    { "type": "range", "id": "size", "label": "Hauteur pill (px)", "min": 28, "max": 60, "step": 1, "default": 40 },
+    { "type": "range", "id": "speed", "label": "Vitesse défilement (s)", "min": 8, "max": 60, "step": 1, "default": 24 },
+    { "type": "color", "id": "bg", "label": "Fond", "default": "#ffffff" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#e11d48" }
+  ],
+  "blocks": [
+    { "type": "pill", "name": "Catégorie", "settings": [
+      { "type": "text", "id": "emoji", "label": "Emoji", "default": "👜" },
+      { "type": "text", "id": "label", "label": "Label", "default": "Sacs" },
+      { "type": "url", "id": "url", "label": "Lien" }
+    ] }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    { "name": "T2 — Catégories (pills)", "blocks": [
+      { "type": "pill", "settings": { "emoji": "👜", "label": "Sacs" } },
+      { "type": "pill", "settings": { "emoji": "👗", "label": "Robes" } },
+      { "type": "pill", "settings": { "emoji": "👟", "label": "Sneakers" } },
+      { "type": "pill", "settings": { "emoji": "🕶️", "label": "Accessoires" } }
+    ] }
+  ]
+}
+{% endschema %}
