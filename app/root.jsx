@@ -1,4 +1,3 @@
-// app/root.jsx — version JS (sans TypeScript), compatible Vite/Remix
 import {
   Links,
   Meta,
@@ -7,14 +6,9 @@ import {
   ScrollRestoration,
   LiveReload,
 } from "@remix-run/react";
-
-// Polaris CSS (recommandé par Shopify)
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-// Pas de type ici (JS pur)
-export const links = () => [
-  { rel: "stylesheet", href: polarisStyles },
-];
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export default function Root() {
   return (
@@ -26,9 +20,7 @@ export default function Root() {
         <Links />
       </head>
       <body>
-        {/* Tes routes rendues ici (app.jsx / app._index.jsx, etc.) */}
         <Outlet />
-
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
