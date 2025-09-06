@@ -5,9 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 installGlobals({ nativeFetch: true });
 
-// Related: https://github.com/remix-run/remix/issues/2835#issuecomment-1144102176
-// Replace the HOST env var with SHOPIFY_APP_URL so that it doesn't break the remix server. The CLI will eventually
-// stop passing in HOST, so we can remove this workaround after the next major release.
+// Workaround SHOPIFY_APP_URL vs HOST (conserve tel quel)
 if (
   process.env.HOST &&
   (!process.env.SHOPIFY_APP_URL ||
@@ -17,10 +15,9 @@ if (
   delete process.env.HOST;
 }
 
-const host = new URL(process.env.SHOPIFY_APP_URL || "http://localhost")
-  .hostname;
-let hmrConfig;
+const host = new URL(process.env.SHOPIFY_APP_URL || "http://localhost").hostname;
 
+let hmrConfig;
 if (host === "localhost") {
   hmrConfig = {
     protocol: "ws",
@@ -31,8 +28,8 @@ if (host === "localhost") {
 } else {
   hmrConfig = {
     protocol: "wss",
-    host: host,
-    port: parseInt(process.env.FRONTEND_PORT) || 8002,
+    host,
+    port: parseInt(process.env.FRONTEND_PORT || "8002", 10),
     clientPort: 443,
   };
 }
@@ -40,15 +37,10 @@ if (host === "localhost") {
 export default defineConfig({
   server: {
     allowedHosts: [host],
-    cors: {
-      preflightContinue: true,
-    },
+    cors: { preflightContinue: true },
     port: Number(process.env.PORT || 3000),
     hmr: hmrConfig,
-    fs: {
-      // See https://vitejs.dev/config/server-options.html#server-fs-allow for more information
-      allow: ["app", "node_modules"],
-    },
+    fs: { allow: ["app", "node_modules"] },
   },
   plugins: [
     remix({
@@ -67,7 +59,25 @@ export default defineConfig({
   build: {
     assetsInlineLimit: 0,
   },
+  /**
+   * IMPORTANT :
+   * - Polaris & polaris-icons doivent être bundle côté SSR
+   *   (sinon Node essaie de charger l’ESM brut et la build échoue).
+   */
+  ssr: {
+    noExternal: ["@shopify/polaris", "@shopify/polaris-icons"],
+  },
+  /**
+   * Évite les duplications de React (Invalid hook call).
+   */
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
+  /**
+   * Optionnel : prébundle en dev App Bridge.
+   * (Inutile d’inclure Polaris ici.)
+   */
   optimizeDeps: {
-    include: ["@shopify/app-bridge-react", "@shopify/polaris"],
+    include: ["@shopify/app-bridge-react"],
   },
 });
