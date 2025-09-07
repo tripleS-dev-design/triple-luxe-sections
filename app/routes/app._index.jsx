@@ -1,4 +1,4 @@
-// app/routes/app._index.jsx — TLS · 3 thèmes (Polaris-only icons)
+// app/routes/app._index.jsx — TLS · 3 themes (Polaris-only icons)
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouteLoaderData } from "@remix-run/react";
 import {
@@ -21,7 +21,7 @@ import {
   ViewIcon,
 } from "@shopify/polaris-icons";
 
-/* ===== lire les données du parent routes/app (shopSub, apiKey) ===== */
+/* ===== get parent data (shopSub, apiKey) ===== */
 function useParentData() {
   return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
 }
@@ -47,7 +47,7 @@ function linkAddBlock({
   return `${base}?${p.toString()}`;
 }
 
-/* ===== CSS léger ===== */
+/* ===== Light CSS ===== */
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
   .tls-theme-chip {
@@ -71,112 +71,112 @@ function InjectCssOnce() {
   return null;
 }
 
-/* ===== META (icônes Polaris uniquement) ===== */
+/* ===== META (Polaris icons only) ===== */
 const META = {
-  // Thème 1 — Informatique
+  // Theme 1 — Tech
   "header-informatique": {
-    title: "Header — Informatique",
+    title: "Header — Tech",
     icon: ThemeEditIcon,
-    desc: "Logo, recherche, utils, liens rapides.",
+    desc: "Logo, search, utilities, quick links.",
   },
   "banner-kenburns": {
-    title: "Bannière Ken Burns",
+    title: "Ken Burns Banner",
     icon: ImageIcon,
-    desc: "3 slides, fade + zoom/pan doux.",
+    desc: "3 slides, fade + smooth zoom/pan.",
   },
   "carousel-cercle": {
-    title: "Carrousel cercle",
+    title: "Circle Carousel",
     icon: AppsIcon,
-    desc: "Défilement circulaire d’images.",
+    desc: "Circular image scrolling.",
   },
   "packs-descriptifs": {
-    title: "Packs descriptifs",
+    title: "Descriptive Packs",
     icon: StarIcon,
-    desc: "Cartes produits + listes & badges.",
+    desc: "Product cards + lists & badges.",
   },
   "product-grid-glow": {
-    title: "Grille produits (Glow)",
+    title: "Product Grid (Glow)",
     icon: AppsIcon,
-    desc: "Vitrine produits carte blanche + glow.",
+    desc: "Showcase products with glow style.",
   },
   "social-icons": {
-    title: "Icônes sociaux",
+    title: "Social Icons",
     icon: AppsIcon,
-    desc: "Liens réseaux stylés, variants.",
+    desc: "Stylish social links, variants.",
   },
   "footer-liens": {
-    title: "Footer — Liens",
+    title: "Footer — Links",
     icon: ViewIcon,
-    desc: "2–4 colonnes de liens.",
+    desc: "2–4 link columns.",
   },
 
-  // Thème 2 — Vêtements & accessoires
+  // Theme 2 — Fashion
   "t2-header-fashion": {
     title: "Header — Fashion",
     icon: ThemeEditIcon,
-    desc: "Header mode (clair, aéré).",
+    desc: "Fashion header (light, airy).",
   },
   "t2-hero-runway": {
     title: "Hero — Runway",
     icon: ImageIcon,
-    desc: "Hero défilé avec CTA collection.",
+    desc: "Runway hero with collection CTA.",
   },
   "t2-categories-pills": {
-    title: "Catégories (pills)",
+    title: "Categories (pills)",
     icon: AppsIcon,
-    desc: "Filtres/onglets type pilules.",
+    desc: "Filters/tabs styled as pills.",
   },
   "t2-products-grid": {
-    title: "Grille produits (T2)",
+    title: "Product Grid (Fashion)",
     icon: AppsIcon,
-    desc: "Grille responsive adaptée à la mode.",
+    desc: "Responsive grid adapted for fashion.",
   },
   "t2-social-proof": {
-    title: "Preuves sociales",
+    title: "Social Proof",
     icon: StarIcon,
-    desc: "Témoignages / notes clients.",
+    desc: "Testimonials / customer reviews.",
   },
 
-  // Thème 3 — Branding Triple-S (pro)
+  // Theme 3 — Triple-S Branding (pro)
   "tls3-hero-brand-video-pro": {
-    title: "Hero vidéo — Brand Pro",
+    title: "Hero Video — Brand Pro",
     icon: ImageIcon,
-    desc: "Grand hero vidéo ou visuel clé.",
+    desc: "Large hero video or key visual.",
   },
   "tls3-marquee-wordmark-pro": {
     title: "Marquee — Wordmark",
     icon: AppsIcon,
-    desc: "Défilement marque/wordmarks.",
+    desc: "Scrolling brand/wordmarks.",
   },
   "tls3-press-logos-pro": {
-    title: "Logos presse",
+    title: "Press Logos",
     icon: AppsIcon,
-    desc: "Logos médias / partenaires.",
+    desc: "Media / partner logos.",
   },
   "tls3-values-grid-pro": {
-    title: "Valeurs (grille)",
+    title: "Values (grid)",
     icon: StarIcon,
-    desc: "3–6 cartes valeurs de marque.",
+    desc: "3–6 brand value cards.",
   },
   "tls3-timeline-pro": {
-    title: "Timeline — Histoire",
+    title: "Timeline — Story",
     icon: AppsIcon,
-    desc: "Étapes clés / jalons.",
+    desc: "Key steps / milestones.",
   },
   "tls3-founders-story-pro": {
-    title: "Histoire des fondateurs",
+    title: "Founders’ Story",
     icon: StarIcon,
     desc: "Storytelling & photo.",
   },
 };
 
-/* ===== Thèmes -> handles EXACTS (dossier /blocks) ===== */
+/* ===== THEMES (block handles) ===== */
 const THEMES = [
   {
-    key: "informatique",
-    label: "Informatique",
+    key: "tech",
+    label: "Tech",
     emoji: "💻",
-    desc: "Héros + mise en avant produits + packs et social.",
+    desc: "Hero + product highlights + packs and social.",
     header: { handle: "header-informatique", template: "index" },
     content: [
       { handle: "banner-kenburns", template: "index" },
@@ -188,10 +188,10 @@ const THEMES = [
     footer: { handle: "footer-liens", template: "index" },
   },
   {
-    key: "vetements",
-    label: "Vêtements & accessoires",
+    key: "fashion",
+    label: "Fashion",
     emoji: "🧥",
-    desc: "Lookbook, catégories en pills, grille produits et social proof.",
+    desc: "Lookbook, categories pills, product grid, and social proof.",
     header: { handle: "t2-header-fashion", template: "index" },
     content: [
       { handle: "t2-hero-runway", template: "index" },
@@ -203,10 +203,10 @@ const THEMES = [
   },
   {
     key: "triple-s",
-    label: "Branding Triple-S",
+    label: "Triple-S Branding",
     emoji: "✨",
-    desc: "Brand hero vidéo, logos presse, valeurs, timeline & story.",
-    header: { handle: "header-informatique", template: "index" }, // header générique
+    desc: "Brand hero video, press logos, values, timeline & story.",
+    header: { handle: "header-informatique", template: "index" }, // generic header
     content: [
       { handle: "tls3-hero-brand-video-pro", template: "index" },
       { handle: "tls3-marquee-wordmark-pro", template: "index" },
@@ -219,7 +219,7 @@ const THEMES = [
   },
 ];
 
-/* ===== UI: une ligne de block ===== */
+/* ===== Block Row ===== */
 function BlockRow({ shopSub, apiKey, block }) {
   const meta = META[block.handle] || {};
   const IconSrc = meta.icon || AppsIcon;
@@ -266,7 +266,7 @@ function BlockRow({ shopSub, apiKey, block }) {
   );
 }
 
-/* ===== Liste Header / Content / Footer ===== */
+/* ===== Theme blocks view ===== */
 function ThemeBlocksView({ theme, shopSub, apiKey }) {
   return (
     <BlockStack gap="400">
@@ -313,7 +313,7 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
   );
 }
 
-/* ===== Page principale ===== */
+/* ===== Main page ===== */
 export default function TLSBuilderIndex() {
   const { shopSub, apiKey } = useParentData();
   const [themeKey, setThemeKey] = useState(THEMES[0].key);
@@ -339,7 +339,7 @@ export default function TLSBuilderIndex() {
   return (
     <Page
       title="Triple-Luxe-Sections"
-      subtitle="Choisissez un thème • Ajoutez les blocks en 1 clic"
+      subtitle="Choose a theme • Add blocks in 1 click"
       secondaryActions={[
         {
           content: "Theme editor",
@@ -353,7 +353,7 @@ export default function TLSBuilderIndex() {
 
       <BlockStack gap="400">
         <Banner tone="success" title="Built for Shopify (Polaris)">
-          <p>Icônes & UI 100% Polaris. Les liens ouvrent l’éditeur avec le block pré-sélectionné.</p>
+          <p>Icons & UI 100% Polaris. Links open the editor with the pre-selected block.</p>
         </Banner>
 
         <Card>
@@ -389,11 +389,11 @@ export default function TLSBuilderIndex() {
         <Card>
           <Box padding="300">
             <Text as="h3" variant="headingSm">
-              Liens rapides
+              Quick links
             </Text>
             <BlockStack gap="200">
               <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
-                Ouvrir Theme Editor
+                Open Theme Editor
               </Button>
               <InlineStack gap="200" wrap>
                 <Button
@@ -406,7 +406,7 @@ export default function TLSBuilderIndex() {
                   target="_top"
                   icon={ThemeEditIcon}
                 >
-                  Try · Banner Ken Burns
+                  Try · Ken Burns Banner
                 </Button>
                 <Button
                   url={linkAddBlock({
@@ -418,7 +418,7 @@ export default function TLSBuilderIndex() {
                   target="_top"
                   icon={ThemeEditIcon}
                 >
-                  Try · Footer liens
+                  Try · Footer Links
                 </Button>
               </InlineStack>
             </BlockStack>
