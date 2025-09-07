@@ -21,6 +21,25 @@ import {
   ViewIcon,
 } from "@shopify/polaris-icons";
 
+/* ===== externals (YouTube / WhatsApp) ===== */
+const YOUTUBE_URL = "https://www.youtube.com/@yourchannel"; // change si besoin
+const WHATSAPP_URL = "https://wa.me/+212630079763";
+
+/* ===== shared button base (for floating FABs) ===== */
+const BUTTON_FAB = {
+  position: "fixed",
+  bottom: "24px",
+  width: "56px",
+  height: "56px",
+  borderRadius: "50%",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+  zIndex: 999,
+  textDecoration: "none",
+};
+
 /* ===== get parent data (shopSub, apiKey) ===== */
 function useParentData() {
   return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
@@ -425,56 +444,35 @@ export default function TLSBuilderIndex() {
           </Box>
         </Card>
       </BlockStack>
-{/* YouTube en bas à droite */}
+
+      {/* Floating buttons — Polaris-style FABs */}
+      {/* YouTube (bottom-right) */}
       <a
         href={YOUTUBE_URL}
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          textDecoration: "none",
-          zIndex: 999,
-        }}
         aria-label="YouTube tutorial"
+        style={{ ...BUTTON_FAB, right: "24px", backgroundColor: "#FF0000" }}
       >
-        <button
-          style={{
-            ...BUTTON_BASE,
-            backgroundColor: "#000",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: "30px",
-            cursor: "pointer",
-          }}
-        >
-          YouTube
-        </button>
+        {/* YouTube play icon */}
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 576 512" fill="#fff" aria-hidden="true">
+          <path d="M549.7 124.1c-6.3-23.7-24.9-42.3-48.6-48.6C458.8 64 288 64 288 64S117.2 64 74.9 75.5c-23.7 6.3-42.3 24.9-48.6 48.6C15.9 166.3 16 256 16 256s0 89.7 10.3 131.9c6.3 23.7 24.9 42.3 48.6 48.6C117.2 448 288 448 288 448s170.8 0 213.1-11.5c23.7-6.3 42.3-24.9 48.6-48.6C560.1 345.7 560 256 560 256s.1-89.7-10.3-131.9zM232 336V176l142 80-142 80z"/>
+        </svg>
       </a>
 
-      {/* WhatsApp en bas à gauche */}
+      {/* WhatsApp (bottom-left) */}
       <a
-        href="https://wa.me/+212630079763"
+        href={WHATSAPP_URL}
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          left: "24px",
-          backgroundColor: "#000",
-          borderRadius: "50%",
-          padding: "14px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          zIndex: 999,
-        }}
-        aria-label="WhatsApp"
+        aria-label="WhatsApp support"
+        style={{ ...BUTTON_FAB, left: "24px", backgroundColor: "#25D366" }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#fff" viewBox="0 0 448 512">
+        {/* WhatsApp icon */}
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 448 512" fill="#fff" aria-hidden="true">
           <path d="M380.9 97.1C339.4 55.6 283.3 32 224 32S108.6 55.6 67.1 97.1C25.6 138.6 2 194.7 2 254c0 45.3 13.5 89.3 39 126.7L0 480l102.6-38.7C140 481.5 181.7 494 224 494c59.3 0 115.4-23.6 156.9-65.1C422.4 370.6 446 314.5 446 254s-23.6-115.4-65.1-156.9zM224 438c-37.4 0-73.5-11.1-104.4-32l-7.4-4.9-61.8 23.3 23.2-60.6-4.9-7.6C50.1 322.9 38 289.1 38 254c0-102.6 83.4-186 186-186s186 83.4 186 186-83.4 186-186 186zm101.5-138.6c-5.5-2.7-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.7-12.5 2.7s-14.3 17.9-17.5 21.6c-3.2 3.7-6.4 4.1-11.9 1.4s-23.2-8.5-44.2-27.1c-16.3-14.5-27.3-32.4-30.5-37.9-3.2-5.5-.3-8.5 2.4-11.2 2.5-2.5 5.5-6.4 8.3-9.6 2.8-3.2 3.7-5.5 5.5-9.2s.9-6.9-.5-9.6c-1.4-2.7-12.5-30.1-17.2-41.3-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2s-9.6 1.4-14.6 6.9-19.2 18.7-19.2 45.7 19.7 53 22.4 56.7c2.7 3.7 38.6 59.1 93.7 82.8 13.1 5.7 23.3 9.1 31.3 11.7 13.1 4.2 25.1 3.6 34.6 2.2 10.5-1.6 32.7-13.4 37.3-26.3 4.6-12.7 4.6-23.5 3.2-25.7-1.4-2.2-5-3.6-10.5-6.2z"/>
         </svg>
       </a>
     </Page>
   );
 }
-
