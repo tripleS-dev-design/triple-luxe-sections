@@ -1,15 +1,17 @@
-// app/routes/auth.$.jsx
+// CALLBACK + BEGIN – AUCUNE UI
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
-  const url = new URL(request.url);
-  if (url.pathname.endsWith("/callback")) {
-    // fin de l’OAuth → crée la session puis redirect vers /app
+  const pathname = new URL(request.url).pathname;
+  // /auth/callback et /auth/shopify/callback → callback
+  if (pathname.endsWith("/callback")) {
     return authenticate.callback(request);
   }
-  // début de l’OAuth (environnement embedded)
+  // /auth ou /auth/shopify → begin
   return authenticate.begin(request);
 };
-
 export const action = loader;
-export default function Auth() { return null; }
+
+export default function AuthCatchAll() {
+  return null; // rien à rendre
+}
