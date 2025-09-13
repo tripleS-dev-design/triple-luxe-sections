@@ -1,10 +1,9 @@
-// app/routes/auth.login.jsx
+// DÉCLENCHEUR DE LOGIN OAUTH – AUCUNE UI
 import { authenticate } from "../shopify.server";
 
-export const loader = async ({ request }) => {
-  // Page invisible : auto-submit vers Shopify pour sortir de l’iframe
-  return authenticate.login(request);
-};
+export const loader = async ({ request }) => authenticate.login(request);
+export const action = loader;
 
-export const action = loader; // Shopify peut POST sur cette route
-export default function Login() { return null; }
+export default function AuthLogin() {
+  return null; // rien à rendre
+}
