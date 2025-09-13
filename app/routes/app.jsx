@@ -8,11 +8,11 @@ import styles from "@shopify/polaris/build/esm/styles.css?url";
 export const links = () => [{ rel: "stylesheet", href: styles }];
 
 export const loader = async ({ request }) => {
-  // 👉 le SDK gère tout : si pas de session, il redirige vers /auth automatiquement
   const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
 
+  // 👉 Le SDK gère: si pas de session ⇒ redirect vers /auth/login
+  // 👉 Paywall automatique (si pas d’abonnement actif)
   const { session } = await authenticate.admin(request, {
-    // 👉 paywall automatique avec ton plan géré côté app
     billing: { required: true, plans: [PLAN_HANDLES.monthly] },
   });
 
