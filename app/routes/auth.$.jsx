@@ -1,17 +1,20 @@
-// CALLBACK + BEGIN – AUCUNE UI
-import { authenticate } from "../shopify.server";
-
+// app/routes/auth.$.jsx
 export const loader = async ({ request }) => {
-  const pathname = new URL(request.url).pathname;
-  // /auth/callback et /auth/shopify/callback → callback
-  if (pathname.endsWith("/callback")) {
-    return authenticate.callback(request);
-  }
-  // /auth ou /auth/shopify → begin
-  return authenticate.begin(request);
-};
-export const action = loader;
+  const { authenticate, login } = await import("../shopify.server");
+  const url = new URL(request.url);
 
-export default function AuthCatchAll() {
-  return null; // rien à rendre
-}
+  // Si on arrive sur /auth/login → Shopify fournit une page qui sort de l’iframe
+  if (url.pathname.endsWith("/auth/login")) {
+    return login(request);
+  }
+
+  // Pour tous les autres /auth/* (callback compris) → librairie gère toute seule
+  return authenticate.admin(request);
+};
+
+export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  return authenticate.admin(request);
+};
+
+export default function AuthWildcard() { return null; }
