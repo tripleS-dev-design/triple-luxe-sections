@@ -1,11 +1,18 @@
 // app/routes/auth.$.jsx
-import { redirect } from "@remix-run/node";
-import { shopify, registerWebhooks } from "../shopify.server";
+import { json } from "@remix-run/node";
+import { authenticate } from "../shopify.server";
 
-export async function loader({ request }) {
-  const { session } = await shopify.authenticate.admin(request);
-  // Inscrire/mettre à jour toutes les subscriptions déclarées dans shopify.server.js
-  await registerWebhooks({ session });
-  // redirige vers ton UI embarquée
-  return redirect("/app");
-}
+export const loader = async ({ request }) => {
+  const url = new URL(request.url);
+
+  if (url.pathname.endsWith("/callback")) {
+    // fin d’OAuth
+    return authenticate.callback(request);
+  }
+
+  // début d’OAuth (top-level redirect)
+  return authenticate.begin(request);
+};
+
+export const action = loader; // Shopify peut POST → même traitement
+export default function Auth() { return null; }
