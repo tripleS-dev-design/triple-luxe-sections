@@ -10,20 +10,23 @@ export const links = () => [{ rel: "stylesheet", href: styles }];
 export const loader = async ({ request }) => {
   const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
   const url = new URL(request.url);
-  const shopQ = url.searchParams.get("shop") || undefined;
+  const shop = url.searchParams.get("shop") || undefined;
 
+  // Auth + paywall (Managed Pricing). Si pas payé → Shopify affiche la page de plan.
   const { session } = await authenticate
     .admin(request, { billing: { required: true, plans: [PLAN_HANDLES.monthly] } })
     .catch(() => ({ session: null }));
 
+  // Pas de session -> on lance /auth/login (avec ?shop si dispo)
   if (!session) {
-    const qs = shopQ ? `?shop=${shopQ}` : "";
+    const qs = shop ? `?shop=${shop}` : "";
     throw redirect(`/auth/login${qs}`);
   }
 
-  const shopSub = session.shop.replace(".myshopify.com", "");
-  const apiKey = process.env.SHOPIFY_API_KEY || "";
-  return json({ shopSub, apiKey });
+  return json({
+    shopSub: session.shop.replace(".myshopify.com", ""),
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+  });
 };
 
 export default function AppLayout() {
