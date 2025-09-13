@@ -1,82 +1,193 @@
-{% comment %} 
-Footer (2 à 4 colonnes) — Colonne 1 = menu, Colonnes 2–4 = “Label | URL”.
-Aucune zone “paiements” (interdit sur Shopify).
-{% endcomment %}
-<footer class="tls-footer" style="background: {{ section.settings.bg }}; color: {{ section.settings.fg }};">
-  <div class="tls-footer-wrap" style="grid-template-columns: repeat({{ section.settings.columns }}, 1fr);">
 
-    {%- comment -%} Colonne 1 (menu natif) {%- endcomment -%}
-    <div class="tls-col">
-      {% if section.settings.col_title_1 != blank %}<h4>{{ section.settings.col_title_1 }}</h4>{% endif %}
-      <ul>
-        {% if section.settings.col_menu_1 != blank %}
-          {% for link in section.settings.col_menu_1.links %}
-            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
-          {% endfor %}
-        {% endif %}
-      </ul>
-    </div>
+<footer class="tlx-ftr
+  {% if block.settings.full_bleed %} tlx-ftr--bleed{% endif %}
+  {% if block.settings.center_text %} tlx-ftr--center{% endif %}"
+  style="
+    --fg: {{ block.settings.fg }};
+    --bg: {{ block.settings.bg }};
+    --overlay: {{ block.settings.overlay_color }};
+    --overlay-a: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+    --maxw: {{ block.settings.max_width }}px;
+    --gap: {{ block.settings.gap }}px;
+    --btn-r: {{ block.settings.btn_radius }};
+    --btn-size: {{ block.settings.btn_size }};
+  "
+>
+  <!-- BACKGROUND -->
+  <div class="tlx-ftr__bg">
+    {% if block.settings.bg_image != blank %}
+      {{ block.settings.bg_image | image_url: width: 2400 | image_tag:
+        loading: 'lazy',
+        class: 'tlx-ftr__bg-img',
+        alt: '' }}
+    {% endif %}
+    <div class="tlx-ftr__overlay"></div>
+  </div>
 
-    {%- comment -%} Colonnes 2..4 (texte multi-lignes "Label | URL") {%- endcomment -%}
-    {% for idx in (2..4) %}
-      {% if idx <= section.settings.columns %}
-        {% capture title_key %}col_title_{{ idx }}{% endcapture %}
-        {% capture lines_key %}col_links_{{ idx }}{% endcapture %}
-        {% assign the_title = section.settings[title_key] %}
-        {% assign raw_lines = section.settings[lines_key] | default: '' %}
-        <div class="tls-col">
-          {% if the_title != blank %}<h4>{{ the_title }}</h4>{% endif %}
-          <ul>
-            {% assign br_split = raw_lines | newline_to_br | split: '<br />' %}
-            {% for line in br_split %}
-              {% assign clean = line | strip %}
-              {% if clean != '' %}
-                {% assign parts = clean | split: '|' %}
-                {% assign label = parts[0] | strip %}
-                {% assign url   = parts[1] | default: '' | strip %}
-                <li>{% if url != '' %}<a href="{{ url }}">{{ label }}{% else %}{{ label }}{% endif %}{% if url != '' %}</a>{% endif %}</li>
-              {% endif %}
-            {% endfor %}
-          </ul>
+  <div class="tlx-ftr__wrap">
+
+    <!-- MENU -> BOUTONS -->
+    {% if block.settings.menu_buttons %}
+      {% assign m1 = linklists[block.settings.menu_buttons] %}
+      {% if m1 %}
+        <div class="tlx-ftr__row">
+          <div class="tlx-col">
+            <h4 class="tlx-title">{{ m1.title }}</h4>
+            <div class="tlx-btns tlx-btns--{{ block.settings.btn_style }}">
+              {% for link in m1.links %}
+                <a class="tlx-btn" href="{{ link.url }}">{{ link.title }}</a>
+              {% endfor %}
+            </div>
+          </div>
         </div>
       {% endif %}
-    {% endfor %}
+    {% endif %}
+
+    <!-- RÉSEAUX SOCIAUX -->
+    {% assign has_social = false %}
+    {% if block.settings.whatsapp_number != blank %}{% assign has_social = true %}{% endif %}
+    {% if block.settings.instagram_handle != blank %}{% assign has_social = true %}{% endif %}
+    {% if block.settings.facebook_page != blank %}{% assign has_social = true %}{% endif %}
+    {% if block.settings.tiktok_handle != blank %}{% assign has_social = true %}{% endif %}
+    {% if block.settings.youtube_channel != blank %}{% assign has_social = true %}{% endif %}
+    {% if block.settings.linkedin_slug != blank %}{% assign has_social = true %}{% endif %}
+
+    {% if has_social %}
+      <div class="tlx-ftr__row">
+        <div class="tlx-col">
+          <h4 class="tlx-title">{{ block.settings.buttons_title }}</h4>
+          <div class="tlx-social">
+            {% if block.settings.whatsapp_number != blank %}
+              {% assign wa = block.settings.whatsapp_number | remove: ' ' | remove: '+' | remove: '-' | remove: '(' | remove: ')' %}
+              <a class="tlx-sbtn" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener">WhatsApp</a>
+            {% endif %}
+            {% if block.settings.instagram_handle != blank %}
+              {% assign ig = block.settings.instagram_handle | remove: '@' %}
+              <a class="tlx-sbtn" href="https://instagram.com/{{ ig }}" target="_blank" rel="noopener">Instagram</a>
+            {% endif %}
+            {% if block.settings.facebook_page != blank %}
+              <a class="tlx-sbtn" href="https://facebook.com/{{ block.settings.facebook_page }}" target="_blank" rel="noopener">Facebook</a>
+            {% endif %}
+            {% if block.settings.tiktok_handle != blank %}
+              {% assign tk = block.settings.tiktok_handle | remove: '@' %}
+              <a class="tlx-sbtn" href="https://www.tiktok.com/@{{ tk }}" target="_blank" rel="noopener">TikTok</a>
+            {% endif %}
+            {% if block.settings.youtube_channel != blank %}
+              {% assign yt = block.settings.youtube_channel | remove: '@' %}
+              <a class="tlx-sbtn" href="https://www.youtube.com/@{{ yt }}" target="_blank" rel="noopener">YouTube</a>
+            {% endif %}
+            {% if block.settings.linkedin_slug != blank %}
+              <a class="tlx-sbtn" href="https://www.linkedin.com/company/{{ block.settings.linkedin_slug }}" target="_blank" rel="noopener">LinkedIn</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- CONTACT -->
+    {% if block.settings.contact_phone != blank or block.settings.contact_email != blank %}
+      <div class="tlx-ftr__row">
+        <div class="tlx-col">
+          <div class="tlx-btns tlx-btns--{{ block.settings.btn_style }}">
+            {% if block.settings.contact_phone != blank %}
+              <a class="tlx-btn" href="tel:{{ block.settings.contact_phone }}">📞 Appeler</a>
+            {% endif %}
+            {% if block.settings.contact_email != blank %}
+              <a class="tlx-btn" href="mailto:{{ block.settings.contact_email }}">✉️ Email</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- COPYRIGHT -->
+    {% assign current_year = 'now' | date: '%Y' %}
+    {% if block.settings.copyright_text != blank %}
+      <div class="tlx-ftr__copy">{{ block.settings.copyright_text }}</div>
+    {% else %}
+      <div class="tlx-ftr__copy">© {{ current_year }} Votre boutique. Tous droits réservés.</div>
+    {% endif %}
+
   </div>
 </footer>
 
 <style>
-.tls-footer{ padding:32px 0 }
-.tls-footer-wrap{ max-width:1200px; margin:0 auto; padding:0 16px; display:grid; gap:24px }
-.tls-col h4{ margin:0 0 10px; font-size:16px }
-.tls-col ul{ list-style:none; margin:0; padding:0 }
-.tls-col li{ margin:6px 0 }
-.tls-col a{ text-decoration:none; color:inherit }
-.tls-col a:hover{ text-decoration:underline }
+.tlx-ftr{position:relative;color:var(--fg,#fff);background:var(--bg,#0f0f0f);padding:28px 0}
+.tlx-ftr--bleed{width:100vw;position:relative;left:calc(50% - 50vw);right:calc(50% - 50vw)}
+.tlx-ftr__bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.tlx-ftr__bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.tlx-ftr__overlay{position:absolute;inset:0;background:var(--overlay,#000);opacity:var(--overlay-a,.35)}
+.tlx-ftr__wrap{position:relative;z-index:1;max-width:var(--maxw,1200px);margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:var(--gap,24px)}
+.tlx-ftr__row{display:flex;flex-wrap:wrap;gap:20px}
+.tlx-col{flex:1 1 420px;min-width:280px}
+.tlx-title{margin:0 0 10px;font-weight:800}
+.tlx-btns{display:flex;flex-wrap:wrap;gap:10px}
+.tlx-btn{display:inline-flex;align-items:center;justify-content:center;padding:var(--btn-size,10px 14px);border-radius:var(--btn-r,9999px);font-weight:700;text-decoration:none;transition:transform .16s ease,opacity .16s ease;border:1px solid rgba(255,255,255,.25)}
+.tlx-btns--solid .tlx-btn{background:#fff;color:#111;border-color:#fff}
+.tlx-btns--outline .tlx-btn{background:transparent;color:#fff}
+.tlx-btn:hover{transform:translateY(-1px);opacity:.95}
+.tlx-social{display:flex;flex-wrap:wrap;gap:10px}
+.tlx-sbtn{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--btn-r,9999px);background:#fff;color:#111;text-decoration:none;font-weight:700}
+.tlx-sbtn svg{width:22px;height:22px;display:block}
+.tlx-ftr__copy{text-align:center;opacity:.8}
+.tlx-ftr--center .tlx-ftr__row{justify-content:center}
+.tlx-ftr--center .tlx-btns,.tlx-ftr--center .tlx-social{justify-content:center}
+@media (max-width:640px){.tlx-col{min-width:100%}}
 </style>
 
 {% schema %}
 {
-  "name": "Footer — Liens ",
+  "name": "TLX Footer Buttons PRO",
+  "target": "section",
   "settings": [
-    { "type": "range", "id": "columns", "label": "Colonnes", "min": 2, "max": 4, "step": 1, "default": 3 },
+    { "type": "link_list", "id": "menu_buttons", "label": "Menu → Boutons (1 seul autorisé)" },
 
-    { "type": "text", "id": "col_title_1", "label": "Titre colonne 1", "default": "Liens" },
-    { "type": "link_list", "id": "col_menu_1", "label": "Menu colonne 1" },
+    { "type": "text", "id": "buttons_title", "label": "Titre réseaux", "default": "Suivez-nous" },
+    { "type": "text", "id": "whatsapp_number", "label": "WhatsApp (ex: +212612345678)" },
+    { "type": "text", "id": "instagram_handle", "label": "Instagram (ex: @votrecompte)" },
+    { "type": "text", "id": "facebook_page", "label": "Facebook (ex: votrepage)" },
+    { "type": "text", "id": "tiktok_handle", "label": "TikTok (ex: @votrecompte)" },
+    { "type": "text", "id": "youtube_channel", "label": "YouTube (ex: @votrechaine)" },
+    { "type": "text", "id": "linkedin_slug", "label": "LinkedIn (slug entreprise)" },
 
-    { "type": "text", "id": "col_title_2", "label": "Titre colonne 2", "default": "Support" },
-    { "type": "textarea", "id": "col_links_2", "label": "Liens colonne 2 (une ligne = Label | URL)" },
+    { "type": "text", "id": "contact_phone", "label": "Téléphone (ex: +212601234567)" },
+    { "type": "text", "id": "contact_email", "label": "Email (ex: contact@exemple.com)" },
 
-    { "type": "text", "id": "col_title_3", "label": "Titre colonne 3", "default": "Entreprise" },
-    { "type": "textarea", "id": "col_links_3", "label": "Liens colonne 3 (une ligne = Label | URL)" },
+    { "type": "text", "id": "copyright_text", "label": "Copyright", "default": "© Votre boutique. Tous droits réservés." },
 
-    { "type": "text", "id": "col_title_4", "label": "Titre colonne 4", "default": "Réseaux" },
-    { "type": "textarea", "id": "col_links_4", "label": "Liens colonne 4 (une ligne = Label | URL)" },
+    { "type": "select", "id": "btn_style", "label": "Style des boutons", "default": "solid",
+      "options": [
+        { "value": "solid", "label": "Plein (blanc)" },
+        { "value": "outline", "label": "Contour (transparent)" }
+      ]
+    },
+    { "type": "select", "id": "btn_radius", "label": "Arrondi des boutons", "default": "9999px",
+      "options": [
+        { "value": "8px", "label": "8px" },
+        { "value": "16px", "label": "16px" },
+        { "value": "24px", "label": "24px" },
+        { "value": "9999px", "label": "Pilule" }
+      ]
+    },
+    { "type": "select", "id": "btn_size", "label": "Taille des boutons", "default": "10px 14px",
+      "options": [
+        { "value": "8px 12px", "label": "Petite" },
+        { "value": "10px 14px", "label": "Normale" },
+        { "value": "12px 18px", "label": "Grande" }
+      ]
+    },
 
-    { "type": "color", "id": "bg", "label": "Fond", "default": "#0f0f0f" },
-    { "type": "color", "id": "fg", "label": "Texte", "default": "#ffffff" }
-  ],
-  "presets": [
-    { "name": "Footer — Liens (simple)" }
+    { "type": "color", "id": "bg", "label": "Couleur de fond", "default": "#0f0f0f" },
+    { "type": "image_picker", "id": "bg_image", "label": "Image d’arrière-plan (optionnel)" },
+    { "type": "color", "id": "overlay_color", "label": "Couleur overlay", "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity", "label": "Opacité overlay (%)", "min": 0, "max": 90, "step": 5, "default": 35 },
+
+    { "type": "color", "id": "fg", "label": "Couleur du texte", "default": "#ffffff" },
+    { "type": "range", "id": "gap", "label": "Espace vertical (px)", "min": 12, "max": 40, "step": 2, "default": 24 },
+    { "type": "range", "id": "max_width", "label": "Largeur max (px)", "min": 900, "max": 1600, "step": 10, "default": 1200 },
+
+    { "type": "checkbox", "id": "center_text", "label": "Centrer le contenu", "default": true },
+    { "type": "checkbox", "id": "full_bleed", "label": "Bord à bord (extrême écran)", "default": true }
   ]
 }
 {% endschema %}

@@ -1,67 +1,30 @@
-{%- comment -%}
-Brand — Histoire (split)
-- Image / vidéo à gauche, texte à droite (ordre inversable)
-- Signature optionnelle + CTA
-{%- endcomment -%}
-
-<section id="tls3-fs-{{ section.id }}" class="tls3-fs"
-  style="--bg: {{ section.settings.bg }}; --fg: {{ section.settings.fg }}; --accent: {{ section.settings.accent }};">
-  <div class="tls3-fs__wrap">
-    <div class="tls3-fs__grid" data-reverse="{{ section.settings.reverse }}">
-      <div class="tls3-fs__media">
-        {% if section.settings.image != blank %}
-          {{ section.settings.image | image_url: width: 1200 | image_tag: alt: section.settings.title, loading: 'lazy' }}
-        {% endif %}
-      </div>
-      <div class="tls3-fs__content">
-        {% if section.settings.kicker != blank %}<div class="kicker">{{ section.settings.kicker }}</div>{% endif %}
-        {% if section.settings.title != blank %}<h2 class="title">{{ section.settings.title }}</h2>{% endif %}
-        {% if section.settings.text != blank %}<div class="rte text">{{ section.settings.text }}</div>{% endif %}
-        {% if section.settings.signature != blank %}<div class="sig">— {{ section.settings.signature }}</div>{% endif %}
-        {% if section.settings.btn_label != blank and section.settings.btn_url != blank %}
-          <a class="tls3-btn" href="{{ section.settings.btn_url }}">{{ section.settings.btn_label }}</a>
-        {% endif %}
-      </div>
+<section class="tls3-founders">
+  <div class="tls3-founders__in">
+    <div>
+      {% if block.settings.title != blank %}<h2>{{ block.settings.title }}</h2>{% endif %}
+      {% if block.settings.text != blank %}<p>{{ block.settings.text }}</p>{% endif %}
     </div>
+    {% if block.settings.image != blank %}
+      {{ block.settings.image | image_url: width: 1200 | image_tag: class: 'tls3-founders__img', alt: block.settings.title, loading: 'lazy' }}
+    {% endif %}
   </div>
 </section>
 
 <style>
-#tls3-fs-{{ section.id }}.tls3-fs{background:var(--bg,#0f0f12); color:var(--fg,#fff); padding:28px 0}
-#tls3-fs-{{ section.id }} .tls3-fs__wrap{max-width:1200px; margin:0 auto; padding:0 16px}
-#tls3-fs-{{ section.id }} .tls3-fs__grid{display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:center}
-#tls3-fs-{{ section.id }} .tls3-fs__grid[data-reverse="true"]{direction:rtl}
-#tls3-fs-{{ section.id }} .tls3-fs__grid[data-reverse="true"] > *{direction:ltr}
-#tls3-fs-{{ section.id }} .tls3-fs__media img{width:100%; height:auto; border-radius:14px; box-shadow:0 12px 34px rgba(124,58,237,.18)}
-#tls3-fs-{{ section.id }} .kicker{letter-spacing:.28em; text-transform:uppercase; opacity:.85; color:var(--accent,#7c3aed); font-weight:800; font-size:12px}
-#tls3-fs-{{ section.id }} .title{margin:.2em 0 .4em; font-size: clamp(20px,3.8vw,36px); font-weight:900}
-#tls3-fs-{{ section.id }} .text{opacity:.95}
-#tls3-fs-{{ section.id }} .sig{margin-top:10px; font-weight:700; opacity:.9}
-#tls3-fs-{{ section.id }} .tls3-btn{display:inline-block; margin-top:14px; padding:10px 16px; border-radius:999px; text-decoration:none; font-weight:800; background:var(--accent,#7c3aed); color:#fff}
-#tls3-fs-{{ section.id }} .tls3-btn:hover{filter:brightness(1.06)}
-@media (max-width: 900px){ #tls3-fs-{{ section.id }} .tls3-fs__grid{grid-template-columns:1fr} }
+.tls3-founders{ max-width:1200px; margin:0 auto; padding:24px 16px }
+.tls3-founders__in{ display:grid; gap:16px; grid-template-columns:1.2fr 1fr; align-items:center }
+@media (max-width:900px){ .tls3-founders__in{ grid-template-columns:1fr } }
+.tls3-founders__img{ width:100%; height:auto; display:block; border-radius:12px }
 </style>
 
 {% schema %}
 {
-  "name": "Brand — Histoire (split)",
+  "name": "Founders story",
+  "target": "section",
   "settings": [
-    { "type": "text", "id": "kicker", "label": "Kicker", "default": "DEPUIS 2020" },
-    { "type": "text", "id": "title", "label": "Titre", "default": "L’histoire de Triple S" },
-    { "type": "richtext", "id": "text", "label": "Texte", "default": "<p>Nous créons des sections de marque qui parlent, bougent et convertissent. Un design soigné, des animations subtiles, et une expérience mémorable.</p>" },
-    { "type": "text", "id": "signature", "label": "Signature", "default": "L’équipe Triple S" },
-
-    { "type": "image_picker", "id": "image", "label": "Image" },
-
-    { "type": "checkbox", "id": "reverse", "label": "Inverser l’ordre (image à droite)", "default": false },
-
-    { "type": "color", "id": "bg", "label": "Fond", "default": "#0f0f12" },
-    { "type": "color", "id": "fg", "label": "Texte", "default": "#ffffff" },
-    { "type": "color", "id": "accent", "label": "Accent", "default": "#7c3aed" },
-
-    { "type": "text", "id": "btn_label", "label": "Bouton (libellé)", "default": "Explorer nos sections" },
-    { "type": "url",  "id": "btn_url",   "label": "Bouton (lien)" }
-  ],
-  "presets": [{ "name": "Brand — Histoire (split)" }]
+    { "type": "text", "id": "title", "label": "Titre", "default": "Notre histoire" },
+    { "type": "textarea", "id": "text", "label": "Texte" },
+    { "type": "image_picker", "id": "image", "label": "Image" }
+  ]
 }
 {% endschema %}

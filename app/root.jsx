@@ -1,14 +1,13 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  LiveReload,
-} from "@remix-run/react";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+// Autoriser l'embed dans l'Admin Shopify (et *.myshopify.com)
+export const headers = () => {
+  return {
+    "Content-Security-Policy":
+      "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
+    "Referrer-Policy": "origin-when-cross-origin",
+  };
+};
 
 export default function Root() {
   return (
@@ -23,7 +22,6 @@ export default function Root() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );

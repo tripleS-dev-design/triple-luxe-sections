@@ -1,7 +1,6 @@
-// app/routes/app._index.jsx — TLS · 3 thèmes (Polaris-only icons, handles MAJ)
+// app/routes/app._index.jsx — TLS · 3 themes (Polaris-only icons)
 import React, { useEffect, useMemo, useState } from "react";
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useRouteLoaderData } from "@remix-run/react";
 import {
   Page,
   Card,
@@ -17,29 +16,47 @@ import {
 import {
   AppsIcon,
   ThemeEditIcon,
-  ProductsIcon,
   ImageIcon,
   StarIcon,
   ViewIcon,
 } from "@shopify/polaris-icons";
 
-/* LOADER */
-export const loader = async ({ request }) => {
-  const { authenticate } = await import("../shopify.server");
-  const { session } = await authenticate.admin(request);
+/* ===== externals (YouTube / WhatsApp) ===== */
+const YOUTUBE_URL = "https://www.youtube.com/@yourchannel"; // change si besoin
+const WHATSAPP_URL = "https://wa.me/+212630079763";
 
-  const shopDomain = session.shop || "";
-  const shopSub = shopDomain.replace(".myshopify.com", "");
-  const apiKey = process.env.SHOPIFY_API_KEY || "";
-
-  return json({ shopSub, apiKey });
+/* ===== shared button base (for floating FABs) ===== */
+const BUTTON_FAB = {
+  position: "fixed",
+  bottom: "24px",
+  width: "56px",
+  height: "56px",
+  borderRadius: "50%",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+  zIndex: 60,
+  textDecoration: "none",
+  backgroundColor: "#000",
 };
 
-/* Deep links Theme Editor */
+/* ===== get parent data (shopSub, apiKey) ===== */
+function useParentData() {
+  return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
+}
+
+/* ===== Deep links Theme Editor ===== */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
-function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "main" }) {
+function linkAddBlock({
+  shopSub,
+  template = "index",
+  apiKey,
+  handle,
+  target = "main",
+}) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
     context: "apps",
@@ -50,116 +67,171 @@ function linkAddBlock({ shopSub, template = "index", apiKey, handle, target = "m
   return `${base}?${p.toString()}`;
 }
 
-/* CSS léger */
+/* ===== Light CSS ===== */
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
-  .Polaris-Page, .Polaris-Page__Content { max-width:none!important; padding-left:0!important; padding-right:0!important; }
-  .tls-shell { padding:16px; }
-  .tls-editor { display:grid; grid-template-columns: 260px 2.3fr 1fr; gap:16px; align-items:start; }
-  .tls-rail      { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
-  .tls-rail-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; }
-  .tls-rail-head { padding:10px 12px; border-bottom:1px solid #E5E7EB; font-weight:800; }
-  .tls-rail-list { padding:8px; display:grid; gap:8px; }
-  .tls-rail-item { display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; background:#fff; border:1px solid #E5E7EB; border-radius:10px; padding:10px; cursor:pointer; }
-  .tls-rail-item[data-sel="1"] { outline:2px solid #2563EB; }
-  .tls-center-col { display:grid; gap:16px; }
-  .tls-panel      { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; }
+  .tls-theme-chip {
+    display:inline-grid; grid-auto-flow:column; gap:8px; align-items:center;
+    padding:8px 12px; border:1px solid #E5E7EB; border-radius:999px;
+    background:#fff; cursor:pointer; font-weight:700;
+  }
+  .tls-theme-chip[data-on="1"] { outline:2px solid #2563EB; }
   .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
-  .tls-preview-col { position:sticky; top:68px; max-height:calc(100vh - 84px); overflow:auto; }
-  .tls-preview-card{ background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px; display:grid; gap:12px; }
-  .tls-theme-chip { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid #E5E7EB; background:#fff; cursor:pointer; font-weight:700; }
-  .tls-theme-chip[data-on="1"] { outline:2px solid #2563EB; }
-  @media (max-width: 1200px) { .tls-editor { grid-template-columns: 240px 2fr 1fr; } }
-  @media (max-width: 980px)  { .tls-editor { grid-template-columns: 1fr; } .tls-rail, .tls-preview-col { position:static; max-height:none; } }
 `;
-function useInjectCss() {
+function InjectCssOnce() {
   useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (document.getElementById("tls-layout-css")) return;
     const t = document.createElement("style");
     t.id = "tls-layout-css";
     t.appendChild(document.createTextNode(LAYOUT_CSS));
     document.head.appendChild(t);
-    return () => t.remove();
   }, []);
+  return null;
 }
 
-/* META (icônes Polaris uniquement) */
+/* ===== META (Polaris icons only) ===== */
 const META = {
-  // Thème 1 — Informatique
-  "header-informatique": { title: "Header — Informatique", icon: ThemeEditIcon,  desc: "Logo, recherche, utils, liens rapides." },
-  "banner-kenburns":     { title: "Bannière Ken Burns",    icon: ImageIcon,      desc: "3 slides, fade + zoom/pan doux." },
-  "carousel-cercle":     { title: "Carrousel cercle",      icon: ProductsIcon,   desc: "Défilement circulaire d’images." },
-  "packs-descriptifs":   { title: "Packs descriptifs",     icon: StarIcon,       desc: "Cartes produits + listes & badges." },
-  "product-grid-glow":   { title: "Grille produits (Glow)",icon: ProductsIcon,   desc: "Vitrine produits carte blanche + glow." },
-  "social-icons":        { title: "Icônes sociaux",        icon: AppsIcon,       desc: "Liens réseaux stylés, variants." },
-  "footer-liens":        { title: "Footer — Liens",        icon: ViewIcon,       desc: "2–4 colonnes de liens (sans paiements)." },
+  // Theme 1 — Tech
+  "header-informatique": {
+    title: "Header — Tech",
+    icon: ThemeEditIcon,
+    desc: "Logo, search, utilities, quick links.",
+  },
+  "banner-kenburns": {
+    title: "Ken Burns Banner",
+    icon: ImageIcon,
+    desc: "3 slides, fade + smooth zoom/pan.",
+  },
+  "carousel-cercle": {
+    title: "Circle Carousel",
+    icon: AppsIcon,
+    desc: "Circular image scrolling.",
+  },
+  "packs-descriptifs": {
+    title: "Descriptive Packs",
+    icon: StarIcon,
+    desc: "Product cards + lists & badges.",
+  },
+  "product-grid-glow": {
+    title: "Product Grid (Glow)",
+    icon: AppsIcon,
+    desc: "Showcase products with glow style.",
+  },
+  "social-icons": {
+    title: "Social Icons",
+    icon: AppsIcon,
+    desc: "Stylish social links, variants.",
+  },
+  "footer-liens": {
+    title: "Footer — Links",
+    icon: ViewIcon,
+    desc: "2–4 link columns.",
+  },
 
-  // Thème 2 — Vêtements & accessoires
-  "t2-header-fashion":   { title: "Header — Fashion",      icon: ThemeEditIcon,  desc: "Header mode (clair, aéré)." },
-  "t2-hero-runway":      { title: "Hero — Runway",         icon: ImageIcon,      desc: "Hero défilé avec CTA collection." },
-  "t2-categories-pills": { title: "Catégories (pills)",     icon: AppsIcon,       desc: "Filtres/onglets type pilules." },
-  "t2-products-grid":    { title: "Grille produits (T2)",  icon: ProductsIcon,   desc: "Grille responsive adaptée à la mode." },
-  "t2-social-proof":     { title: "Preuves sociales",      icon: StarIcon,       desc: "Témoignages / notes clients." },
+  // Theme 2 — Fashion
+  "t2-header-fashion": {
+    title: "Header — Fashion",
+    icon: ThemeEditIcon,
+    desc: "Fashion header (light, airy).",
+  },
+  "t2-hero-runway": {
+    title: "Hero — Runway",
+    icon: ImageIcon,
+    desc: "Runway hero with collection CTA.",
+  },
+  "t2-categories-pills": {
+    title: "Categories (pills)",
+    icon: AppsIcon,
+    desc: "Filters/tabs styled as pills.",
+  },
+  "t2-products-grid": {
+    title: "Product Grid (Fashion)",
+    icon: AppsIcon,
+    desc: "Responsive grid adapted for fashion.",
+  },
+  "t2-social-proof": {
+    title: "Social Proof",
+    icon: StarIcon,
+    desc: "Testimonials / customer reviews.",
+  },
 
-  // Thème 3 — Branding Triple-S (pro)
-  "tls3-hero-brand-video-pro": { title: "Hero vidéo — Brand Pro", icon: ImageIcon,      desc: "Grand hero vidéo ou visuel clé." },
-  "tls3-marquee-wordmark-pro": { title: "Marquee — Wordmark",     icon: AppsIcon,       desc: "Défilement marque/wordmarks." },
-  "tls3-press-logos-pro":      { title: "Logos presse",            icon: AppsIcon,       desc: "Logos médias / partenaires." },
-  "tls3-values-grid-pro":      { title: "Valeurs (grille)",        icon: StarIcon,       desc: "3–6 cartes valeurs de marque." },
-  "tls3-timeline-pro":         { title: "Timeline — Histoire",     icon: AppsIcon,       desc: "Étapes clés / jalons." },
-  "tls3-founders-story-pro":   { title: "Histoire des fondateurs", icon: StarIcon,       desc: "Storytelling & photo." },
+  // Theme 3 — Triple-S Branding (pro)
+  "tls3-hero-brand-video-pro": {
+    title: "Hero Video — Brand Pro",
+    icon: ImageIcon,
+    desc: "Large hero video or key visual.",
+  },
+  "tls3-founders-story-pro": {
+    title: "Founders’ Story",
+    icon: StarIcon,
+    desc: "Storytelling & photo.",
+  },
 };
 
-/* Thèmes -> handles EXACTS (ton dossier /blocks) */
+/* ===== THEMES (block handles) ===== */
 const THEMES = [
   {
-    key: "informatique",
-    label: "Informatique",
+    key: "tech",
+    label: "Tech",
     emoji: "💻",
-    desc: "Héros + mise en avant produits + packs et social.",
-    header:  { handle: "header-informatique", template: "index" },
+    desc: "Hero + product highlights + packs and social.",
+    header: { handle: "header-informatique", template: "index" },
     content: [
-      { handle: "banner-kenburns",     template: "index" },
-      { handle: "carousel-cercle",     template: "index" },
-      { handle: "product-grid-glow",   template: "index" },
-      { handle: "packs-descriptifs",   template: "index" },
-      { handle: "social-icons",        template: "index" },
+      { handle: "banner-kenburns", template: "index" },
+      { handle: "carousel-cercle", template: "index" },
+      { handle: "product-grid-glow", template: "index" },
+      { handle: "packs-descriptifs", template: "index" },
+      { handle: "social-icons", template: "index" },
     ],
-    footer:  { handle: "footer-liens", template: "index" },
+    footer: { handle: "footer-liens", template: "index" },
   },
   {
-    key: "vetements",
-    label: "Vêtements & accessoires",
+    key: "fashion",
+    label: "Fashion",
     emoji: "🧥",
-    desc: "Lookbook, catégories en pills, grille produits et social proof.",
-    header:  { handle: "t2-header-fashion", template: "index" },
+    desc: "Lookbook, categories pills, product grid, and social proof.",
+    header: { handle: "t2-header-fashion", template: "index" },
     content: [
-      { handle: "t2-hero-runway",      template: "index" },
+      { handle: "t2-hero-runway", template: "index" },
       { handle: "t2-categories-pills", template: "index" },
-      { handle: "t2-products-grid",    template: "index" },
-      { handle: "t2-social-proof",     template: "index" },
+      { handle: "t2-products-grid", template: "index" },
+      { handle: "t2-social-proof", template: "index" },
     ],
-    footer:  { handle: "footer-liens", template: "index" },
+    footer: { handle: "footer-liens", template: "index" },
   },
   {
     key: "triple-s",
-    label: "Branding Triple-S",
+    label: "Triple-S Branding",
     emoji: "✨",
-    desc: "Brand hero vidéo, logos presse, valeurs, timeline & story.",
-    header:  { handle: "header-informatique", template: "index" },
+    desc: "All blocks in one place (branding + tech + fashion).",
+    header: { handle: "header-informatique", template: "index" }, // header par défaut
     content: [
+      // ---- tous les blocs existants ----
+       // Pro (restants)
       { handle: "tls3-hero-brand-video-pro", template: "index" },
-      { handle: "tls3-marquee-wordmark-pro", template: "index" },
-      { handle: "tls3-press-logos-pro",      template: "index" },
-      { handle: "tls3-values-grid-pro",      template: "index" },
-      { handle: "tls3-timeline-pro",         template: "index" },
-      { handle: "tls3-founders-story-pro",   template: "index" },
+      { handle: "tls3-founders-story-pro", template: "index" },
+      // Tech
+      { handle: "banner-kenburns", template: "index" },
+      { handle: "carousel-cercle", template: "index" },
+      { handle: "product-grid-glow", template: "index" },
+      { handle: "packs-descriptifs", template: "index" },
+      { handle: "social-icons", template: "index" },
+
+      // Fashion
+      { handle: "t2-hero-runway", template: "index" },
+      { handle: "t2-categories-pills", template: "index" },
+      { handle: "t2-products-grid", template: "index" },
+      { handle: "t2-social-proof", template: "index" },
+
+     
     ],
-    footer:  { handle: "footer-liens", template: "index" },
+    footer: { handle: "footer-liens", template: "index" },
   },
 ];
 
-/* UI Block Row */
+/* ===== Block Row ===== */
 function BlockRow({ shopSub, apiKey, block }) {
   const meta = META[block.handle] || {};
   const IconSrc = meta.icon || AppsIcon;
@@ -171,18 +243,25 @@ function BlockRow({ shopSub, apiKey, block }) {
           <InlineStack gap="300" blockAlign="center">
             <Icon source={IconSrc} />
             <Box>
-              <Text as="h3" variant="headingSm">{meta.title || block.handle}</Text>
-              {meta.desc && (
+              <Text as="h3" variant="headingSm">
+                {meta.title || block.handle}
+              </Text>
+              {meta.desc ? (
                 <Text as="p" tone="subdued">
-                  {meta.desc}{block.template === "product" ? " • (à ajouter sur template produit)" : ""}
+                  {meta.desc}
                 </Text>
-              )}
+              ) : null}
             </Box>
           </InlineStack>
 
           <InlineStack gap="200">
             <Button
-              url={linkAddBlock({ shopSub, template: block.template, apiKey, handle: block.handle })}
+              url={linkAddBlock({
+                shopSub,
+                template: block.template,
+                apiKey,
+                handle: block.handle,
+              })}
               target="_top"
               variant="primary"
               icon={ThemeEditIcon}
@@ -199,7 +278,7 @@ function BlockRow({ shopSub, apiKey, block }) {
   );
 }
 
-/* Liste Header / Content / Footer */
+/* ===== Theme blocks view ===== */
 function ThemeBlocksView({ theme, shopSub, apiKey }) {
   return (
     <BlockStack gap="400">
@@ -207,7 +286,9 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
         <Box padding="300" borderRadius="300" background="bg-surface-secondary">
           <InlineStack gap="200" blockAlign="center">
             <Icon source={ThemeEditIcon} />
-            <Text as="h2" variant="headingSm">Header</Text>
+            <Text as="h2" variant="headingSm">
+              Header
+            </Text>
           </InlineStack>
         </Box>
         <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.header} />
@@ -216,8 +297,10 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
       <Card>
         <Box padding="300" borderRadius="300" background="bg-surface-secondary">
           <InlineStack gap="200" blockAlign="center">
-            <Icon source={ProductsIcon} />
-            <Text as="h2" variant="headingSm">Content</Text>
+            <Icon source={AppsIcon} />
+            <Text as="h2" variant="headingSm">
+              Content
+            </Text>
           </InlineStack>
         </Box>
         <BlockStack gap="0">
@@ -231,7 +314,9 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
         <Box padding="300" borderRadius="300" background="bg-surface-secondary">
           <InlineStack gap="200" blockAlign="center">
             <Icon source={ViewIcon} />
-            <Text as="h2" variant="headingSm">Footer</Text>
+            <Text as="h2" variant="headingSm">
+              Footer
+            </Text>
           </InlineStack>
         </Box>
         <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.footer} />
@@ -240,35 +325,46 @@ function ThemeBlocksView({ theme, shopSub, apiKey }) {
   );
 }
 
-/* Page principale */
+/* ===== Main page ===== */
 export default function TLSBuilderIndex() {
-  useInjectCss();
-  const { shopSub, apiKey } = useLoaderData();
-
+  const { shopSub, apiKey } = useParentData();
   const [themeKey, setThemeKey] = useState(THEMES[0].key);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem("tls_selected_theme");
-      if (saved && THEMES.some(t => t.key === saved)) setThemeKey(saved);
+      if (saved && THEMES.some((t) => t.key === saved)) setThemeKey(saved);
     } catch {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem("tls_selected_theme", themeKey); } catch {}
+    try {
+      localStorage.setItem("tls_selected_theme", themeKey);
+    } catch {}
   }, [themeKey]);
 
-  const theme = useMemo(() => THEMES.find(t => t.key === themeKey) || THEMES[0], [themeKey]);
+  const theme = useMemo(
+    () => THEMES.find((t) => t.key === themeKey) || THEMES[0],
+    [themeKey]
+  );
   const countBlocks = (t) => 1 + (t.content?.length || 0) + 1;
 
   return (
     <Page
       title="Triple-Luxe-Sections"
-      subtitle="Choisissez un thème • Ajoutez les blocks en 1 clic"
-      secondaryActions={[{ content: "Theme editor", url: editorBase({ shopSub }), target: "_blank", external: true }]}
+      subtitle="Choose a theme • Add blocks in 1 click"
+      secondaryActions={[
+        {
+          content: "Theme editor",
+          url: editorBase({ shopSub }),
+          target: "_blank",
+          external: true,
+        },
+      ]}
     >
+      <InjectCssOnce />
+
       <BlockStack gap="400">
-        <Banner tone="success" title="Built for Shopify (Polaris)">
-          <p>Icônes & UI 100% Polaris. Les liens ouvrent l’éditeur avec le block pré-sélectionné.</p>
-        </Banner>
+       
 
         <Card>
           <Box padding="300">
@@ -282,14 +378,18 @@ export default function TLSBuilderIndex() {
                   onClick={() => setThemeKey(t.key)}
                   title={t.desc}
                 >
-                  <span style={{ fontSize:16, marginRight:6 }}>{t.emoji}</span>
-                  <span style={{ fontWeight:700 }}>{t.label}</span>
-                  <span style={{ marginLeft:8 }}><Badge>{countBlocks(t)}</Badge></span>
+                  <span style={{ fontSize: 16, marginRight: 6 }}>{t.emoji}</span>
+                  <span style={{ fontWeight: 700 }}>{t.label}</span>
+                  <span style={{ marginLeft: 8 }}>
+                    <Badge>{countBlocks(t)}</Badge>
+                  </span>
                 </button>
               ))}
             </InlineStack>
             <Box paddingBlockStart="200">
-              <Text as="p" tone="subdued">{theme.desc}</Text>
+              <Text as="p" tone="subdued">
+                {theme.desc}
+              </Text>
             </Box>
           </Box>
         </Card>
@@ -298,23 +398,82 @@ export default function TLSBuilderIndex() {
 
         <Card>
           <Box padding="300">
-            <Text as="h3" variant="headingSm">Liens rapides</Text>
+            <Text as="h3" variant="headingSm">
+              Quick links
+            </Text>
             <BlockStack gap="200">
               <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
-                Ouvrir Theme Editor
+                Open Theme Editor
               </Button>
               <InlineStack gap="200" wrap>
-                <Button url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "banner-kenburns" })} target="_top" icon={ThemeEditIcon}>
-                  Try · Banner Ken Burns
+                <Button
+                  url={linkAddBlock({
+                    shopSub,
+                    template: "index",
+                    apiKey,
+                    handle: "banner-kenburns",
+                  })}
+                  target="_top"
+                  icon={ThemeEditIcon}
+                >
+                  Try · Ken Burns Banner
                 </Button>
-                <Button url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "footer-liens" })} target="_top" icon={ThemeEditIcon}>
-                  Try · Footer liens
+                <Button
+                  url={linkAddBlock({
+                    shopSub,
+                    template: "index",
+                    apiKey,
+                    handle: "footer-liens",
+                  })}
+                  target="_top"
+                  icon={ThemeEditIcon}
+                >
+                  Try · Footer Links
                 </Button>
               </InlineStack>
             </BlockStack>
           </Box>
         </Card>
       </BlockStack>
+
+      {/* ===== Floating buttons wrapper: no overlay on the page ===== */}
+      <div style={{ pointerEvents: "none" }}>
+        {/* YouTube (bottom-right) */}
+        <a
+          href={YOUTUBE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="YouTube tutorial"
+          style={{
+            ...BUTTON_FAB,
+            right: "24px",
+            backgroundColor: "#FF0000",
+            pointerEvents: "auto",
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 576 512" fill="#fff" aria-hidden="true">
+            <path d="M549.7 124.1c-6.3-23.7-24.9-42.3-48.6-48.6C458.8 64 288 64 288 64S117.2 64 74.9 75.5c-23.7 6.3-42.3 24.9-48.6 48.6C15.9 166.3 16 256 16 256s0 89.7 10.3 131.9c6.3 23.7 24.9 42.3 48.6 48.6C117.2 448 288 448 288 448s170.8 0 213.1-11.5c23.7-6.3 42.3-24.9 48.6-48.6C560.1 345.7 560 256 560 256s.1-89.7-10.3-131.9zM232 336V176l142 80-142 80z"/>
+          </svg>
+        </a>
+
+        {/* WhatsApp (bottom-left) */}
+        <a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="WhatsApp support"
+          style={{
+            ...BUTTON_FAB,
+            left: "24px",
+            backgroundColor: "#25D366",
+            pointerEvents: "auto",
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 448 512" fill="#fff" aria-hidden="true">
+            <path d="M380.9 97.1C339.4 55.6 283.3 32 224 32S108.6 55.6 67.1 97.1C25.6 138.6 2 194.7 2 254c0 45.3 13.5 89.3 39 126.7L0 480l102.6-38.7C140 481.5 181.7 494 224 494c59.3 0 115.4-23.6 156.9-65.1C422.4 370.6 446 314.5 446 254s-23.6-115.4-65.1-156.9zM224 438c-37.4 0-73.5-11.1-104.4-32l-7.4-4.9-61.8 23.3 23.2-60.6-4.9-7.6C50.1 322.9 38 289.1 38 254c0-102.6 83.4-186 186-186s186 83.4 186 186-83.4 186-186 186zm101.5-138.6c-5.5-2.7-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.7-12.5 2.7s-14.3 17.9-17.5 21.6c-3.2 3.7-6.4 4.1-11.9 1.4s-23.2-8.5-44.2-27.1c-16.3-14.5-27.3-32.4-30.5-37.9-3.2-5.5-.3-8.5 2.4-11.2 2.5-2.5 5.5-6.4 8.3-9.6 2.8-3.2 3.7-5.5 5.5-9.2s.9-6.9-.5-9.6c-1.4-2.7-12.5-30.1-17.2-41.3-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2s-9.6 1.4-14.6 6.9-19.2 18.7-19.2 45.7 19.7 53 22.4 56.7c2.7 3.7 38.6 59.1 93.7 82.8 13.1 5.7 23.3 9.1 31.3 11.7 13.1 4.2 25.1 3.6 34.6 2.2 10.5-1.6 32.7-13.4 37.3-26.3 4.6-12.7 4.6-23.5 3.2-25.7-1.4-2.2-5-3.6-10.5-6.2z"/>
+          </svg>
+        </a>
+      </div>
     </Page>
   );
 }

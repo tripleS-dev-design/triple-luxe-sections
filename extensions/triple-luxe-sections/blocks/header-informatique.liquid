@@ -1,217 +1,179 @@
-{% comment %}
-  Header — Utility Bar (Informatique)
-  - Ligne 1 : Logo | Search | Icônes (Wishlist, Compare, Cart, Account)
-  - Ligne 2 : Liens rapides (blocs)
-  Personnalisable depuis l'éditeur de thème.
-{% endcomment %}
 
-<section class="tlx-header {% if section.settings.sticky %}tlx-header--sticky{% endif %}"
-  style="--hd-bg-top: {{ section.settings.bg_top }}; --hd-bg-bottom: {{ section.settings.bg_bottom }}; --hd-fg: {{ section.settings.fg }}; --hd-icon: {{ section.settings.icon_color }}; --hd-border: {{ section.settings.border_color }};">
-  <div class="tlx-header__top">
-    <div class="tlx-header__logo">
-      <a href="{{ routes.root_url }}" class="tlx-logo">
-        {% if section.settings.logo != blank %}
-          {{ section.settings.logo | image_url: width: 240 | image_tag: alt: section.settings.store_name | escape }}
-        {% else %}
-          <span class="tlx-logo__svg" aria-hidden="true">
-            <!-- SVG logo simple -->
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" role="img">
-              <path d="M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.6"/>
-              <path d="M4.5 12a7.5 7.5 0 0115 0M2 12h3m14 0h3M12 2v3m0 14v3M5 5l2.1 2.1M17 17l2 2M19 5l-2.1 2.1M7 17l-2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            </svg>
-          </span>
-          {% if section.settings.show_store_name %}
-            <span class="tlx-logo__text">{{ section.settings.store_name }}</span>
-          {% endif %}
-        {% endif %}
-      </a>
-    </div>
-
-    <div class="tlx-header__search">
-      <form action="{{ routes.search_url }}" method="get" role="search" class="tlx-search" aria-label="Recherche">
-        <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ section.settings.search_placeholder | escape }}" class="tlx-search__input" />
-        <input type="hidden" name="type" value="product">
-        <button type="submit" class="tlx-search__btn" aria-label="Rechercher">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" role="img">
-            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"></circle>
-            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
-          </svg>
-        </button>
-      </form>
-    </div>
-
-    <div class="tlx-header__utils">
-      {% if section.settings.show_wishlist %}
-        <a href="{{ section.settings.wishlist_url | default: routes.root_url }}" class="tlx-util" aria-label="Liste de souhaits">
-          <span class="tlx-util__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20.8 8.6c0 5.7-8.8 9.8-8.8 9.8S3.2 14.3 3.2 8.6A4.6 4.6 0 0112 7.4a4.6 4.6 0 018.8 1.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-          </span>
-          <span class="tlx-util__label">{{ section.settings.wishlist_label }}</span>
-          {% if section.settings.show_zero_badges %}<span class="tlx-badge">0</span>{% endif %}
-        </a>
+<section class="tlx-header-lite {% if block.settings.full_width %}tlx-header--full{% endif %}" style="--fg: {{ block.settings.fg }}; --bg: {{ block.settings.bg }}; --bd: {{ block.settings.bd }};">
+  <div class="tlx-header-lite__inner">
+    <!-- Logo -->
+    <a class="tlx-logo" href="{{ routes.root_url }}" aria-label="{{ block.settings.store_name | escape }}">
+      {% if block.settings.logo != blank %}
+        {{ block.settings.logo | image_url: width: 220 | image_tag: alt: block.settings.store_name, class: 'tlx-logo__img' }}
+      {% else %}
+        <strong class="tlx-logo__text">{{ block.settings.store_name }}</strong>
       {% endif %}
+    </a>
 
-      {% if section.settings.show_compare %}
-        <a href="{{ section.settings.compare_url | default: routes.root_url }}" class="tlx-util" aria-label="Comparateur">
-          <span class="tlx-util__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 4h3v16H7zM14 8h3v12h-3z" stroke="currentColor" stroke-width="1.6" /></svg>
-          </span>
-          <span class="tlx-util__label">{{ section.settings.compare_label }}</span>
-          {% if section.settings.show_zero_badges %}<span class="tlx-badge">0</span>{% endif %}
-        </a>
+    <!-- Search -->
+    {% if block.settings.show_search %}
+    <form action="{{ routes.search_url }}" method="get" role="search" class="tlx-search" aria-label="Recherche produits">
+      <input class="tlx-search__input" type="search" name="q" placeholder="{{ block.settings.search_ph | escape }}" />
+      <input type="hidden" name="type" value="product">
+      <button class="tlx-search__btn" type="submit" aria-label="Rechercher">
+        <span aria-hidden="true">🔍</span>
+      </button>
+    </form>
+    {% endif %}
+
+    <!-- Utils -->
+    <div class="tlx-utils">
+      {% if block.settings.show_wishlist %}
+        <a href="{{ block.settings.wishlist_url | default: routes.root_url }}" class="tlx-util">{{ block.settings.wishlist_label }}</a>
       {% endif %}
-
-      <a href="{{ routes.cart_url }}" class="tlx-util" aria-label="Mon panier">
-        <span class="tlx-util__icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M3 4h2l2.5 12H19l2-8H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="10" cy="20" r="1.6" fill="currentColor"></circle>
-            <circle cx="17" cy="20" r="1.6" fill="currentColor"></circle>
-          </svg>
-        </span>
-        <span class="tlx-util__label">{{ section.settings.cart_label }}</span>
-        {% if cart != empty and cart.item_count > 0 %}
-          <span class="tlx-badge">{{ cart.item_count }}</span>
-        {% endif %}
-      </a>
-
-      {% if section.settings.show_account %}
-        <a href="{{ routes.account_url }}" class="tlx-util" aria-label="Mon compte">
-          <span class="tlx-util__icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.6"/>
-              <path d="M5 19a7 7 0 0114 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <span class="tlx-util__label">{{ section.settings.account_label }}</span>
-        </a>
+      {% if block.settings.show_compare %}
+        <a href="{{ block.settings.compare_url | default: routes.root_url }}" class="tlx-util">{{ block.settings.compare_label }}</a>
+      {% endif %}
+      {% if block.settings.show_account and shop.customer_accounts_enabled %}
+        <a href="{{ routes.account_url }}" class="tlx-util">{{ block.settings.account_label }}</a>
       {% endif %}
     </div>
   </div>
 
-  <div class="tlx-header__bottom">
-    <nav class="tlx-quicklinks" aria-label="Navigation secondaire">
-      {% for block in section.blocks %}
-        {% if block.type == 'quick_link' %}
-          <a href="{{ block.settings.url | default: '#' }}" class="tlx-ql" {{ block.shopify_attributes }}>
-            <span class="tlx-ql__icon" aria-hidden="true">
-              {% case block.settings.icon %}
-                {% when 'menu' %}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                {% when 'tag' %}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 13l-7 7-9-9V4h7l9 9z" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>
-                {% when 'doc' %}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12V8l-4-6z" stroke="currentColor" stroke-width="1.6"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6"/></svg>
-                {% when 'mag' %}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="1.6"/><path d="M9 5v14M4 9h5M9 9h11" stroke="currentColor" stroke-width="1.6"/></svg>
-                {% else %}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg>
-              {% endcase %}
-            </span>
-            <span class="tlx-ql__text">{{ block.settings.label }}</span>
-            {% if block.settings.show_caret %}
-              <svg class="tlx-ql__caret" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M8 10l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            {% endif %}
-          </a>
+  <!-- Nav simple (jusqu'à 4 liens) -->
+  <nav class="tlx-nav" aria-label="Navigation">
+    <ul class="tlx-nav__list">
+      {% for i in (1..block.settings.links_count) %}
+        {% assign k_label = 'l' | append: i | append: '_label' %}
+        {% assign k_url   = 'l' | append: i | append: '_url'   %}
+        {% assign label = block.settings[k_label] %}
+        {% assign url   = block.settings[k_url]   %}
+        {% if label != blank %}
+          <li class="tlx-nav__item"><a href="{{ url | default: '#' }}">{{ label }}</a></li>
         {% endif %}
       {% endfor %}
-    </nav>
-  </div>
+    </ul>
+  </nav>
 </section>
 
 <style>
-  .tlx-header{--_bg-top: var(--hd-bg-top,#e9f2fa); --_bg-bottom: var(--hd-bg-bottom,#e9f2fa); --_fg: var(--hd-fg,#1f2937); --_icon: var(--hd-icon,#1a4a8a); --_border: var(--hd-border,#d7e2ef)}
-  .tlx-header{background: linear-gradient(0deg,var(--_bg-bottom),var(--_bg-top)); color: var(--_fg); border-bottom:1px solid var(--_border)}
-  .tlx-header--sticky{position: sticky; top: 0; z-index: 40}
-  .tlx-header__top{display:grid; grid-template-columns: 1fr 2fr 1fr; gap:16px; align-items:center; padding:10px 14px}
-  .tlx-header__bottom{border-top:1px solid var(--_border); padding:8px 10px}
-  .tlx-logo{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.5px; text-decoration:none; color:var(--_icon)}
-  .tlx-logo__svg{display:inline-flex}
-  .tlx-logo__text{font-size:18px}
-  .tlx-search{display:flex; width:100%; background:#fff; border:1px solid var(--_border); border-radius:4px; overflow:hidden}
-  .tlx-search__input{flex:1; padding:10px 12px; border:0; outline:0; font-size:14px}
-  .tlx-search__btn{display:inline-flex; align-items:center; justify-content:center; width:42px; border:0; background:var(--_icon); color:#fff; cursor:pointer}
-  .tlx-header__utils{display:flex; justify-content:flex-end; gap:14px; align-items:center}
-  .tlx-util{display:inline-flex; align-items:center; gap:6px; position:relative; text-decoration:none; color:var(--_fg)}
-  .tlx-util__icon{display:inline-flex; color:var(--_icon)}
-  .tlx-util__label{font-size:13px}
-  .tlx-badge{position:absolute; top:-6px; right:-8px; min-width:18px; height:18px; padding:0 4px; background:var(--_icon); color:#fff; border-radius:12px; font-size:12px; display:inline-flex; align-items:center; justify-content:center}
-  .tlx-quicklinks{display:flex; gap:28px; flex-wrap:wrap}
-  .tlx-ql{display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--_fg); position:relative; padding:6px 0}
-  .tlx-ql__icon{display:inline-flex; color:var(--_icon)}
-  .tlx-ql__text{font-size:14px}
-  .tlx-ql__caret{margin-left:-2px; color:var(--_icon)}
+  .tlx-header-lite{
+    color:var(--fg,#111827);
+    background:var(--bg,#ffffff);
+    border-bottom:1px solid var(--bd,#e5e7eb)
+  }
+  /* Full-bleed quand "Pleine largeur" est activé */
+  .tlx-header--full{
+    width:100vw;
+    position:relative;
+    left:calc(50% - 50vw);
+    right:calc(50% - 50vw);
+  }
+
+  /* TOP BAR — Desktop */
+  .tlx-header-lite__inner{
+    max-width:{% if block.settings.full_width %}none{% else %}1200px{% endif %};
+    width:100%;
+    margin:{% if block.settings.full_width %}0{% else %}0 auto{% endif %};
+    padding:8px 16px;                 /* padding réduit */
+    display:grid;
+    grid-template-columns:auto 1fr auto; /* logo auto, search fluide, utils auto */
+    gap:12px;
+    align-items:center
+  }
+
+  /* Logo vraiment petit et collé à gauche */
+  .tlx-logo{display:flex;align-items:center;text-decoration:none;color:inherit}
+  .tlx-logo__img{max-height:48px; width:auto; display:block}   /* Desktop: 48px max */
+  .tlx-logo__text{font-weight:700;font-size:16px;letter-spacing:.2px;white-space:nowrap}
+
+  /* Search propre et compacte */
+  .tlx-search{display:flex;min-width:0;border:1px solid var(--bd,#e5e7eb);background:#fff;border-radius:6px;overflow:hidden}
+  .tlx-search__input{flex:1;min-width:0;padding:9px 10px;border:0;outline:0;font-size:14px}
+  .tlx-search__btn{width:40px;border:0;background:#111827;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+  /* Utils à droite */
+  .tlx-utils{display:flex;gap:14px;justify-content:flex-end;align-items:center;min-width:0}
+  .tlx-util{text-decoration:none;color:inherit;font-size:14px;white-space:nowrap}
+
+  /* NAV — Desktop */
+  .tlx-nav{border-top:1px solid var(--bd,#e5e7eb);background:transparent}
+  .tlx-nav__list{
+    max-width:{% if block.settings.full_width %}none{% else %}1200px{% endif %};
+    width:100%;
+    margin:{% if block.settings.full_width %}0{% else %}0 auto{% endif %};
+    padding:6px 16px;
+    display:flex;
+    gap:18px;
+    list-style:none
+  }
+  .tlx-nav__item a{text-decoration:none;color:inherit;font-size:14px;line-height:1.6}
+
+  /* MOBILE */
   @media (max-width: 990px){
-    .tlx-header__top{grid-template-columns: 1fr 1fr; grid-template-areas: "logo utils" "search search"; gap:10px}
-    .tlx-header__logo{grid-area:logo}
-    .tlx-header__search{grid-area:search}
-    .tlx-header__utils{grid-area:utils}
-    .tlx-util__label{display:none}
-    .tlx-quicklinks{gap:16px; overflow-x:auto}
+    .tlx-header-lite__inner{
+      grid-template-columns: auto 1fr auto; /* garde la même logique mais compact */
+      gap:8px;
+      padding:6px 12px;
+    }
+    .tlx-logo__img{max-height:36px}          /* Mobile: 36px max */
+    .tlx-logo__text{font-size:14px}
+
+    .tlx-search__input{padding:8px 9px;font-size:13px}
+    .tlx-search__btn{width:36px}
+
+    .tlx-utils{gap:10px;justify-content:flex-end;flex-wrap:nowrap}
+    .tlx-util{font-size:13px}
+
+    /* Nav: ligne fine + scroll horizontal si trop de liens */
+    .tlx-nav__list{
+      padding:6px 12px;
+      gap:14px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .tlx-nav__list::-webkit-scrollbar{display:none}
+    .tlx-nav__item a{font-size:13px; line-height:1.4}
   }
 </style>
 
 {% schema %}
 {
-  "name": "Header — Utility Bar",
+  "name": "TLX Header Lite",
+  "target": "section",
   "settings": [
-    { "type": "checkbox", "id": "sticky", "label": "Header collant (sticky)", "default": true },
-    { "type": "image_picker", "id": "logo", "label": "Logo (optionnel)" },
-    { "type": "checkbox", "id": "show_store_name", "label": "Afficher le nom si pas de logo", "default": true },
-    { "type": "text", "id": "store_name", "label": "Nom de la boutique", "default": "Votre Boutique" },
-    { "type": "text", "id": "search_placeholder", "label": "Placeholder recherche", "default": "Chercher des produits" },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "text", "id": "store_name", "label": "Nom (fallback)", "default": "Votre Boutique" },
 
-    { "type": "header", "content": "Icônes (droite)" },
+    { "type": "checkbox", "id": "show_search", "label": "Afficher recherche", "default": true },
+    { "type": "text", "id": "search_ph", "label": "Placeholder", "default": "Chercher des produits" },
+
+    { "type": "range", "id": "links_count", "label": "Nombre de liens (0–4)", "min": 0, "max": 4, "step": 1, "default": 3 },
+
+    { "type": "text", "id": "l1_label", "label": "Lien 1 — Texte", "default": "Produits" },
+    { "type": "url",  "id": "l1_url",   "label": "Lien 1 — URL" },
+
+    { "type": "text", "id": "l2_label", "label": "Lien 2 — Texte", "default": "Promotions" },
+    { "type": "url",  "id": "l2_url",   "label": "Lien 2 — URL" },
+
+    { "type": "text", "id": "l3_label", "label": "Lien 3 — Texte", "default": "Blog" },
+    { "type": "url",  "id": "l3_url",   "label": "Lien 3 — URL" },
+
+    { "type": "text", "id": "l4_label", "label": "Lien 4 — Texte" },
+    { "type": "url",  "id": "l4_url",   "label": "Lien 4 — URL" },
+
     { "type": "checkbox", "id": "show_wishlist", "label": "Afficher Wishlist", "default": true },
-    { "type": "url", "id": "wishlist_url", "label": "Lien Wishlist (page/app)" },
-    { "type": "text", "id": "wishlist_label", "label": "Libellé Wishlist", "default": "Liste de souhaits" },
-    { "type": "checkbox", "id": "show_compare", "label": "Afficher Comparateur", "default": true },
-    { "type": "url", "id": "compare_url", "label": "Lien Comparateur (page/app)" },
-    { "type": "text", "id": "compare_label", "label": "Libellé Comparateur", "default": "Comparateur" },
-    { "type": "text", "id": "cart_label", "label": "Libellé Panier", "default": "Mon Panier" },
-    { "type": "checkbox", "id": "show_account", "label": "Afficher Compte", "default": true },
-    { "type": "text", "id": "account_label", "label": "Libellé Compte", "default": "Mon compte" },
-    { "type": "checkbox", "id": "show_zero_badges", "label": "Afficher badges 0 (Wishlist/Compare)", "default": false },
+    { "type": "url",      "id": "wishlist_url",  "label": "URL Wishlist" },
+    { "type": "text",     "id": "wishlist_label","label": "Libellé Wishlist", "default": "Wishlist" },
 
-    { "type": "header", "content": "Couleurs" },
-    { "type": "color", "id": "bg_top", "label": "Fond (haut)", "default": "#e9f2fa" },
-    { "type": "color", "id": "bg_bottom", "label": "Fond (bas)", "default": "#e9f2fa" },
-    { "type": "color", "id": "fg", "label": "Texte", "default": "#1f2937" },
-    { "type": "color", "id": "icon_color", "label": "Couleur icônes", "default": "#1a4a8a" },
-    { "type": "color", "id": "border_color", "label": "Bordure", "default": "#d7e2ef" }
-  ],
-  "blocks": [
-    {
-      "type": "quick_link",
-      "name": "Lien rapide",
-      "settings": [
-        { "type": "select", "id": "icon", "label": "Icône", "default": "menu",
-          "options": [
-            { "value": "menu", "label": "Menu/Produits" },
-            { "value": "tag", "label": "Promotion" },
-            { "value": "doc", "label": "Devis (doc)" },
-            { "value": "mag", "label": "Mag/Blog" }
-          ]
-        },
-        { "type": "text", "id": "label", "label": "Texte", "default": "Produits" },
-        { "type": "url", "id": "url", "label": "Lien" },
-        { "type": "checkbox", "id": "show_caret", "label": "Afficher caret (▼)", "default": false }
-      ]
-    }
-  ],
-  "max_blocks": 8,
-  "presets": [
-    {
-      "name": "Header — Utility Bar",
-      "blocks": [
-        { "type": "quick_link", "settings": { "icon": "menu", "label": "Produits", "show_caret": true } },
-        { "type": "quick_link", "settings": { "icon": "tag",  "label": "Promotion" } },
-        { "type": "quick_link", "settings": { "icon": "doc",  "label": "Demande de devis" } },
-        { "type": "quick_link", "settings": { "icon": "mag",  "label": "Magazine" } }
-      ]
-    }
+    { "type": "checkbox", "id": "show_compare",  "label": "Afficher Comparateur", "default": true },
+    { "type": "url",      "id": "compare_url",   "label": "URL Comparateur" },
+    { "type": "text",     "id": "compare_label", "label": "Libellé Comparateur", "default": "Comparer" },
+
+    { "type": "checkbox", "id": "show_account",  "label": "Afficher Compte (si activé)", "default": true },
+    { "type": "text",     "id": "account_label", "label": "Libellé Compte", "default": "Mon compte" },
+
+    { "type": "checkbox", "id": "full_width", "label": "Pleine largeur", "default": true },
+
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
+    { "type": "color", "id": "bg", "label": "Fond",  "default": "#ffffff" },
+    { "type": "color", "id": "bd", "label": "Bordure", "default": "#e5e7eb" }
   ]
 }
 {% endschema %}

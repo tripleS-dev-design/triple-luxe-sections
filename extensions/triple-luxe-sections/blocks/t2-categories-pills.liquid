@@ -1,90 +1,219 @@
-{% comment %}
-Catégories — Pills défilantes (hover pop) pour guider l’utilisateur
-- Chaque bloc = emoji + label + lien
-{% endcomment %}
-
-<section class="t2-pills"
+<section class="t2-cat {% if block.settings.full_bleed %}t2-cat--bleed{% endif %}"
   style="
-    --p-gap: {{ section.settings.gap }}px;
-    --p-size: {{ section.settings.size }}px;
-    --p-bg: {{ section.settings.bg }};
-    --p-fg: {{ section.settings.fg }};
-    --p-ac: {{ section.settings.accent }};
-    --p-speed: {{ section.settings.speed }}s;
+    --gap: {{ block.settings.gap }}px;
+    --radius: {{ block.settings.radius }}px;
+    --ratio: {{ block.settings.ratio }};
+    --overlay-opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
   "
-  aria-label="Catégories">
-  {% if section.settings.title != blank %}
-    <header class="p-head">
-      <h2 class="p-title">{{ section.settings.title }}</h2>
-      {% if section.settings.subtitle != blank %}<p class="p-sub">{{ section.settings.subtitle }}</p>{% endif %}
-    </header>
+>
+  {% if block.settings.title != blank %}
+    <h3 class="t2-cat__title">{{ block.settings.title | escape }}</h3>
   {% endif %}
 
-  <div class="p-viewport">
-    <div class="p-track">
-      {% for block in section.blocks %}
-        {% if block.type == 'pill' %}
-          <a class="p-pill" href="{{ block.settings.url | default: '#' }}" {{ block.shopify_attributes }}>
-            {% if block.settings.emoji != blank %}<span class="p-emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
-            <span class="p-txt">{{ block.settings.label }}</span>
-          </a>
-        {% endif %}
-      {% endfor %}
-      {%- comment -%} dupli pour défilement continu {%- endcomment -%}
-      {% for block in section.blocks %}
-        {% if block.type == 'pill' %}
-          <a class="p-pill p-dup" href="{{ block.settings.url | default: '#' }}">
-            {% if block.settings.emoji != blank %}<span class="p-emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
-            <span class="p-txt">{{ block.settings.label }}</span>
-          </a>
-        {% endif %}
-      {% endfor %}
-    </div>
+  <div class="t2-cat__grid">
+    {%- comment -%} ==== CARD 1 ==== {%- endcomment -%}
+    {% assign img = block.settings.image_1 %}
+    {% assign label = block.settings.label_1 %}
+    {% assign sub = block.settings.sub_1 %}
+    {% assign url = block.settings.url_1 %}
+    {% assign cta = block.settings.btn_label_1 %}
+    {% if img != blank %}
+      {% if url != blank %}<a class="t2-card" href="{{ url }}">{% else %}<div class="t2-card">{% endif %}
+        <div class="t2-card__media">
+          {{ img
+            | image_url: width: 1600
+            | image_tag:
+                class: 't2-card__img',
+                alt: label,
+                widths: '600,900,1200,1600',
+                sizes: '(max-width: 749px) 100vw, (max-width: 1199px) 50vw, 33vw',
+                loading: 'lazy'
+          }}
+          <div class="t2-card__scrim"></div>
+        </div>
+        <div class="t2-card__meta">
+          {% if label != blank %}<h4 class="t2-card__title">{{ label }}</h4>{% endif %}
+          {% if sub != blank %}<span class="t2-card__sub">{{ sub }}</span>{% endif %}
+          {% if cta != blank %}<span class="t2-card__cta">{{ cta }}</span>{% endif %}
+        </div>
+      {% if url != blank %}</a>{% else %}</div>{% endif %}
+    {% endif %}
+
+    {%- comment -%} ==== CARD 2 ==== {%- endcomment -%}
+    {% assign img = block.settings.image_2 %}
+    {% assign label = block.settings.label_2 %}
+    {% assign sub = block.settings.sub_2 %}
+    {% assign url = block.settings.url_2 %}
+    {% assign cta = block.settings.btn_label_2 %}
+    {% if img != blank %}
+      {% if url != blank %}<a class="t2-card" href="{{ url }}">{% else %}<div class="t2-card">{% endif %}
+        <div class="t2-card__media">
+          {{ img
+            | image_url: width: 1600
+            | image_tag:
+                class: 't2-card__img',
+                alt: label,
+                widths: '600,900,1200,1600',
+                sizes: '(max-width: 749px) 100vw, (max-width: 1199px) 50vw, 33vw',
+                loading: 'lazy'
+          }}
+          <div class="t2-card__scrim"></div>
+        </div>
+        <div class="t2-card__meta">
+          {% if label != blank %}<h4 class="t2-card__title">{{ label }}</h4>{% endif %}
+          {% if sub != blank %}<span class="t2-card__sub">{{ sub }}</span>{% endif %}
+          {% if cta != blank %}<span class="t2-card__cta">{{ cta }}</span>{% endif %}
+        </div>
+      {% if url != blank %}</a>{% else %}</div>{% endif %}
+    {% endif %}
+
+    {%- comment -%} ==== CARD 3 ==== {%- endcomment -%}
+    {% assign img = block.settings.image_3 %}
+    {% assign label = block.settings.label_3 %}
+    {% assign sub = block.settings.sub_3 %}
+    {% assign url = block.settings.url_3 %}
+    {% assign cta = block.settings.btn_label_3 %}
+    {% if img != blank %}
+      {% if url != blank %}<a class="t2-card" href="{{ url }}">{% else %}<div class="t2-card">{% endif %}
+        <div class="t2-card__media">
+          {{ img
+            | image_url: width: 1600
+            | image_tag:
+                class: 't2-card__img',
+                alt: label,
+                widths: '600,900,1200,1600',
+                sizes: '(max-width: 749px) 100vw, (max-width: 1199px) 50vw, 33vw',
+                loading: 'lazy'
+          }}
+          <div class="t2-card__scrim"></div>
+        </div>
+        <div class="t2-card__meta">
+          {% if label != blank %}<h4 class="t2-card__title">{{ label }}</h4>{% endif %}
+          {% if sub != blank %}<span class="t2-card__sub">{{ sub }}</span>{% endif %}
+          {% if cta != blank %}<span class="t2-card__cta">{{ cta }}</span>{% endif %}
+        </div>
+      {% if url != blank %}</a>{% else %}</div>{% endif %}
+    {% endif %}
   </div>
+
+  {% if block.settings.promo_enable %}
+    <div class="t2-promo">
+      <div class="t2-promo__content">
+        {% if block.settings.promo_text != blank %}
+          <strong class="t2-promo__text">{{ block.settings.promo_text }}</strong>
+        {% endif %}
+        {% if block.settings.promo_btn_label != blank and block.settings.promo_btn_url != blank %}
+          <a class="t2-promo__btn" href="{{ block.settings.promo_btn_url }}">{{ block.settings.promo_btn_label }}</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 </section>
 
 <style>
-.t2-pills{background:var(--p-bg,#fff); color:var(--p-fg,#111827); padding:18px 0; border-bottom:1px solid rgba(0,0,0,.06)}
-.p-head{max-width:1200px; margin:0 auto 8px; padding:0 16px}
-.p-title{margin:0; font-size:clamp(18px,2.4vw,26px); font-weight:900}
-.p-sub{margin:6px 0 0; color:#6b7280}
-.p-viewport{overflow:hidden}
-.p-track{display:flex; gap:var(--p-gap,12px); width:max-content; animation:p-scroll var(--p-speed,24s) linear infinite; padding:6px 10px}
-.p-viewport:hover .p-track{animation-play-state:paused}
-.p-pill{display:inline-flex; align-items:center; gap:8px; height:var(--p-size,38px); padding:0 12px; border-radius:999px; text-decoration:none; color:var(--p-fg,#111827); background:rgba(225,29,72,.06); border:1px solid rgba(225,29,72,.12); font-weight:700; letter-spacing:.2px; transition:transform .15s ease, box-shadow .15s ease}
-.p-pill:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(225,29,72,.15)}
-.p-emo{filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
-@keyframes p-scroll { from{transform:translateX(0)} to{transform:translateX(calc(-50% - var(--p-gap)/2))} }
+/* ===== Layout global ===== */
+.t2-cat{ width:100%; padding-left:16px; padding-right:16px }
+.t2-cat--bleed{ position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; max-width:100vw; padding-left:0; padding-right:0 }
+.t2-cat__title{ margin:0 0 14px; font-weight:800; font-size:clamp(18px,2.4vw,24px) }
+
+/* Grille 1→3 colonnes */
+.t2-cat__grid{ display:grid; gap:var(--gap,16px); grid-template-columns:1fr }
+@media (min-width: 750px){ .t2-cat__grid{ grid-template-columns: repeat(2, 1fr) } }
+@media (min-width: 1100px){ .t2-cat__grid{ grid-template-columns: repeat(3, 1fr) } }
+
+/* Carte */
+.t2-card{
+  position:relative; display:block; border-radius:var(--radius,16px);
+  overflow:hidden; text-decoration:none; color:inherit; background:#f7f7f8;
+  box-shadow: 0 4px 16px rgba(0,0,0,.04);
+}
+.t2-card__media{ position:relative; aspect-ratio: var(--ratio, 4/5) }
+.t2-card__img{
+  width:100%; height:100%; object-fit:cover; object-position:center; display:block;
+  transform:translateZ(0); transition: transform .35s ease, filter .35s ease;
+}
+.t2-card__scrim{
+  position:absolute; inset:0; pointer-events:none;
+  background: linear-gradient(to top, rgba(0,0,0,calc(var(--overlay-opacity,.35))) 16%, rgba(0,0,0,0) 55%);
+}
+.t2-card__meta{
+  position:absolute; left:14px; right:14px; bottom:12px;
+  display:flex; gap:6px; flex-direction:column; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.45);
+}
+.t2-card__title{ margin:0; font-weight:900; letter-spacing:.2px; font-size: clamp(16px, 2.2vw, 22px) }
+.t2-card__sub{ font-size: 13px; opacity:.95 }
+.t2-card__cta{
+  display:inline-block; margin-top:4px; align-self:flex-start;
+  background: radial-gradient(120% 120% at 30% 20%, #ff6b6b, #e11d2e);
+  color:#fff; padding:8px 12px; border-radius:10px; font-weight:800; letter-spacing:.2px;
+  box-shadow:0 10px 24px rgba(225,29,46,.35);
+}
+.t2-card:hover .t2-card__img{ transform: scale(1.05); filter: saturate(1.05) }
+
+/* Promo (séparateur) */
+.t2-promo{
+  margin-top: clamp(10px, 2vw, 16px);
+  background: linear-gradient(90deg, #111827, #1f2937);
+  border-radius: var(--radius,16px); color:#fff;
+}
+.t2-promo__content{
+  display:flex; align-items:center; gap:12px; justify-content:space-between;
+  padding: clamp(10px, 2vw, 14px) clamp(14px, 3vw, 20px);
+  flex-wrap:wrap;
+}
+.t2-promo__text{ font-size: clamp(14px, 2.4vw, 18px); font-weight:800 }
+.t2-promo__btn{
+  text-decoration:none; color:#111; background:#fff; border-radius:10px; padding:8px 12px; font-weight:800;
+  box-shadow:0 10px 24px rgba(0,0,0,.12)
+}
+.t2-promo__btn:hover{ transform: translateY(-1px) }
 </style>
 
 {% schema %}
 {
-  "name": "T2 — Catégories (pills)",
+  "name": "Catégories Trio",
+  "target": "section",
   "settings": [
-    { "type": "text", "id": "title", "label": "Titre", "default": "Explorer par catégories" },
-    { "type": "text", "id": "subtitle", "label": "Sous-titre", "default": "Trouve vite ce qu’il te faut" },
-    { "type": "range", "id": "gap", "label": "Espace (px)", "min": 6, "max": 40, "step": 1, "default": 12 },
-    { "type": "range", "id": "size", "label": "Hauteur pill (px)", "min": 28, "max": 60, "step": 1, "default": 40 },
-    { "type": "range", "id": "speed", "label": "Vitesse défilement (s)", "min": 8, "max": 60, "step": 1, "default": 24 },
-    { "type": "color", "id": "bg", "label": "Fond", "default": "#ffffff" },
-    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
-    { "type": "color", "id": "accent", "label": "Accent", "default": "#e11d48" }
-  ],
-  "blocks": [
-    { "type": "pill", "name": "Catégorie", "settings": [
-      { "type": "text", "id": "emoji", "label": "Emoji", "default": "👜" },
-      { "type": "text", "id": "label", "label": "Label", "default": "Sacs" },
-      { "type": "url", "id": "url", "label": "Lien" }
-    ] }
-  ],
-  "max_blocks": 20,
-  "presets": [
-    { "name": "T2 — Catégories (pills)", "blocks": [
-      { "type": "pill", "settings": { "emoji": "👜", "label": "Sacs" } },
-      { "type": "pill", "settings": { "emoji": "👗", "label": "Robes" } },
-      { "type": "pill", "settings": { "emoji": "👟", "label": "Sneakers" } },
-      { "type": "pill", "settings": { "emoji": "🕶️", "label": "Accessoires" } }
-    ] }
+    { "type": "checkbox", "id": "full_bleed", "label": "Bord à bord (100vw)", "default": false },          // 1
+    { "type": "text", "id": "title", "label": "Titre", "default": "Catégories" },                            // 2
+
+    { "type": "range", "id": "gap", "label": "Espacement entre cartes (px)", "min": 8, "max": 32, "step": 1, "default": 16 }, // 3
+    { "type": "range", "id": "radius", "label": "Rayon des coins (px)", "min": 0, "max": 36, "step": 1, "default": 16 },      // 4
+    { "type": "select", "id": "ratio", "label": "Ratio image", "default": "4/5",                                              // 5
+      "options": [
+        { "value": "16/9", "label": "Paysage 16:9" },
+        { "value": "1/1", "label": "Carré 1:1" },
+        { "value": "4/5", "label": "Portrait 4:5" }
+      ]
+    },
+    { "type": "range", "id": "overlay_opacity", "label": "Intensité overlay (%)", "min": 0, "max": 100, "step": 5, "default": 35 }, // 6
+
+    { "type": "header", "content": "Carte 1" },
+    { "type": "image_picker", "id": "image_1", "label": "Image 1" },                         // 7
+    { "type": "text", "id": "label_1", "label": "Titre 1", "default": "Homme" },             // 8
+    { "type": "text", "id": "sub_1", "label": "Sous-titre 1", "default": "Nouveautés" },     // 9
+    { "type": "url", "id": "url_1", "label": "URL 1" },                                      // 10
+    { "type": "text", "id": "btn_label_1", "label": "Texte bouton 1", "default": "Découvrir" }, // 11
+
+    { "type": "header", "content": "Carte 2" },
+    { "type": "image_picker", "id": "image_2", "label": "Image 2" },                         // 12
+    { "type": "text", "id": "label_2", "label": "Titre 2", "default": "Femme" },             // 13
+    { "type": "text", "id": "sub_2", "label": "Sous-titre 2", "default": "Best-sellers" },   // 14
+    { "type": "url", "id": "url_2", "label": "URL 2" },                                      // 15
+    { "type": "text", "id": "btn_label_2", "label": "Texte bouton 2", "default": "Acheter" }, // 16
+
+    { "type": "header", "content": "Carte 3" },
+    { "type": "image_picker", "id": "image_3", "label": "Image 3" },                         // 17
+    { "type": "text", "id": "label_3", "label": "Titre 3", "default": "Enfants" },           // 18
+    { "type": "text", "id": "sub_3", "label": "Sous-titre 3", "default": "Back to school" }, // 19
+    { "type": "url", "id": "url_3", "label": "URL 3" },                                      // 20
+    { "type": "text", "id": "btn_label_3", "label": "Texte bouton 3", "default": "Voir" },   // 21
+
+    { "type": "header", "content": "Séparateur Promotion" },
+    { "type": "checkbox", "id": "promo_enable", "label": "Afficher le séparateur promo", "default": true }, // 22
+    { "type": "text", "id": "promo_text", "label": "Texte principal", "default": "Livraison gratuite dès 499 MAD" }, // 23
+    { "type": "text", "id": "promo_btn_label", "label": "Bouton — libellé", "default": "Profiter" }, // 24
+    { "type": "url", "id": "promo_btn_url", "label": "Bouton — URL", "default": "/collections/all" } // 25
   ]
 }
 {% endschema %}

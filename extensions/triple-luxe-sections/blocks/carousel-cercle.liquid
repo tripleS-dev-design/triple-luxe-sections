@@ -1,13 +1,14 @@
+{{ 'carousel-cercle.css' | asset_url | stylesheet_tag }}
+
 <section class="circle-marquee"
   style="
-    --cm-size: {{ section.settings.size }}px;
-    --cm-gap: {{ section.settings.gap }}px;
-    --cm-speed: {{ section.settings.speed }}s;
-    --cm-border: {{ section.settings.border_width }}px;
-    --cm-border-color: {{ section.settings.border_color }};
-    --cm-shadow: {% if section.settings.shadow %}0 6px 18px rgba(0,0,0,.12){% else %}none{% endif %};">
-  {% if section.settings.heading != blank %}
-    <h2 class="cm-title">{{ section.settings.heading }}</h2>
+    --cm-size: {{ block.settings.size }}px;
+    --cm-gap: {{ block.settings.gap }}px;
+    --cm-speed: {{ block.settings.speed }}s;
+    --cm-border: {{ block.settings.border_width }}px;
+    --cm-border-color: {{ block.settings.border_color }};">
+  {% if block.settings.heading != blank %}
+    <h2 class="cm-title">{{ block.settings.heading }}</h2>
   {% endif %}
 
   <div class="cm-viewport">
@@ -16,9 +17,9 @@
         {% capture k_img %}image_{{ i }}{% endcapture %}
         {% capture k_alt %}alt_{{ i }}{% endcapture %}
         {% capture k_link %}link_{{ i }}{% endcapture %}
-        {% assign img = section.settings[k_img] %}
-        {% assign alt = section.settings[k_alt] | default: 'Image' %}
-        {% assign lnk = section.settings[k_link] %}
+        {% assign img = block.settings[k_img] %}
+        {% assign alt = block.settings[k_alt] %}
+        {% assign lnk = block.settings[k_link] %}
         {% if img != blank %}
           <a {% if lnk != blank %}href="{{ lnk }}"{% endif %} class="cm-item" aria-label="{{ alt | escape }}">
             {{ img | image_url: width: 600 | image_tag: class: 'cm-img', alt: alt, loading: 'lazy' }}
@@ -30,11 +31,11 @@
         {% capture k_img %}image_{{ i }}{% endcapture %}
         {% capture k_alt %}alt_{{ i }}{% endcapture %}
         {% capture k_link %}link_{{ i }}{% endcapture %}
-        {% assign img = section.settings[k_img] %}
-        {% assign alt = section.settings[k_alt] | default: 'Image' %}
-        {% assign lnk = section.settings[k_link] %}
+        {% assign img = block.settings[k_img] %}
+        {% assign alt = block.settings[k_alt] %}
+        {% assign lnk = block.settings[k_link] %}
         {% if img != blank %}
-          <a {% if lnk != blank %}href="{{ lnk }}"{% endif %} class="cm-item cm-dup" aria-label="{{ alt | escape }}">
+          <a {% if lnk != blank %}href="{{ lnk }}"{% endif %} class="cm-item" aria-label="{{ alt | escape }}">
             {{ img | image_url: width: 600 | image_tag: class: 'cm-img', alt: alt, loading: 'lazy' }}
           </a>
         {% endif %}
@@ -43,34 +44,17 @@
   </div>
 </section>
 
-<style>
-.circle-marquee{ --cm-size:140px; --cm-gap:16px; --cm-speed:30s; --cm-border:2px; --cm-border-color:#ffd1e6; --cm-shadow:none; }
-.cm-title{ margin:0 0 1rem; text-align:center; font-weight:800; letter-spacing:.3px;
-  background:linear-gradient(90deg,#ff5fa2,#ff9ecf 70%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
-.cm-viewport{ width:100%; overflow:hidden; position:relative; padding:.5rem 0; }
-.cm-track{ display:flex; align-items:center; gap:var(--cm-gap); width:max-content; animation:cm-scroll var(--cm-speed) linear infinite; }
-.cm-viewport:hover .cm-track{ animation-play-state:paused; }
-.cm-item{ display:block; width:var(--cm-size); height:var(--cm-size); flex:0 0 var(--cm-size);
-  border-radius:50%; overflow:hidden; border:var(--cm-border) solid var(--cm-border-color); box-shadow:var(--cm-shadow); background:#fff; }
-.cm-img{ width:100%; height:100%; object-fit:cover; object-position:center; display:block; transition:transform .35s ease; }
-.cm-item:hover .cm-img{ transform:scale(1.06); }
-@keyframes cm-scroll{ from{ transform:translateX(0);} to{ transform:translateX(calc(-50% - var(--cm-gap)/2)); } }
-@media (max-width:990px){ .circle-marquee{ --cm-size:110px; --cm-gap:14px; } }
-@media (max-width:640px){ .circle-marquee{ --cm-size:90px; --cm-gap:12px; } }
-</style>
-
 {% schema %}
 {
-  "name": "Carrousel — Cercle d’images",
+  "name": "Carousel Cercle",
   "target": "section",
   "settings": [
     { "type": "text",  "id": "heading", "label": "Titre", "default": "Notre collection" },
     { "type": "range", "id": "size", "label": "Diamètre (px)", "min": 60, "max": 220, "step": 2, "default": 140 },
     { "type": "range", "id": "gap", "label": "Espace (px)", "min": 6, "max": 40, "step": 1, "default": 16 },
-    { "type": "range", "id": "speed", "label": "Vitesse (secondes)", "min": 8, "max": 60, "step": 1, "default": 30 },
+    { "type": "range", "id": "speed", "label": "Vitesse (s)", "min": 8, "max": 60, "step": 1, "default": 30 },
     { "type": "color", "id": "border_color", "label": "Couleur bordure", "default": "#ffd1e6" },
     { "type": "range", "id": "border_width", "label": "Épaisseur bordure (px)", "min": 0, "max": 6, "step": 1, "default": 2 },
-    { "type": "checkbox", "id": "shadow", "label": "Ombre douce", "default": true },
 
     { "type": "image_picker", "id": "image_1", "label": "Image 1" },
     { "type": "text", "id": "alt_1", "label": "Alt 1", "default": "Image 1" },
@@ -95,9 +79,6 @@
     { "type": "image_picker", "id": "image_6", "label": "Image 6" },
     { "type": "text", "id": "alt_6", "label": "Alt 6", "default": "Image 6" },
     { "type": "url",  "id": "link_6", "label": "Lien 6" }
-  ],
-  "presets": [
-    { "name": "Carrousel — Cercle d’images" }
   ]
 }
 {% endschema %}

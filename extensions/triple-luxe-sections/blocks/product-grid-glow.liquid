@@ -1,133 +1,72 @@
-{% comment %} Vitrine Produits — cartes Glow {% endcomment %}
-<section id="vp-{{ section.id }}" class="vp"
-  style="--vp-bg: {{ section.settings.bg }}; --vp-fg: {{ section.settings.fg }}; --vp-accent: {{ section.settings.accent }}; --vp-card-bg: {{ section.settings.card_bg }}; --vp-card-border: {{ section.settings.card_border }}; --vp-card-glow: {{ section.settings.card_glow }}; --vp-radius: {{ section.settings.radius }}px; --vp-gap: {{ section.settings.gap }}px; --vp-cols: {{ section.settings.columns }};"
-  aria-label="Vitrine produits">
-  <div class="vp-wrap">
-    {% if section.settings.title != blank %}
-      <header class="vp-head">
-        <h2 class="vp-title">{{ section.settings.title }}</h2>
-        {% if section.settings.subtitle != blank %}<p class="vp-sub">{{ section.settings.subtitle }}</p>{% endif %}
-      </header>
+<section class="pg-glow" style="--cols: {{ block.settings.columns }}; --gap: {{ block.settings.gap }}px;">
+  {% if block.settings.title != blank %}
+    <h3 class="pg-glow__title">{{ block.settings.title | escape }}</h3>
+  {% endif %}
+
+  {% assign coll = block.settings.collection %}
+  {% assign l = block.settings.limit | default: 8 | plus: 0 %}
+
+  <div class="pg-glow__grid">
+    {% if coll != blank %}
+      {% for p in coll.products limit: l %}
+        <article class="pg-glow__card">
+          <a class="pg-glow__img" href="{{ p.url }}">
+            {% if p.featured_image %}
+              {% assign src = p.featured_image | image_url: width: 900 %}
+              <img src="{{ src }}" alt="{{ p.title | escape }}" loading="lazy" class="pg-glow__img-el">
+            {% endif %}
+          </a>
+          <div class="pg-glow__meta">
+            <a class="pg-glow__name" href="{{ p.url }}">{{ p.title }}</a>
+            {% if block.settings.show_price %}
+              <div class="pg-glow__price">
+                {{ p.price | default: p.price_min | money }}
+              </div>
+            {% endif %}
+            {% if block.settings.show_cta %}
+              <a class="pg-glow__btn" href="{{ p.url }}">{{ block.settings.cta_label | default: 'Voir' }}</a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="pg-glow__empty">Sélectionnez une collection.</div>
     {% endif %}
-
-    <div class="vp-grid">
-      {%- assign use_manual = section.blocks.size > 0 and section.settings.mode == 'manual' -%}
-
-      {% if use_manual %}
-        {% for block in section.blocks %}
-          {% if block.type == 'product_item' and block.settings.product != blank %}
-            {% assign p = block.settings.product %}
-            <article class="vp-card" {{ block.shopify_attributes }}>
-              <a class="vp-media" href="{{ p.url }}" aria-label="{{ p.title | escape }}">
-                {% if p.featured_image %}{{ p.featured_image | image_url: width: 800 | image_tag: alt: p.title, loading: 'lazy' }}{% else %}<div style="width:100%;height:100%;background:#eef2f7;"></div>{% endif %}
-              </a>
-              <div class="vp-body">
-                <h3 class="vp-title-sm"><a href="{{ p.url }}" style="color:inherit; text-decoration:none">{{ p.title }}</a></h3>
-                {% if section.settings.show_vendor and p.vendor %}<div class="vp-vendor">{{ p.vendor }}</div>{% endif %}
-
-                {% assign desc = block.settings.custom_desc | default: p.description | strip_html | strip %}
-                {% if desc != blank %}<p class="vp-desc">{{ desc | truncatewords: section.settings.desc_words, '…' }}</p>{% endif %}
-
-                <div class="vp-price">
-                  <span class="price">{{ p.price | money }}</span>
-                  {% if section.settings.show_compare and p.compare_at_price > p.price %}<span class="compare">{{ p.compare_at_price | money }}</span>{% endif %}
-                </div>
-              </div>
-              <div class="vp-actions">
-                {% assign btn_txt = block.settings.custom_btn | default: section.settings.btn_label %}
-                <a class="vp-btn" href="{{ p.url }}" aria-label="Voir {{ p.title | escape }}">{{ btn_txt }}</a>
-              </div>
-            </article>
-          {% endif %}
-        {% endfor %}
-      {% else %}
-        {% if section.settings.collection != blank %}
-          {% assign coll = section.settings.collection %}
-          {% for p in coll.products limit: section.settings.limit %}
-            <article class="vp-card">
-              <a class="vp-media" href="{{ p.url }}" aria-label="{{ p.title | escape }}">
-                {% if p.featured_image %}{{ p.featured_image | image_url: width: 800 | image_tag: alt: p.title, loading: 'lazy' }}{% else %}<div style="width:100%;height:100%;background:#eef2f7;"></div>{% endif %}
-              </a>
-              <div class="vp-body">
-                <h3 class="vp-title-sm"><a href="{{ p.url }}" style="color:inherit; text-decoration:none">{{ p.title }}</a></h3>
-                {% if section.settings.show_vendor and p.vendor %}<div class="vp-vendor">{{ p.vendor }}</div>{% endif %}
-                {% assign desc = p.description | strip_html | strip %}
-                {% if desc != blank %}<p class="vp-desc">{{ desc | truncatewords: section.settings.desc_words, '…' }}</p>{% endif %}
-                <div class="vp-price">
-                  <span class="price">{{ p.price | money }}</span>
-                  {% if section.settings.show_compare and p.compare_at_price > p.price %}<span class="compare">{{ p.compare_at_price | money }}</span>{% endif %}
-                </div>
-              </div>
-              <div class="vp-actions"><a class="vp-btn" href="{{ p.url }}" aria-label="Voir {{ p.title | escape }}">{{ section.settings.btn_label }}</a></div>
-            </article>
-          {% endfor %}
-        {% else %}
-          <div class="vp-empty">Sélectionnez une collection ou ajoutez des produits en mode manuel.</div>
-        {% endif %}
-      {% endif %}
-    </div>
   </div>
-
-  <style>
-    .vp{background: var(--vp-bg,#ffffff); color: var(--vp-fg,#1f2937); padding: 28px 0}
-    .vp-wrap{max-width:1200px; margin:0 auto; padding:0 16px}
-    .vp-head{margin-bottom:14px}
-    .vp-title{margin:0; font-size:clamp(18px,2.6vw,28px); font-weight:800; letter-spacing:.2px}
-    .vp-sub{margin:6px 0 0; color:#6b7280; font-size:14px}
-    .vp-grid{display:grid; gap: var(--vp-gap,16px); grid-template-columns: repeat(var(--vp-cols,3), minmax(0,1fr))}
-    @media (max-width: 990px){ .vp-grid{ grid-template-columns: repeat(2,minmax(0,1fr)) } }
-    @media (max-width: 640px){ .vp-grid{ grid-template-columns: 1fr } }
-    .vp-card{position:relative; background: var(--vp-card-bg,#fff); border-radius: var(--vp-radius,14px); overflow:hidden; display:flex; flex-direction:column; isolation:isolate; box-shadow: 0 0 0 1px var(--vp-card-border,#e5e7eb); transition: transform .18s ease, box-shadow .18s ease}
-    .vp-card::before{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow: 0 0 22px var(--vp-card-glow,#6EC1FF) inset; opacity:.35}
-    .vp-card:hover{ transform: translateY(-2px); box-shadow: 0 2px 18px rgba(0,0,0,.06), 0 0 0 1px var(--vp-card-border,#e5e7eb) }
-    .vp-media{aspect-ratio: 4/3; background:#f5f7fb; position:relative}
-    .vp-media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-    .vp-body{padding:12px}
-    .vp-title-sm{margin:0 0 6px; font-size:16px; font-weight:700; line-height:1.25}
-    .vp-desc{margin:0 0 10px; color:#6b7280; font-size:14px}
-    .vp-price{display:flex; align-items:center; gap:8px; margin:0 0 10px; font-weight:700}
-    .vp-price .compare{color:#9ca3af; text-decoration:line-through; font-weight:400}
-    .vp-actions{margin-top:auto; padding:0 12px 12px}
-    .vp-btn{display:inline-block; width:100%; text-align:center; padding:10px 14px; border-radius:999px; text-decoration:none; font-weight:700; background: var(--vp-accent,#1a4a8a); color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,.15) inset, 0 6px 14px rgba(26,74,138,.25)}
-    .vp-btn:hover{filter:brightness(1.07)}
-    .vp-vendor{font-size:12px; color:#9ca3af; margin-top:2px}
-    .vp-empty{padding:20px; background:#f5f7fb; border-radius:12px; text-align:center; color:#6b7280}
-  </style>
-
-  {% schema %}
-  {
-    "name": "Vitrine produits — cartes Glow",
-    "settings": [
-      { "type": "text", "id": "title", "label": "Titre", "default": "Nos produits en vitrine" },
-      { "type": "text", "id": "subtitle", "label": "Sous-titre (optionnel)", "default": "Découvrez nos sélections" },
-      { "type": "select", "id": "mode", "label": "Source des produits", "default": "collection", "options": [ { "value": "collection", "label": "Collection" }, { "value": "manual", "label": "Sélection manuelle (blocs)" } ] },
-      { "type": "collection", "id": "collection", "label": "Collection (si mode = Collection)" },
-      { "type": "number", "id": "limit", "label": "Nombre de produits (Collection)", "default": 6 },
-      { "type": "select", "id": "columns", "label": "Colonnes (desktop)", "default": "3", "options": [ { "value": "2", "label": "2" }, { "value": "3", "label": "3" }, { "value": "4", "label": "4" } ] },
-      { "type": "number", "id": "gap", "label": "Espace entre cartes (px)", "default": 16 },
-      { "type": "number", "id": "radius", "label": "Arrondi des coins (px)", "default": 14 },
-      { "type": "number", "id": "desc_words", "label": "Nombre de mots (description)", "default": 18 },
-      { "type": "checkbox", "id": "show_vendor", "label": "Afficher le vendeur", "default": false },
-      { "type": "checkbox", "id": "show_compare", "label": "Afficher le prix barré", "default": true },
-      { "type": "color", "id": "bg", "label": "Fond de la section", "default": "#ffffff" },
-      { "type": "color", "id": "fg", "label": "Texte", "default": "#1f2937" },
-      { "type": "color", "id": "accent", "label": "Couleur du bouton", "default": "#1a4a8a" },
-      { "type": "color", "id": "card_bg", "label": "Fond de la carte", "default": "#ffffff" },
-      { "type": "color", "id": "card_border", "label": "Bordure de la carte", "default": "#e5e7eb" },
-      { "type": "color", "id": "card_glow", "label": "Couleur du glow (bordure)", "default": "#6EC1FF" },
-      { "type": "text", "id": "btn_label", "label": "Libellé du bouton", "default": "Voir le produit" }
-    ],
-    "blocks": [
-      { "type": "product_item", "name": "Produit (manuel)",
-        "settings": [
-          { "type": "product", "id": "product", "label": "Produit" },
-          { "type": "text", "id": "custom_desc", "label": "Description courte (optionnel)" },
-          { "type": "text", "id": "custom_btn", "label": "Texte bouton (optionnel)" }
-        ]
-      }
-    ],
-    "max_blocks": 12,
-    "presets": [{ "name": "Vitrine produits — cartes Glow", "blocks": [ { "type": "product_item" }, { "type": "product_item" }, { "type": "product_item" } ] }]
-  }
-  {% endschema %}
 </section>
+
+<style>
+.pg-glow{padding:10px 0}
+.pg-glow__title{margin:0 0 10px;font-weight:800}
+.pg-glow__grid{display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:var(--gap,16px)}
+.pg-glow__card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;transition:transform .2s, box-shadow .2s}
+.pg-glow__card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(99,102,241,.18), 0 2px 8px rgba(0,0,0,.06)}
+.pg-glow__img{display:block;aspect-ratio:4/5;background:#f7f7f7}
+.pg-glow__img-el{width:100%;height:100%;object-fit:cover;display:block}
+.pg-glow__meta{padding:10px}
+.pg-glow__name{display:block;font-weight:700;line-height:1.25;text-decoration:none;color:inherit;margin-bottom:6px}
+.pg-glow__name:hover{text-decoration:underline}
+.pg-glow__price{font-weight:800}
+.pg-glow__btn{display:inline-block;margin-top:8px;border:1px solid #e5e7eb;border-radius:10px;padding:6px 10px;text-decoration:none;color:inherit}
+.pg-glow__btn:hover{background:#f5f5f5}
+.pg-glow__empty{opacity:.7}
+@media (max-width: 990px){ .pg-glow__grid{grid-template-columns:repeat(3,1fr)} }
+@media (max-width: 640px){ .pg-glow__grid{grid-template-columns:repeat(2,1fr)} }
+</style>
+
+{% schema %}
+{
+  "name": "Products Grid Glow",
+  "target": "section",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Titre", "default": "Notre sélection" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "limit", "label": "Nombre d'articles", "min": 2, "max": 12, "step": 1, "default": 8 },
+    { "type": "range", "id": "columns", "label": "Colonnes", "min": 2, "max": 5, "step": 1, "default": 4 },
+    { "type": "range", "id": "gap", "label": "Espace (px)", "min": 6, "max": 28, "step": 1, "default": 16 },
+    { "type": "checkbox", "id": "show_price", "label": "Afficher le prix", "default": true },
+    { "type": "checkbox", "id": "show_cta", "label": "Afficher le bouton", "default": true },
+    { "type": "text", "id": "cta_label", "label": "Label du bouton", "default": "Voir" }
+  ]
+}
+{% endschema %}

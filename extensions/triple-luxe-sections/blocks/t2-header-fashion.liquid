@@ -1,145 +1,298 @@
-{% comment %}
-Header — Thème 2 (Vêtements & Accessoires)
-- Deux lignes : (Logo | Recherche | Icônes) + (Liens rapides configurables par blocs)
-- Couleurs et stickiness réglables
-- Pas de paiements
-{% endcomment %}
 
-<section class="t2-header {% if section.settings.sticky %}t2-header--sticky{% endif %}"
+{%- assign classes = 'mk-header' -%}
+{%- if block.settings.sticky -%}
+  {%- assign classes = classes | append: ' mk-header--sticky' -%}
+{%- endif -%}
+{%- if block.settings.full_bleed -%}
+  {%- assign classes = classes | append: ' mk-header--bleed' -%}
+{%- endif -%}
+
+<header class="{{ classes }}"
   style="
-    --t2-bg-top: {{ section.settings.bg_top }};
-    --t2-bg-bottom: {{ section.settings.bg_bottom }};
-    --t2-fg: {{ section.settings.fg }};
-    --t2-accent: {{ section.settings.accent }};
-    --t2-border: {{ section.settings.border }};
-  "
-  aria-label="En-tête du site">
-  <div class="t2-header__top">
-    <div class="t2-logo">
-      <a href="{{ routes.root_url }}" class="t2-logo__link">
-        {% if section.settings.logo != blank %}
-          {{ section.settings.logo | image_url: width: 240 | image_tag: alt: section.settings.store_name | escape }}
+    --mk-primary: {{ block.settings.primary }};
+    --mk-bg: {{ block.settings.bg }};
+    --mk-fg: {{ block.settings.fg }};
+    --mk-max: {{ block.settings.max_width }}px;
+    --mk-logo-h: {{ block.settings.logo_height }}px;
+    --mk-marquee-s: {{ block.settings.marquee_speed }}s;
+    --mk-pad-x: {{ block.settings.pad_x }}px;
+  ">
+
+  {%- if block.settings.show_announce and block.settings.announce_text != blank -%}
+  <div class="mk-topbar">
+    <div class="mk-topbar__track" aria-hidden="true">
+      <div class="mk-topbar__marquee">
+        <span class="mk-topbar__text">{{ block.settings.announce_text }}</span>
+        <span class="mk-topbar__text">{{ block.settings.announce_text }}</span>
+        <span class="mk-topbar__text">{{ block.settings.announce_text }}</span>
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+
+  <div class="mk-bar">
+    <div class="mk-container mk-grid">
+
+      <!-- Burger (mobile) -->
+      <details class="mk-burger">
+        <summary aria-label="Ouvrir le menu">☰</summary>
+        <nav class="mk-nav mk-nav--mobile">
+          {%- if block.settings.main_menu -%}
+            {%- assign menu = linklists[block.settings.main_menu] -%}
+            {%- if menu and menu.links.size > 0 -%}
+              <ul>
+                {%- for l in menu.links -%}
+                  <li>
+                    {%- if l.links and l.links.size > 0 -%}
+                      <details>
+                        <summary><a href="{{ l.url }}">{{ l.title }}</a></summary>
+                        <ul>
+                          {%- for c in l.links -%}
+                            <li>
+                              {%- if c.links and c.links.size > 0 -%}
+                                <details>
+                                  <summary><a href="{{ c.url }}">{{ c.title }}</a></summary>
+                                  <ul>
+                                    {%- for leaf in c.links -%}
+                                      <li><a href="{{ leaf.url }}">{{ leaf.title }}</a></li>
+                                    {%- endfor -%}
+                                  </ul>
+                                </details>
+                              {%- else -%}
+                                <a href="{{ c.url }}">{{ c.title }}</a>
+                              {%- endif -%}
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      </details>
+                    {%- else -%}
+                      <a href="{{ l.url }}">{{ l.title }}</a>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          {%- endif -%}
+        </nav>
+      </details>
+
+      <!-- Logo (net, dimensionné via --mk-logo-h) -->
+      {% assign logo_h = block.settings.logo_height | default: 40 %}
+      <a class="mk-logo" href="{{ routes.root_url }}">
+        {% if block.settings.logo != blank %}
+          {{ block.settings.logo
+            | image_url: width: 360
+            | image_tag:
+                alt: block.settings.brand,
+                class: 'mk-logo__img',
+                widths: '120,180,240,300,360,480,600',
+                sizes: '(max-width: 1099px) 32px, 40px',
+                loading: 'eager'
+          }}
         {% else %}
-          <strong class="t2-logo__text">{{ section.settings.store_name | default: shop.name }}</strong>
+          <span class="mk-logo__text">{{ block.settings.brand | escape }}</span>
         {% endif %}
       </a>
-    </div>
 
-    <div class="t2-search">
-      <form action="{{ routes.search_url }}" method="get" role="search" aria-label="Recherche">
-        <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ section.settings.search_placeholder | escape }}" class="t2-search__input" />
-        <button type="submit" class="t2-search__btn" aria-label="Rechercher">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-        </button>
-      </form>
-    </div>
+      <!-- Nav desktop -->
+      <nav class="mk-nav mk-nav--desktop">
+        {%- if block.settings.main_menu -%}
+          {%- assign menu = linklists[block.settings.main_menu] -%}
+          {%- if menu and menu.links.size > 0 -%}
+            <ul class="mk-menu">
+              {%- for l in menu.links -%}
+                {%- if l.links and l.links.size > 0 -%}
+                  <li class="mk-item mk-item--has-children">
+                    <a class="mk-link" href="{{ l.url }}">{{ l.title }}</a>
+                  </li>
+                {%- else -%}
+                  <li class="mk-item"><a class="mk-link" href="{{ l.url }}">{{ l.title }}</a></li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        {%- endif -%}
+      </nav>
 
-    <div class="t2-utils">
-      {% if section.settings.show_wishlist %}
-        <a href="{{ section.settings.wishlist_url | default: routes.root_url }}" class="t2-util" aria-label="{{ section.settings.wishlist_label }}">
-          <span class="t2-util__ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20.8 8.6c0 5.7-8.8 9.8-8.8 9.8S3.2 14.3 3.2 8.6A4.6 4.6 0 0112 7.4a4.6 4.6 0 018.8 1.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-          </span><span class="t2-util__label">{{ section.settings.wishlist_label }}</span>
-        </a>
-      {% endif %}
+      <!-- CTA -->
+      {%- if block.settings.cta_label != blank and block.settings.cta_url != blank -%}
+      <a class="mk-cta" href="{{ block.settings.cta_url }}">{{ block.settings.cta_label }}</a>
+      {%- endif -%}
 
-      <a href="{{ routes.cart_url }}" class="t2-util" aria-label="{{ section.settings.cart_label }}">
-        <span class="t2-util__ico">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.5 12H19l2-8H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.6" fill="currentColor"/><circle cx="17" cy="20" r="1.6" fill="currentColor"/></svg>
-        </span><span class="t2-util__label">{{ section.settings.cart_label }}</span>
-        {% if cart.item_count > 0 %}<span class="t2-badge">{{ cart.item_count }}</span>{% endif %}
-      </a>
-
-      {% if section.settings.show_account %}
-        <a href="{{ routes.account_url }}" class="t2-util" aria-label="{{ section.settings.account_label }}">
-          <span class="t2-util__ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M5 19a7 7 0 0114 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          </span><span class="t2-util__label">{{ section.settings.account_label }}</span>
-        </a>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="t2-header__bottom" aria-label="Liens rapides">
-    <nav class="t2-quick" role="navigation">
-      {% for block in section.blocks %}
-        {% if block.type == 'quick_link' %}
-          <a href="{{ block.settings.url | default: '#' }}" class="t2-quick__link" {{ block.shopify_attributes }}>
-            {% if block.settings.emoji != blank %}<span class="t2-quick__emo" aria-hidden="true">{{ block.settings.emoji }}</span>{% endif %}
-            <span class="t2-quick__txt">{{ block.settings.label }}</span>
+      <!-- Utils -->
+      <div class="mk-utils">
+        {%- if block.settings.show_search -%}
+          <a class="mk-util" href="{{ routes.search_url }}" aria-label="Rechercher">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="2"/><path d="M15 15l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </a>
-        {% endif %}
-      {% endfor %}
-    </nav>
+        {%- endif -%}
+        {%- if block.settings.show_account -%}
+          <a class="mk-util" href="{{ routes.account_url }}" aria-label="Mon compte">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c1.5-4 6-6 8-6s6.5 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </a>
+        {%- endif -%}
+        <a class="mk-util mk-cart" href="{{ routes.cart_url }}" aria-label="Panier">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 4h2l2.5 12H19l2-8H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.6" fill="currentColor"/><circle cx="17" cy="20" r="1.6" fill="currentColor"/></svg>
+          {%- if cart != empty and cart.item_count > 0 -%}
+            <span class="mk-badge">{{ cart.item_count }}</span>
+          {%- endif -%}
+          {%- if block.settings.show_cart_total -%}
+            <span class="mk-total">{{ cart.total_price | money }}</span>
+          {%- endif -%}
+        </a>
+      </div>
+    </div>
   </div>
-</section>
+</header>
 
 <style>
-.t2-header{--_top: var(--t2-bg-top,#fff); --_bot: var(--t2-bg-bottom,#fff); --_fg: var(--t2-fg,#111827); --_ac: var(--t2-accent,#e11d48); --_bd: var(--t2-border,#eee);}
-.t2-header{background: linear-gradient(0deg,var(--_bot),var(--_top)); color:var(--_fg); border-bottom:1px solid var(--_bd);}
-.t2-header--sticky{position:sticky; top:0; z-index:40; backdrop-filter:saturate(1.2) blur(6px)}
-.t2-header__top{display:grid; grid-template-columns:1fr 2fr 1fr; gap:14px; align-items:center; padding:10px 14px}
-.t2-logo__link{text-decoration:none; color:var(--_fg); font-weight:900; font-size:18px; letter-spacing:.3px}
-.t2-search form{display:flex; background:#fff; border:1px solid var(--_bd); border-radius:8px; overflow:hidden}
-.t2-search__input{flex:1; padding:10px 12px; border:0; outline:0; font-size:14px}
-.t2-search__btn{width:42px; border:0; background:var(--_ac); color:#fff; cursor:pointer}
-.t2-utils{display:flex; justify-content:flex-end; gap:14px; align-items:center}
-.t2-util{position:relative; display:inline-flex; align-items:center; gap:6px; color:inherit; text-decoration:none}
-.t2-util__ico{display:inline-flex; color:var(--_ac)}
-.t2-util__label{font-size:13px}
-.t2-badge{position:absolute; top:-6px; right:-8px; min-width:18px; height:18px; padding:0 4px; background:var(--_ac); color:#fff; border-radius:12px; font-size:12px; display:grid; place-items:center}
-.t2-header__bottom{border-top:1px solid var(--_bd); padding:8px 10px}
-.t2-quick{display:flex; gap:22px; flex-wrap:wrap}
-.t2-quick__link{display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px; text-decoration:none; color:var(--_fg); background:rgba(225,29,72,.06); border:1px solid rgba(225,29,72,.12); transition:transform .15s ease, box-shadow .15s ease}
-.t2-quick__link:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(225,29,72,.15)}
-@media (max-width: 990px){
-  .t2-header__top{grid-template-columns:1fr 1fr; grid-template-areas:"logo utils" "search search";}
-  .t2-logo{grid-area:logo} .t2-utils{grid-area:utils} .t2-search{grid-area:search}
-  .t2-util__label{display:none}
-  .t2-quick{gap:12px; overflow-x:auto; -webkit-overflow-scrolling:touch}
+/* Base & palette */
+.mk-header{color:var(--mk-fg,#111); display:block}
+.mk-header--sticky{position:sticky;top:0;z-index:40}
+.mk-container{max-width:var(--mk-max,1200px);margin:0 auto;padding:0 var(--mk-pad-x,8px)}
+/* Full-bleed interne (contenu) */
+.mk-header--bleed .mk-container{max-width:none;width:100%}
+
+/* === Full-bleed réel (casser "page-width" de Dawn) === */
+.mk-header.mk-header--bleed{
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  max-width: 100vw;
+}
+.mk-header.mk-header--bleed,
+.mk-header.mk-header--bleed .mk-bar,
+.mk-header.mk-header--bleed .mk-topbar{
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Topbar (marquee CSS) */
+.mk-topbar{background:var(--mk-primary,#e11d2e);color:#fff;width:100%}
+.mk-topbar__track{position:relative;overflow:hidden;width:100%}
+.mk-topbar__marquee{
+  display:inline-flex;gap:60px;white-space:nowrap;will-change:transform;
+  animation: mk-marquee var(--mk-marquee-s,18s) linear infinite; padding:10px 0;
+}
+.mk-topbar__text{font-weight:800;letter-spacing:.2px;font-size:12px}
+@keyframes mk-marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+/* Barre principale */
+.mk-bar{background:var(--mk-bg,#fff);border-bottom:1px solid #eee;width:100%}
+.mk-grid{
+  display:grid;align-items:center;gap:16px;
+  grid-template-columns: 220px 1fr auto auto; /* logo | menu | cta | utils */
+  padding:12px 0;
+}
+
+/* Logo (net, non déformé) */
+.mk-logo{justify-self:start;display:inline-flex;align-items:center}
+.mk-logo__img{
+  height: var(--mk-logo-h, 40px);
+  width: auto;
+  max-height: var(--mk-logo-h, 40px);
+  display:block;
+  image-rendering:auto;
+  -ms-interpolation-mode:bicubic;
+}
+.mk-logo__text{
+  font-size:24px;line-height:1;font-weight:900;color:var(--mk-primary,#e11d2e);letter-spacing:2px
+}
+
+/* Nav desktop */
+.mk-nav--desktop{display:none}
+@media (min-width:1100px){
+  .mk-nav--desktop{display:block}
+  .mk-menu{display:flex;gap:22px;list-style:none;margin:0;padding:0}
+  .mk-link{
+    text-decoration:none;color:#1a1a1a;font-weight:800;font-size:13px;letter-spacing:.2px;
+    position:relative;padding:8px 0;display:inline-flex;align-items:center;gap:6px;
+  }
+  .mk-item--has-children>.mk-link::after{content:"▾";font-size:12px;transform:translateY(-1px);opacity:.7}
+  .mk-link:hover{color:var(--mk-primary,#e11d2e)}
+}
+
+/* CTA pill */
+.mk-cta{
+  display:inline-flex;align-items:center;justify-content:center;
+  height:36px;padding:0 20px;border-radius:999px;
+  background:radial-gradient(120% 120% at 30% 20%, #ff6b6b, var(--mk-primary,#e11d2e));
+  box-shadow:0 8px 22px rgba(225,29,46,.35);
+  color:#fff;text-decoration:none;font-weight:900;letter-spacing:.2px;
+}
+
+/* Utils (icônes) */
+.mk-utils{display:flex;gap:16px;justify-content:flex-end;align-items:center}
+.mk-util{color:#2b2b2b;text-decoration:none;display:inline-flex;align-items:center;position:relative}
+.mk-util svg{display:block}
+.mk-cart{gap:8px}
+.mk-badge{
+  position:absolute;top:-6px;right:-8px;min-width:18px;height:18px;padding:0 4px;
+  border-radius:10px;background:var(--mk-primary,#e11d2e);color:#fff;font-size:12px;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+.mk-total{font-weight:800;font-size:12px}
+
+/* Burger + nav mobile (sans JS) */
+.mk-burger{display:inline-flex}
+.mk-burger>summary{
+  list-style:none;border:1px solid #e5e7eb;border-radius:10px;padding:6px 10px;
+  cursor:pointer;background:#fff;display:flex;align-items:center;
+}
+.mk-burger>summary::-webkit-details-marker{display:none}
+.mk-nav--mobile{
+  position:absolute;left:var(--mk-pad-x,8px);right:var(--mk-pad-x,8px);top:calc(100% + 10px);
+  background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.08);
+  padding:12px;z-index:35;
+}
+.mk-nav--mobile ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mk-nav--mobile a{text-decoration:none;color:#111;font-weight:700}
+.mk-nav--mobile details>summary{cursor:pointer;padding:8px 0}
+.mk-nav--mobile details>summary a{pointer-events:none}
+.mk-nav--mobile details[open]>summary{font-weight:900}
+
+/* Responsive */
+@media (max-width:1099px){
+  .mk-grid{grid-template-columns:auto 1fr auto;gap:12px}
+  .mk-nav--desktop,.mk-cta{display:none}
+  .mk-logo__img{height:calc(var(--mk-logo-h,40px) - 8px);max-height:calc(var(--mk-logo-h,40px) - 8px)}
 }
 </style>
 
 {% schema %}
 {
-  "name": "T2 — Fashion Header",
+  "name": "Header MARKA Style",
+  "target": "section",
   "settings": [
-    { "type": "checkbox", "id": "sticky", "label": "Collant (sticky)", "default": true },
+    { "type": "text", "id": "brand", "label": "Nom de marque (fallback)", "default": "MARKA STORE" },
     { "type": "image_picker", "id": "logo", "label": "Logo" },
-    { "type": "text", "id": "store_name", "label": "Nom de la boutique (fallback)" },
-    { "type": "text", "id": "search_placeholder", "label": "Placeholder recherche", "default": "Rechercher des articles" },
+    { "type": "link_list", "id": "main_menu", "label": "Menu principal" },
 
-    { "type": "checkbox", "id": "show_wishlist", "label": "Afficher Wishlist", "default": true },
-    { "type": "url", "id": "wishlist_url", "label": "Lien Wishlist" },
-    { "type": "text", "id": "wishlist_label", "label": "Libellé Wishlist", "default": "Favoris" },
+    { "type": "checkbox", "id": "show_announce", "label": "Afficher la topbar", "default": true },
+    { "type": "text", "id": "announce_text", "label": "Texte topbar", "default": "TARIFS DE LIVRAISON" },
 
-    { "type": "text", "id": "cart_label", "label": "Libellé Panier", "default": "Panier" },
-    { "type": "checkbox", "id": "show_account", "label": "Afficher Compte", "default": true },
-    { "type": "text", "id": "account_label", "label": "Libellé Compte", "default": "Compte" },
+    { "type": "text", "id": "cta_label", "label": "Bouton CTA — libellé", "default": "BACK TO SCHOOL" },
+    { "type": "url",  "id": "cta_url",   "label": "Bouton CTA — URL", "default": "/collections/all" },
 
-    { "type": "color", "id": "bg_top", "label": "Fond (haut)", "default": "#ffffff" },
-    { "type": "color", "id": "bg_bottom", "label": "Fond (bas)", "default": "#ffffff" },
-    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
-    { "type": "color", "id": "accent", "label": "Couleur d’accent", "default": "#e11d48" },
-    { "type": "color", "id": "border", "label": "Bordure", "default": "#e5e7eb" }
-  ],
-  "blocks": [
-    {
-      "type": "quick_link",
-      "name": "Lien rapide",
-      "settings": [
-        { "type": "text", "id": "emoji", "label": "Emoji (optionnel)", "default": "✨" },
-        { "type": "text", "id": "label", "label": "Texte", "default": "Nouveautés" },
-        { "type": "url",  "id": "url", "label": "Lien" }
-      ]
-    }
-  ],
-  "max_blocks": 10,
-  "presets": [{ "name": "T2 — Fashion Header", "blocks": [
-    { "type": "quick_link", "settings": { "emoji": "✨", "label": "Nouveautés" } },
-    { "type": "quick_link", "settings": { "emoji": "👜", "label": "Sacs" } },
-    { "type": "quick_link", "settings": { "emoji": "👟", "label": "Chaussures" } },
-    { "type": "quick_link", "settings": { "emoji": "🧥", "label": "Vestes" } }
-  ]}]
+    { "type": "checkbox", "id": "show_search", "label": "Icône recherche", "default": true },
+    { "type": "checkbox", "id": "show_account", "label": "Icône compte", "default": true },
+    { "type": "checkbox", "id": "show_cart_total", "label": "Afficher total panier", "default": true },
+
+    { "type": "checkbox", "id": "sticky", "label": "Header collant (sticky)", "default": true },
+    { "type": "checkbox", "id": "full_bleed", "label": "Prendre toute la largeur (aux extrémités)", "default": true },
+
+    { "type": "range", "id": "logo_height", "label": "Hauteur max du logo (px)", "min": 24, "max": 64, "step": 1, "default": 40 },
+    { "type": "range", "id": "marquee_speed", "label": "Vitesse du texte topbar (sec)", "min": 6, "max": 30, "step": 1, "default": 18 },
+    { "type": "range", "id": "pad_x", "label": "Padding horizontal (px)", "min": 0, "max": 24, "step": 2, "default": 8 },
+
+    { "type": "color", "id": "primary", "label": "Couleur primaire", "default": "#e11d2e" },
+    { "type": "color", "id": "bg", "label": "Fond barre principale", "default": "#ffffff" },
+    { "type": "color", "id": "fg", "label": "Texte", "default": "#1a1a1a" },
+
+    { "type": "range", "id": "max_width", "label": "Largeur max (px, si non full-bleed)", "min": 960, "max": 1600, "step": 10, "default": 1200 }
+  ]
 }
 {% endschema %}
