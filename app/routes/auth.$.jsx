@@ -1,11 +1,9 @@
 // app/routes/auth.$.jsx
-import { login } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
-// Laisse le SDK gérer /auth/login, /auth/callback, /auth/shopify/callback
-export const loader = async ({ request }) => {
-  return login(request);
+export const loader = async ({ request, params }) => {
+  if (params["*"] === "callback") {
+    return authenticate.callback(request);
+  }
+  return authenticate.begin(request);
 };
-
-export default function AuthRoute() {
-  return null;
-}
