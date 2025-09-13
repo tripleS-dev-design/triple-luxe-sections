@@ -7,25 +7,18 @@ import {
   shopifyApp,
   ApiVersion,
   AppDistribution,
-  BillingInterval, // <- depuis @shopify/shopify-app-remix/server
+  BillingInterval,
+  DeliveryMethod,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-// Vérifs ENV minimales
-const requiredEnv = ["SHOPIFY_API_KEY", "SHOPIFY_API_SECRET", "SHOPIFY_APP_URL", "SCOPES"];
-for (const k of requiredEnv) {
-  if (!process.env[k] || process.env[k].trim() === "") {
-    throw new Error(`Missing env var: ${k}`);
-  }
-}
-
-// Handles EXACTS utilisés partout
+// ---- Plan unique (même handle que dans le Dashboard) ----
 export const PLAN_HANDLES = {
   monthly: "tls-premium-monthly",
 };
 
-// Config billing (format v11.x)
+// ---- Billing: 0.99 USD / 30 jours, sans essai ----
 const billing = {
   plans: [
     {
@@ -35,7 +28,6 @@ const billing = {
       interval: BillingInterval.Every30Days,
       trialDays: 0,
     },
-   
   ],
 };
 
@@ -44,14 +36,38 @@ export const shopify = shopifyApp({
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
   apiVersion: ApiVersion.January25,
 
-  appUrl: process.env.SHOPIFY_APP_URL,
+  appUrl: process.env.SHOPIFY_APP_URL, // ex: https://triple-luxe-sections-1.onrender.com
   scopes: process.env.SCOPES.split(",").map((s) => s.trim()).filter(Boolean),
   authPathPrefix: "/auth",
 
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
 
-  billing, // <- important
+  billing, // ← important: enregistre le plan côté app
+
+  // (facultatif mais recommandé) webhooks essentiels
+  webhooks: {
+    APP_UNINSTALLED: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/app/uninstalled",
+    },
+    APP_SCOPES_UPDATE: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/app/scopes_update",
+    },
+    CUSTOMERS_DATA_REQUEST: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/customers/data_request",
+    },
+    CUSTOMERS_REDACT: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/customers/redact",
+    },
+    SHOP_REDACT: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/shop/redact",
+    },
+  },
 
   future: {
     unstable_newEmbeddedAuthStrategy: true,
@@ -60,10 +76,12 @@ export const shopify = shopifyApp({
 });
 
 export default shopify;
-export const authenticate = shopify.authenticate;
-export const unauthenticated = shopify.unauthenticated;
-export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders; // <- corrige le build
-export const login = shopify.login;
-export const registerWebhooks = shopify.registerWebhooks;
-export const sessionStorage = shopify.sessionStorage;
+export const {
+  authenticate,
+  unauthenticated,
+  addDocumentResponseHeaders,
+  login,
+  registerWebhooks,
+  sessionStorage,
+} = shopify;
 export const apiVersion = ApiVersion.January25;
