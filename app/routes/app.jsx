@@ -1,25 +1,32 @@
+// app/routes/app.jsx
 import { json } from "@remix-run/node";
-import { Outlet, useLoaderData } from "@remix-run/react";
+import { Outlet } from "@remix-run/react";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import fr from "@shopify/polaris/locales/fr.json";
 import styles from "@shopify/polaris/build/esm/styles.css?url";
+import { APP_HANDLE, authenticate } from "../shopify.server";
 
 export const links = () => [{ rel: "stylesheet", href: styles }];
 
 export const loader = async ({ request }) => {
-  const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
+  // 1) Auth admin (le SDK gère OAuth / session)
+  const { session, billing, redirect } = await authenticate.admin(request);
 
-  // ⛔️ PAS de DEV_SHOP ni de réécriture de ?shop en prod
-  // ✅ Paywall natif Shopify v11 : s’il n’y a pas d’abonnement actif au plan, Shopify ouvre la modale
-  await authenticate.admin(request, {
-    billing: { required: true, plans: [PLAN_HANDLES.monthly] },
-  });
+  // 2) Managed pricing : vérifie si un paiement actif existe
+  const { hasActivePayment } = await billing.check();
 
-  return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
+  if (!hasActivePayment) {
+    // 3) Envoie le marchand vers la page Shopify des plans (gérée par Shopify)
+    const storeHandle = session.shop.replace(".myshopify.com", "");
+    const url = `https://admin.shopify.com/store/${storeHandle}/charges/${APP_HANDLE}/pricing_plans`;
+    return redirect(url); // le helper met les bons headers pour naviguer en top-level
+  }
+
+  // 4) OK → charge l’interface
+  return json({ ok: true });
 };
 
 export default function AppLayout() {
-  useLoaderData(); // (apiKey dispo si tu veux utiliser AppProvider côté client)
   return (
     <PolarisAppProvider i18n={fr}>
       <Outlet />
