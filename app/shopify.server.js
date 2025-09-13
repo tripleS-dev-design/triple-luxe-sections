@@ -23,7 +23,6 @@ for (const k of requiredEnv) {
 // Handles EXACTS utilisés partout
 export const PLAN_HANDLES = {
   monthly: "tls-premium-monthly",
-  annual: "tls-premium-annual",
 };
 
 // Config billing (format v11.x)
@@ -31,18 +30,12 @@ const billing = {
   plans: [
     {
       id: PLAN_HANDLES.monthly,
-      amount: 4.99,
+      amount: 0.99,
       currencyCode: "USD",
       interval: BillingInterval.Every30Days,
-      trialDays: 14,
+      trialDays: 0,
     },
-    {
-      id: PLAN_HANDLES.annual,
-      amount: 39.99,
-      currencyCode: "USD",
-      interval: BillingInterval.Annual,
-      trialDays: 14,
-    },
+   
   ],
 };
 
