@@ -25,10 +25,6 @@ api_version = "2025-01"
 [access_scopes]
 scopes = "read_products,write_products,read_themes,write_themes"
 
-[auth]
-redirect_urls = [
-  "https://triple-luxe-sections-1.onrender.com/auth/callback",
-  "https://triple-luxe-sections-1.onrender.com/auth/shopify/callback",
   [auth]
 redirect_urls = [
   "https://triple-luxe-sections-1.onrender.com/auth/callback",
@@ -37,6 +33,6 @@ redirect_urls = [
 ]
 
 
-]
+
 
 
