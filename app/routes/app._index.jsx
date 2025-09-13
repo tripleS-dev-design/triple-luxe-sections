@@ -36,7 +36,7 @@ const BUTTON_FAB = {
   alignItems: "center",
   justifyContent: "center",
   boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
-  zIndex: 60,                // z-index raisonnable pour ne pas couvrir ton UI
+  zIndex: 60,
   textDecoration: "none",
   backgroundColor: "#000",
 };
@@ -163,26 +163,6 @@ const META = {
     icon: ImageIcon,
     desc: "Large hero video or key visual.",
   },
-  "tls3-marquee-wordmark-pro": {
-    title: "Marquee — Wordmark",
-    icon: AppsIcon,
-    desc: "Scrolling brand/wordmarks.",
-  },
-  "tls3-press-logos-pro": {
-    title: "Press Logos",
-    icon: AppsIcon,
-    desc: "Media / partner logos.",
-  },
-  "tls3-values-grid-pro": {
-    title: "Values (grid)",
-    icon: StarIcon,
-    desc: "3–6 brand value cards.",
-  },
-  "tls3-timeline-pro": {
-    title: "Timeline — Story",
-    icon: AppsIcon,
-    desc: "Key steps / milestones.",
-  },
   "tls3-founders-story-pro": {
     title: "Founders’ Story",
     icon: StarIcon,
@@ -225,15 +205,27 @@ const THEMES = [
     key: "triple-s",
     label: "Triple-S Branding",
     emoji: "✨",
-    desc: "Brand hero video, press logos, values, timeline & story.",
-    header: { handle: "header-informatique", template: "index" }, // generic header
+    desc: "All blocks in one place (branding + tech + fashion).",
+    header: { handle: "header-informatique", template: "index" }, // header par défaut
     content: [
+      // ---- tous les blocs existants ----
+       // Pro (restants)
       { handle: "tls3-hero-brand-video-pro", template: "index" },
-      { handle: "tls3-marquee-wordmark-pro", template: "index" },
-      { handle: "tls3-press-logos-pro", template: "index" },
-      { handle: "tls3-values-grid-pro", template: "index" },
-      { handle: "tls3-timeline-pro", template: "index" },
       { handle: "tls3-founders-story-pro", template: "index" },
+      // Tech
+      { handle: "banner-kenburns", template: "index" },
+      { handle: "carousel-cercle", template: "index" },
+      { handle: "product-grid-glow", template: "index" },
+      { handle: "packs-descriptifs", template: "index" },
+      { handle: "social-icons", template: "index" },
+
+      // Fashion
+      { handle: "t2-hero-runway", template: "index" },
+      { handle: "t2-categories-pills", template: "index" },
+      { handle: "t2-products-grid", template: "index" },
+      { handle: "t2-social-proof", template: "index" },
+
+     
     ],
     footer: { handle: "footer-liens", template: "index" },
   },
@@ -372,9 +364,7 @@ export default function TLSBuilderIndex() {
       <InjectCssOnce />
 
       <BlockStack gap="400">
-        <Banner tone="success" title="Built for Shopify (Polaris)">
-          <p>Icons & UI 100% Polaris. Links open the editor with the pre-selected block.</p>
-        </Banner>
+       
 
         <Card>
           <Box padding="300">
@@ -447,11 +437,7 @@ export default function TLSBuilderIndex() {
       </BlockStack>
 
       {/* ===== Floating buttons wrapper: no overlay on the page ===== */}
-      <div
-        style={{
-          pointerEvents: "none",   // << empêche toute interception des clics de la page
-        }}
-      >
+      <div style={{ pointerEvents: "none" }}>
         {/* YouTube (bottom-right) */}
         <a
           href={YOUTUBE_URL}
@@ -462,7 +448,7 @@ export default function TLSBuilderIndex() {
             ...BUTTON_FAB,
             right: "24px",
             backgroundColor: "#FF0000",
-            pointerEvents: "auto", // << clickable
+            pointerEvents: "auto",
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 576 512" fill="#fff" aria-hidden="true">
@@ -480,7 +466,7 @@ export default function TLSBuilderIndex() {
             ...BUTTON_FAB,
             left: "24px",
             backgroundColor: "#25D366",
-            pointerEvents: "auto", // << clickable
+            pointerEvents: "auto",
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 448 512" fill="#fff" aria-hidden="true">
