@@ -3,7 +3,7 @@ export const loader = async ({ request }) => {
   const { login, authenticate } = await import("../shopify.server");
   const url = new URL(request.url);
 
-  // Si on arrive sur /auth/login, FORCER un top-level redirect même si on est dans l'iframe
+  // Forcer un top-level redirect pour /auth/login
   if (url.pathname.endsWith("/auth/login")) {
     const shop = url.searchParams.get("shop") || "";
     if (shop) {
@@ -16,11 +16,10 @@ export const loader = async ({ request }) => {
         { headers: { "Content-Type": "text/html; charset=utf-8" } }
       );
     }
-    // Pas de ?shop -> fallback helper
-    return login(request);
+    return login(request); // fallback si pas de ?shop
   }
 
-  // Tous les /auth/* restants (callbacks inclus) : laisser la lib gérer
+  // Le reste (callbacks, etc.) est géré par la lib
   return authenticate.admin(request);
 };
 
