@@ -1,9 +1,9 @@
-// DÉCLENCHEUR DE LOGIN OAUTH – AUCUNE UI
-import { authenticate } from "../shopify.server";
-
-export const loader = async ({ request }) => authenticate.login(request);
-export const action = loader;
+// app/routes/auth.login.jsx
+export const loader = async ({ request }) => {
+  const { login } = await import("../shopify.server");
+  return login(request);
+};
 
 export default function AuthLogin() {
-  return null; // rien à rendre
+  return null;
 }
