@@ -8,19 +8,31 @@ import styles from "@shopify/polaris/build/esm/styles.css?url";
 export const links = () => [{ rel: "stylesheet", href: styles }];
 
 export const loader = async ({ request }) => {
-  const { authenticate, PLAN_HANDLES } = await import("../shopify.server");
-  const url = new URL(request.url);
-  const shop = url.searchParams.get("shop") || undefined;
+  const { authenticate } = await import("../shopify.server");
 
-  // Auth + paywall (Managed Pricing). Si pas payé → Shopify affiche la page de plan.
-  const { session } = await authenticate
-    .admin(request, { billing: { required: true, plans: [PLAN_HANDLES.monthly] } })
-    .catch(() => ({ session: null }));
+  // 1) Auth simple (pas de billing ici pour éviter boucles)
+  const { session, billing } = await authenticate
+    .admin(request)
+    .catch(() => ({ session: null, billing: null }));
 
-  // Pas de session -> on lance /auth/login (avec ?shop si dispo)
+  // Pas de session -> on lance le login avec ?shop si dispo
   if (!session) {
-    const qs = shop ? `?shop=${shop}` : "";
-    throw redirect(`/auth/login${qs}`);
+    const url = new URL(request.url);
+    const shop = url.searchParams.get("shop");
+    throw redirect(`/auth/login${shop ? `?shop=${shop}` : ""}`);
+  }
+
+  // 2) Check Managed Pricing (Shopify gère l’affichage de la page de plan)
+  //    Si pas d’abonnement actif => on envoie vers la page de plans Shopify
+  if (billing?.check) {
+    const { hasActivePayment } = await billing.check();
+    if (!hasActivePayment) {
+      const store = session.shop.replace(".myshopify.com", "");
+      const appHandle = "triple-luxe-sections"; // DOIT matcher `handle` dans shopify.app.toml
+      throw redirect(
+        `https://admin.shopify.com/store/${store}/charges/${appHandle}/pricing_plans`
+      );
+    }
   }
 
   return json({
