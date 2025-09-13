@@ -1,9 +1,8 @@
 // app/root.jsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
-import { addDocumentResponseHeaders } from "./shopify.server";
+import { addDocumentResponseHeaders } from "./shopify.server"; // ← chemin correct
 
-// IMPORTANT : corrige l'erreur “Invalid URL” si SHOPIFY_APP_URL est bon
-export const headers = addDocumentResponseHeaders;
+export const headers = (headersArgs) => addDocumentResponseHeaders(headersArgs);
 
 export default function Root() {
   return (
