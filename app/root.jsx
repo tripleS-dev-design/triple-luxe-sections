@@ -1,11 +1,8 @@
-// app/root.jsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
+import { addDocumentResponseHeaders } from "./shopify.server";
 
-// ⚠️ Ne pas importer addDocumentResponseHeaders ici
-export const headers = () => ({
-  "Content-Security-Policy":
-    "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
-});
+// Laisse Shopify ajouter les bons headers (CSP, reauth 410, etc.)
+export const headers = (args) => addDocumentResponseHeaders(args);
 
 export default function Root() {
   return (
@@ -13,13 +10,11 @@ export default function Root() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
+        <Meta /><Links />
       </head>
       <body>
         <Outlet />
-        <ScrollRestoration />
-        <Scripts />
+        <ScrollRestoration /><Scripts />
       </body>
     </html>
   );
