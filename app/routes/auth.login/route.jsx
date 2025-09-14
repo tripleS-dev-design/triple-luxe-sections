@@ -1,3 +1,4 @@
+// app/routes/auth.login/route.jsx
 import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, useActionData, Form } from "@remix-run/react";
@@ -17,7 +18,7 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// Force une redirection top-level (hors iframe)
+// Redirection top-level (hors iframe)
 function topLevelRedirect(url) {
   const html = `<!doctype html><html><head><meta charset="utf-8"></head>
   <body><script>window.top.location.href=${JSON.stringify(url)}</script></body></html>`;
@@ -27,23 +28,14 @@ function topLevelRedirect(url) {
 export const loader = async ({ request }) => {
   const res = await login(request);
   const location = res?.headers?.get?.("Location");
-  const embedded = new URL(request.url).searchParams.get("embedded") === "1";
-
-  if (location) {
-    // En GET, on peut renvoyer un vrai document → le script s’exécute
-    return embedded ? topLevelRedirect(location) : res;
-  }
-
+  if (location) return topLevelRedirect(location);   // <= toujours top-level
   return json({ errors: loginErrorMessage(res) });
 };
 
 export const action = async ({ request }) => {
   const res = await login(request);
   const location = res?.headers?.get?.("Location");
-  if (location) {
-    // En POST, Remix intercepte les <Form> => on force un "document request"
-    return topLevelRedirect(location);
-  }
+  if (location) return topLevelRedirect(location);   // <= toujours top-level
   return json({ errors: loginErrorMessage(res) });
 };
 
@@ -57,7 +49,7 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          {/* ⬇️ très important pour exécuter le script de redirection top-level */}
+          {/* important pour exécuter le script de redirection */}
           <Form method="post" reloadDocument>
             <FormLayout>
               <Text variant="headingMd" as="h2">Log in</Text>
