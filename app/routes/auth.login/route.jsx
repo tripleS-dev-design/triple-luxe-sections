@@ -1,4 +1,5 @@
 // app/routes/auth.login/route.jsx
+import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, useActionData, Form } from "@remix-run/react";
 import {
@@ -17,7 +18,7 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// --- sort de l'iframe et redirige en top-level (obligatoire pour accounts.shopify.com)
+// Force la redirection en top-level (hors iframe) si nécessaire
 function topLevelRedirect(url) {
   const html = `<!doctype html><html><head><meta charset="utf-8"></head>
   <body><script>window.top.location.href=${JSON.stringify(url)}</script></body></html>`;
@@ -25,15 +26,16 @@ function topLevelRedirect(url) {
 }
 
 export const loader = async ({ request }) => {
-  const res = await login(request); // peut renvoyer une redirection vers admin.shopify.com
+  const res = await login(request); // peut renvoyer une 302 vers admin.shopify.com
   const location = res?.headers?.get?.("Location");
   const embedded = new URL(request.url).searchParams.get("embedded") === "1";
 
   if (location) {
+    // en iframe → sortir en top-level ; sinon laisser la redirection normale
     return embedded ? topLevelRedirect(location) : res;
   }
 
-  // Sinon, pas de redirection => on affiche le formulaire avec les erreurs éventuelles
+  // Pas de redirection → renvoyer les erreurs éventuelles + i18n Polaris
   return json({ errors: loginErrorMessage(res), polarisTranslations });
 };
 
@@ -42,7 +44,7 @@ export const action = async ({ request }) => {
   const location = res?.headers?.get?.("Location");
 
   if (location) {
-    // Sur POST, on force toujours la redirection en top-level
+    // Sur POST on force toujours la redirection en top-level
     return topLevelRedirect(location);
   }
 
