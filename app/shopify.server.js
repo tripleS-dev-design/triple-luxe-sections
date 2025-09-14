@@ -4,38 +4,35 @@ import { shopifyApp, ApiVersion, AppDistribution } from "@shopify/shopify-app-re
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-// ─────────────────────────────────────────────────────────────
-// 1) Normalisation PUBLIC_URL/HOST pour éviter "Invalid URL"
-//    (le helper addDocumentResponseHeaders lit process.env.HOST)
-// ─────────────────────────────────────────────────────────────
-let PUBLIC_URL =
-  process.env.SHOPIFY_APP_URL ||
-  process.env.HOST ||
-  "";
+// ──────────────────────────────────────────────
+// 1) Normalisation de l’URL publique
+//    (HOST est utilisé par addDocumentResponseHeaders)
+// ──────────────────────────────────────────────
+let PUBLIC_URL = process.env.SHOPIFY_APP_URL || "";
 
 if (PUBLIC_URL && !PUBLIC_URL.startsWith("http")) {
   PUBLIC_URL = `https://${PUBLIC_URL}`;
 }
 try {
-  PUBLIC_URL = new URL(PUBLIC_URL).origin; // valide et garde l'origin propre
+  PUBLIC_URL = new URL(PUBLIC_URL).origin;
 } catch {
   console.warn(
-    "[shopify.server] PUBLIC_URL invalide. Définis SHOPIFY_APP_URL (ou HOST) avec une URL https valide."
+    "[shopify.server] PUBLIC_URL invalide. Définis SHOPIFY_APP_URL avec une URL https valide."
   );
   PUBLIC_URL = "";
 }
 
-// Force HOST pour le helper des headers si absent/mal formé
+// Injecter un HOST correct dans le process si absent
 if (!process.env.HOST || !process.env.HOST.startsWith("http")) {
-  process.env.HOST = PUBLIC_URL; // évite le crash add-response-headers.ts
+  process.env.HOST = PUBLIC_URL;
 }
 
 console.log("[shopify.server] Using PUBLIC_URL:", PUBLIC_URL);
 console.log("[shopify.server] Effective HOST:", process.env.HOST);
 
-// ─────────────────────────────────────────────────────────────
-// 2) Vérifs ENV minimales (clé/secret/URL/scopes)
-// ─────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────
+// 2) Vérification des variables ENV minimales
+// ──────────────────────────────────────────────
 const requiredEnv = ["SHOPIFY_API_KEY", "SHOPIFY_API_SECRET", "SCOPES"];
 for (const k of requiredEnv) {
   if (!process.env[k] || process.env[k].trim() === "") {
@@ -43,31 +40,20 @@ for (const k of requiredEnv) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// 3) Initialisation Shopify app
-//    - Managed Pricing : pas d'objet "billing" ici
-//    - Si un jour tu reviens à la facturation classique, tu
-//      pourras réintroduire "billing" (plans) sans toucher au reste.
-// ─────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────
+// 3) Initialisation de l’app Shopify
+//    - Pas d’objet billing ici → Managed Pricing
+// ──────────────────────────────────────────────
 export const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
   apiVersion: ApiVersion.January25,
 
-  // IMPORTANT : même si le SDK utilise PUBLIC_URL pour les headers,
-  // on garde appUrl aligné (utile pour divers helpers/callbacks)
   appUrl: PUBLIC_URL,
-
   scopes: process.env.SCOPES.split(",").map((s) => s.trim()).filter(Boolean),
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
-
-  // Pas d'objet "billing" ici → Managed Pricing (plans gérés depuis le Partner)
-  // Si tu repasses en "classic billing", tu pourras ajouter :
-  // billing: {
-  //   "premium-monthly": { amount: 0.99, currencyCode: "USD", interval: BillingInterval.Every30Days },
-  // },
 
   future: {
     unstable_newEmbeddedAuthStrategy: true,
@@ -75,7 +61,9 @@ export const shopify = shopifyApp({
   },
 });
 
-// Exports habituels
+// ──────────────────────────────────────────────
+// 4) Exports habituels
+// ──────────────────────────────────────────────
 export const {
   authenticate,
   unauthenticated,
