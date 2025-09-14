@@ -1,8 +1,10 @@
 // server.js
 import express from "express";
 import { createRequestHandler } from "@remix-run/express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-// 0) Fixer HOST AVANT d'importer le build (utilisé par add-response-headers en interne)
+// 0) Fixer HOST AVANT d'importer le build (Shopify headers)
 (function normalizePublicUrl() {
   let url = process.env.SHOPIFY_APP_URL || process.env.HOST || "";
   if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
@@ -16,13 +18,32 @@ import { createRequestHandler } from "@remix-run/express";
   console.log("[server:init] HOST set to:", process.env.HOST || "(empty)");
 })();
 
-// 1) Import du build APRÈS la normalisation
-const build = await import("./build/server/index.js");
+// 1) Résolution des chemins du build client
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const clientBuildPath = path.resolve(__dirname, "build/client");
 
 const app = express();
 app.set("trust proxy", true);
-app.use(express.static("public"));
 
+// 2) Servir les assets de Remix (doivent matcher /assets/*)
+app.use(
+  "/assets",
+  express.static(path.join(clientBuildPath, "assets"), {
+    immutable: true,
+    maxAge: "1y",
+  })
+);
+
+// 3) (optionnel) Servir le reste du build client (manifest, entry, etc.)
+app.use(express.static(clientBuildPath, { maxAge: "1h" }));
+
+// 4) (optionnel) Dossier public si tu en as un
+app.use(express.static("public", { maxAge: "1h" }));
+
+// 5) Import du build APRÈS la normalisation
+const build = await import("./build/server/index.js");
+
+// 6) Toutes les autres routes → Remix
 app.all(
   "*",
   createRequestHandler({
