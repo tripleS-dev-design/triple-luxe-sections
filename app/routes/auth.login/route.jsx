@@ -1,73 +1,68 @@
 // app/routes/auth.login/route.jsx
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { useState } from "react";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
-  Button,
-  Card,
-  FormLayout,
-  Page,
-  Text,
-  TextField,
+  Button, Card, FormLayout, Page, Text, TextField,
 } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-
 import { login } from "../../shopify.server";
 import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// Décode le param host= (ex: "admin.shopify.com/store/xxxxx")
+// Décode host= (base64: "admin.shopify.com/store/<handle>")
 function shopFromHostParam(hostB64) {
   try {
     if (!hostB64) return null;
-    const decoded = Buffer.from(hostB64, "base64").toString("utf8");
+    const decoded = Buffer.from(hostB64, "base64").toString("utf-8");
     const m = decoded.match(/store\/([^/?]+)/);
     return m ? `${m[1]}.myshopify.com` : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
 
-  // 1) ?shop=...
-  let shop = url.searchParams.get("shop");
+  let shop =
+    url.searchParams.get("shop") ||
+    shopFromHostParam(url.searchParams.get("host")) ||
+    request.headers.get("x-shopify-shop-domain") ||
+    null;
 
-  // 2) ?host=... (embedded)
-  if (!shop) shop = shopFromHostParam(url.searchParams.get("host"));
-
-  // 3) header ajouté par Shopify dans certains cas
-  if (!shop) shop = request.headers.get("x-shopify-shop-domain");
-
-  // 4) fallback ENV (dev)
-  const fallbackShop = process.env.SHOPIFY_DEV_SHOP || "";
-  if (!shop && fallbackShop) {
-    // 👉 Si tu préfères toujours forcer ton dev shop, dé-commente:
-    // shop = fallbackShop;
+  // Fallback dev (optionnel)
+  if (!shop && process.env.SHOPIFY_DEV_SHOP) {
+    shop = process.env.SHOPIFY_DEV_SHOP;
   }
 
-  // Si on a un shop → démarre l’OAuth directement
+  // 👉 Top-level redirect pour casser l’iframe AVANT OAuth
   if (shop) {
-    const oauth = new URL("/auth", url.origin);
-    oauth.searchParams.set("shop", shop);
-    return redirect(oauth.toString());
+    const target = new URL("/auth", url.origin);
+    target.searchParams.set("shop", shop);
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<script>
+  var href = ${JSON.stringify(target.toString())};
+  if (window.top === window.self) {
+    window.location.href = href;
+  } else {
+    window.top.location.href = href; // sort de l’iframe
+  }
+</script>
+<body>Redirecting…</body></html>`;
+    return new Response(html, {
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
   }
 
-  // Sinon on affiche le formulaire de login
+  // Pas de shop → on montre le formulaire
   const errors = loginErrorMessage(await login(request));
-  return json({
-    errors,
-    polarisTranslations,
-    defaultShop: fallbackShop, // pour préremplir le champ
-  });
+  return json({ errors, polarisTranslations, defaultShop: "" });
 };
 
 export const action = async ({ request }) => {
-  // POST normal du formulaire → shopify.login lance l’OAuth
+  // Soumission manuelle du formulaire → shopify.login gère l’OAuth
   const errors = loginErrorMessage(await login(request));
   return json({ errors });
 };
@@ -84,9 +79,7 @@ export default function Auth() {
         <Card>
           <Form method="post">
             <FormLayout>
-              <Text variant="headingMd" as="h2">
-                Log in
-              </Text>
+              <Text variant="headingMd" as="h2">Log in</Text>
               <TextField
                 type="text"
                 name="shop"
