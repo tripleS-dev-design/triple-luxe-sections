@@ -1,8 +1,9 @@
 // app/root.jsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
-// ما تستعملش addDocumentResponseHeaders
+// PAS d'import addDocumentResponseHeaders ici
 export const headers = () => ({
+  // Embedded autorisé dans admin + boutiques
   "Content-Security-Policy":
     "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
 });
