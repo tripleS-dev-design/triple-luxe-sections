@@ -1,9 +1,9 @@
 // app/root.jsx
+import React from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
-// PAS d'import addDocumentResponseHeaders ici
+// On autorise l’embed uniquement par l’admin et les boutiques Shopify
 export const headers = () => ({
-  // Embedded autorisé dans admin + boutiques
   "Content-Security-Policy":
     "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
 });
@@ -14,11 +14,13 @@ export default function Root() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta /><Links />
+        <Meta />
+        <Links />
       </head>
       <body>
         <Outlet />
-        <ScrollRestoration /><Scripts />
+        <ScrollRestoration />
+        <Scripts />
       </body>
     </html>
   );
