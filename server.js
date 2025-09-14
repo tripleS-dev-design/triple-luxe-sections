@@ -4,46 +4,38 @@ import { createRequestHandler } from "@remix-run/express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// 0) Fixer HOST AVANT d'importer le build (Shopify headers)
+// Fixer HOST avant d'importer le build (Shopify headers lit HOST)
 (function normalizePublicUrl() {
   let url = process.env.SHOPIFY_APP_URL || process.env.HOST || "";
   if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
-  try {
-    url = new URL(url).origin;
-  } catch {
-    console.warn("[server:init] SHOPIFY_APP_URL/HOST invalide.");
-    url = "";
-  }
+  try { url = new URL(url).origin; } catch { console.warn("[server:init] SHOPIFY_APP_URL/HOST invalide."); url = ""; }
   process.env.HOST = url;
   console.log("[server:init] HOST set to:", process.env.HOST || "(empty)");
 })();
 
-// 1) Résolution des chemins du build client
+// chemins build client
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const clientBuildPath = path.resolve(__dirname, "build/client");
 
 const app = express();
 app.set("trust proxy", true);
 
-// 2) Servir les assets de Remix (doivent matcher /assets/*)
+// sert /assets/* depuis build/client/assets
 app.use(
   "/assets",
-  express.static(path.join(clientBuildPath, "assets"), {
-    immutable: true,
-    maxAge: "1y",
-  })
+  express.static(path.join(clientBuildPath, "assets"), { immutable: true, maxAge: "1y" })
 );
 
-// 3) (optionnel) Servir le reste du build client (manifest, entry, etc.)
+// sert le reste du build client (manifest, entry, etc.)
 app.use(express.static(clientBuildPath, { maxAge: "1h" }));
 
-// 4) (optionnel) Dossier public si tu en as un
+// (optionnel) dossier public
 app.use(express.static("public", { maxAge: "1h" }));
 
-// 5) Import du build APRÈS la normalisation
+// importer le build serveur APRÈS la normalisation HOST
 const build = await import("./build/server/index.js");
 
-// 6) Toutes les autres routes → Remix
+// reste des routes -> Remix
 app.all(
   "*",
   createRequestHandler({
