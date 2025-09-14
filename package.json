@@ -5,8 +5,10 @@
   "engines": {
     "node": "^18.20 || ^20.10 || >=21.0.0"
   },
+ 
   "scripts": {
     "build": "remix vite:build",
+    "prebuild": "node -e \"try{require('fs').rmSync('build',{recursive:true,force:true})}catch(e){}\"",
     "setup": "prisma generate && prisma migrate deploy",
 
     "prestart": "npm run build",
@@ -25,7 +27,9 @@
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
     "vite": "vite"
-  },
+  
+},
+
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "@remix-run/dev": "^2.16.1",
