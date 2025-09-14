@@ -18,7 +18,7 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// Force la redirection en top-level (hors iframe) si nécessaire
+// Force une redirection top-level (hors iframe)
 function topLevelRedirect(url) {
   const html = `<!doctype html><html><head><meta charset="utf-8"></head>
   <body><script>window.top.location.href=${JSON.stringify(url)}</script></body></html>`;
@@ -26,28 +26,25 @@ function topLevelRedirect(url) {
 }
 
 export const loader = async ({ request }) => {
-  const res = await login(request); // peut renvoyer une 302 vers admin.shopify.com
+  const res = await login(request);
   const location = res?.headers?.get?.("Location");
   const embedded = new URL(request.url).searchParams.get("embedded") === "1";
 
   if (location) {
-    // en iframe → sortir en top-level ; sinon laisser la redirection normale
+    // En GET, on peut renvoyer un vrai document → le script s’exécute
     return embedded ? topLevelRedirect(location) : res;
   }
 
-  // Pas de redirection → renvoyer les erreurs éventuelles + i18n Polaris
-  return json({ errors: loginErrorMessage(res), polarisTranslations });
+  return json({ errors: loginErrorMessage(res) });
 };
 
 export const action = async ({ request }) => {
   const res = await login(request);
   const location = res?.headers?.get?.("Location");
-
   if (location) {
-    // Sur POST on force toujours la redirection en top-level
+    // En POST, Remix intercepte les <Form> => on force un "document request"
     return topLevelRedirect(location);
   }
-
   return json({ errors: loginErrorMessage(res) });
 };
 
@@ -61,7 +58,8 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          <Form method="post">
+          {/* ⬇️ très important pour exécuter le script de redirection top-level */}
+          <Form method="post" reloadDocument>
             <FormLayout>
               <Text variant="headingMd" as="h2">Log in</Text>
               <TextField
