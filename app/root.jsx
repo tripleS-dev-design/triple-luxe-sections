@@ -1,11 +1,9 @@
 // app/root.jsx
-import React from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
-// On autorise l’embed uniquement par l’admin et les boutiques Shopify
 export const headers = () => ({
-  "Content-Security-Policy":
-    "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
+  // Autorise l’embed dans l’admin Shopify et les vitrines
+  "Content-Security-Policy": "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
 });
 
 export default function Root() {
@@ -14,13 +12,11 @@ export default function Root() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
+        <Meta /><Links />
       </head>
       <body>
         <Outlet />
-        <ScrollRestoration />
-        <Scripts />
+        <ScrollRestoration /><Scripts />
       </body>
     </html>
   );
