@@ -1,5 +1,4 @@
-// app/routes/app.jsx
-import React from "react";
+import { json } from "@remix-run/node";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
@@ -13,7 +12,7 @@ export const loader = async ({ request }) => {
   const shop = session.shop; // ex: "selya-store.myshopify.com"
   const shopSub = shop.replace(".myshopify.com", "");
 
-  return Response.json({
+  return json({
     shopSub,
     apiKey: process.env.SHOPIFY_API_KEY || "",
   });
