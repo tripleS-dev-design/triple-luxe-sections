@@ -2,30 +2,37 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# dépendances (inclure devDeps pour avoir la CLI prisma)
-COPY package.json package-lock.json* ./
+# 1) installer toutes les deps (y compris dev) pour pouvoir builder
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# code + prisma
-COPY . .
-# génère le client Prisma et build Remix
+# 2) générer Prisma client pour le build (si ton code importe @prisma/client)
+COPY prisma ./prisma
 RUN npx prisma generate
+
+# 3) copier le code et builder Remix
+COPY . .
 RUN npm run build
 
 # ---------- RUNTIME ----------
 FROM node:20-alpine AS runtime
 WORKDIR /app
-
 ENV NODE_ENV=production
-EXPOSE 10000
 
-# on copie node_modules (contient aussi la CLI prisma), le build, prisma, public, server.js
-COPY --from=build /app/node_modules ./node_modules
+# 4) installer seulement les deps prod
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force && npm remove @shopify/cli || true
+
+# 5) copier les artefacts du build
 COPY --from=build /app/build ./build
-COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/public ./public
 COPY --from=build /app/server.js ./server.js
-COPY --from=build /app/package.json ./package.json
+# (et tes fichiers server requis à l'exécution)
+COPY --from=build /app/app ./app
+COPY --from=build /app/prisma ./prisma
 
-# démarrage: crée/maj le schéma DB puis lance le serveur
-CMD ["npm", "run", "docker-start"]
+# 6) Render expose 10000 par défaut
+EXPOSE 10000
+
+# 7) IMPORTANT : créer la table Prisma en runtime (sqlite éphémère sur Render)
+CMD ["sh","-c","npx prisma migrate deploy && node server.js"]
