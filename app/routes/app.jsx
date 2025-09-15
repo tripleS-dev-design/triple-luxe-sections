@@ -1,6 +1,6 @@
 // app/routes/app.jsx
 import React from "react";
-import { json } from "@remix-run/node";            // ⬅️ ajoute CET import
+import { json } from "@remix-run/node";        // ⬅️ IMPORTANT
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
