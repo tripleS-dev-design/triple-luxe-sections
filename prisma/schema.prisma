@@ -4,26 +4,24 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"              // pour tests. Pour la prod durable, passe à PostgreSQL.
-  url      = env("DATABASE_URL")   // ← IMPORTANT: ne pas hardcoder "file:dev.sqlite"
+  provider = "sqlite"            // pour Render en test
+  url      = env("DATABASE_URL") // NE PAS hardcoder "file:dev.sqlite"
 }
 
 model Session {
-  id          String   @id
-  // champ utilisé par l’adapter: tout le contenu de session (shop, token, etc.)
-  content     Json
+  id        String   @id
+  content   Json
 
-  // champs optionnels (utiles pour debug/tri, non requis par l’adapter)
-  shop        String?
-  state       String?
-  isOnline    Boolean?  @default(false)
-  scope       String?
-  expiresAt   DateTime?
-  accessToken String?
-  userId      BigInt?
+  // facultatifs (debug/tri)
+  shop      String?
+  state     String?
+  isOnline  Boolean?  @default(false)
+  scope     String?
+  expires   DateTime?
+  userId    BigInt?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  @@map("session") // table en minuscule
+  @@map("session") // table réelle = "session"
 }
