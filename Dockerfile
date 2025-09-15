@@ -1,40 +1,30 @@
-# ---------- BASE ----------
-FROM node:20-alpine AS base
+# ---------- BUILD ----------
+FROM node:20-alpine AS build
 WORKDIR /app
-RUN apk add --no-cache openssl
 
-# ---------- DEPENDENCIES (dev + prod) ----------
-FROM base AS deps
-COPY package*.json ./
-# installe TOUTES les deps (dev incluses) pour permettre le build
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# ---------- BUILD ----------
-FROM base AS build
-ENV NODE_ENV=development
-COPY --from=deps /app/node_modules ./node_modules
+# Copie le schéma AVANT generate
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# Build Remix
 COPY . .
-# optionnel: plus de logs si besoin
-# ENV VITE_LOG_LEVEL=info
 RUN npm run build
 
-# ---------- RUNTIME (léger, prod only) ----------
+# ---------- RUNTIME ----------
 FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package*.json ./
-# installe uniquement les deps prod
-RUN npm ci --omit=dev && npm cache clean --force
-# inutile en runtime
-RUN npm remove @shopify/cli || true
+ENV PORT=10000
+EXPOSE 10000
 
-# copie du build et des fichiers utiles
+# Copie le build, le server et TOUT node_modules (inclut le client Prisma généré)
 COPY --from=build /app/build ./build
 COPY --from=build /app/public ./public
 COPY --from=build /app/server.js ./server.js
-
-EXPOSE 10000
-# (facultatif) healthcheck interne au conteneur — Render peut utiliser le sien
-# HEALTHCHECK --interval=30s --timeout=10s CMD wget -qO- http://127.0.0.1:10000/healthz || exit 1
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/node_modules ./node_modules
 
 CMD ["node", "server.js"]
