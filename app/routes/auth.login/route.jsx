@@ -1,15 +1,10 @@
 // app/routes/auth.login/route.jsx
+import React from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, useActionData, Form } from "@remix-run/react";
-import React from "react";
 import {
   AppProvider as PolarisAppProvider,
-  Button,
-  Card,
-  FormLayout,
-  Page,
-  Text,
-  TextField,
+  Button, Card, FormLayout, Page, Text, TextField,
 } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
@@ -18,32 +13,24 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// Force une redirection top-level (hors iframe)
+// Document HTML qui sort de l'iframe
 function topLevelRedirect(url) {
-  const html = `<!doctype html><html><head><meta charSet="utf-8"></head>
-  <body><script>window.top.location.href=${JSON.stringify(url)}</script></body></html>`;
+  const html = `<!doctype html><meta charset="utf-8">
+  <script>window.top.location.href=${JSON.stringify(url)}</script>`;
   return new Response(html, { headers: { "Content-Type": "text/html" } });
 }
 
 export const loader = async ({ request }) => {
-  const res = await login(request); // peut renvoyer une redirection vers admin.shopify.com
-  const location = res?.headers?.get?.("Location");
-  const embedded = new URL(request.url).searchParams.get("embedded") === "1";
-
-  if (location) {
-    // En GET : si on est dans une iframe embedded, on sort en top-level
-    return embedded ? topLevelRedirect(location) : res;
-  }
+  const res = await login(request);
+  const loc = res?.headers?.get?.("Location");
+  if (loc) return topLevelRedirect(loc);             // 🔴 TOUJOURS top-level
   return json({ errors: loginErrorMessage(res) });
 };
 
 export const action = async ({ request }) => {
   const res = await login(request);
-  const location = res?.headers?.get?.("Location");
-  if (location) {
-    // En POST : forcer un document HTML pour exécuter le script de redirection
-    return topLevelRedirect(location);
-  }
+  const loc = res?.headers?.get?.("Location");
+  if (loc) return topLevelRedirect(loc);             // 🔴 TOUJOURS top-level
   return json({ errors: loginErrorMessage(res) });
 };
 
@@ -57,7 +44,7 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          {/* Important pour que le script de redirection soit exécuté côté navigateur */}
+          {/* IMPORTANT: reloadDocument pour exécuter le script top-level */}
           <Form method="post" reloadDocument>
             <FormLayout>
               <Text variant="headingMd" as="h2">Log in</Text>
