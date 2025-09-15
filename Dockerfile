@@ -1,35 +1,32 @@
 # ---------- BUILD ----------
 FROM node:20-alpine AS build
 WORKDIR /app
+RUN apk add --no-cache openssl
 
-# 1) deps (inclut devDeps)
-COPY package*.json ./
+# Installe TOUTES les deps (prod + dev) pour pouvoir builder
+COPY package.json package-lock.json* ./
 RUN npm ci
 
-# 2) code
+# Copie du code puis build
 COPY . .
-
-# 3) build (avec devDeps)
-ENV NODE_ENV=development
+# (facultatif) évite certains toolings qui lisent NODE_ENV
+ENV NODE_ENV=production
 RUN npm run build
 
 # ---------- RUNTIME ----------
 FROM node:20-alpine AS runtime
 WORKDIR /app
-
-# Render utilise PORT=10000
+RUN apk add --no-cache openssl
 ENV NODE_ENV=production
-ENV PORT=10000
 
-# Fichiers nécessaires à l'exécution
+# Installe UNIQUEMENT les deps de prod
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copie les artefacts nécessaires
 COPY --from=build /app/build ./build
 COPY --from=build /app/public ./public
 COPY --from=build /app/server.js ./server.js
-COPY --from=build /app/app ./app
-COPY --from=build /app/package*.json ./
-
-# Installer uniquement les deps de prod
-RUN npm ci --omit=dev
 
 EXPOSE 10000
 CMD ["node", "server.js"]
