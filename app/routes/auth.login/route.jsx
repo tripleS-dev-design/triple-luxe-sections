@@ -13,7 +13,6 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-// Document HTML qui sort de l'iframe
 function topLevelRedirect(url) {
   const html = `<!doctype html><meta charset="utf-8">
   <script>window.top.location.href=${JSON.stringify(url)}</script>`;
@@ -23,14 +22,14 @@ function topLevelRedirect(url) {
 export const loader = async ({ request }) => {
   const res = await login(request);
   const loc = res?.headers?.get?.("Location");
-  if (loc) return topLevelRedirect(loc);             // 🔴 TOUJOURS top-level
+  if (loc) return topLevelRedirect(loc);  // 👈 TOUJOURS hors iframe
   return json({ errors: loginErrorMessage(res) });
 };
 
 export const action = async ({ request }) => {
   const res = await login(request);
   const loc = res?.headers?.get?.("Location");
-  if (loc) return topLevelRedirect(loc);             // 🔴 TOUJOURS top-level
+  if (loc) return topLevelRedirect(loc);  // 👈 idem en POST
   return json({ errors: loginErrorMessage(res) });
 };
 
@@ -44,7 +43,7 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          {/* IMPORTANT: reloadDocument pour exécuter le script top-level */}
+          {/* reloadDocument => exécuter le script de redirection */}
           <Form method="post" reloadDocument>
             <FormLayout>
               <Text variant="headingMd" as="h2">Log in</Text>
