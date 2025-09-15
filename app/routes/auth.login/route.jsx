@@ -4,7 +4,12 @@ import { json } from "@remix-run/node";
 import { useLoaderData, useActionData, Form } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
-  Button, Card, FormLayout, Page, Text, TextField,
+  Button,
+  Card,
+  FormLayout,
+  Page,
+  Text,
+  TextField,
 } from "@shopify/polaris";
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
@@ -13,27 +18,32 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
+// force la redirection en top-level (hors iframe)
 function topLevelRedirect(url) {
-  const html = `<!doctype html><meta charset="utf-8">
-  <script>window.top.location.href=${JSON.stringify(url)}</script>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head>
+  <body><script>window.top.location.href=${JSON.stringify(url)}</script></body></html>`;
   return new Response(html, { headers: { "Content-Type": "text/html" } });
 }
 
 export const loader = async ({ request }) => {
   const res = await login(request);
-  const loc = res?.headers?.get?.("Location");
-  if (loc) return topLevelRedirect(loc);  // 👈 TOUJOURS hors iframe
+  const location = res?.headers?.get?.("Location");
+  const embedded = new URL(request.url).searchParams.get("embedded") === "1";
+
+  if (location) {
+    return embedded ? topLevelRedirect(location) : res;
+  }
   return json({ errors: loginErrorMessage(res) });
 };
 
 export const action = async ({ request }) => {
   const res = await login(request);
-  const loc = res?.headers?.get?.("Location");
-  if (loc) return topLevelRedirect(loc);  // 👈 idem en POST
+  const location = res?.headers?.get?.("Location");
+  if (location) return topLevelRedirect(location);
   return json({ errors: loginErrorMessage(res) });
 };
 
-export default function Auth() {
+export default function AuthLogin() {
   const loaderData = useLoaderData();
   const actionData = useActionData();
   const { errors } = actionData || loaderData || {};
@@ -43,7 +53,7 @@ export default function Auth() {
     <PolarisAppProvider i18n={polarisTranslations}>
       <Page>
         <Card>
-          {/* reloadDocument => exécuter le script de redirection */}
+          {/* reloadDocument pour exécuter le script de redirection */}
           <Form method="post" reloadDocument>
             <FormLayout>
               <Text variant="headingMd" as="h2">Log in</Text>
