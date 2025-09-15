@@ -2,29 +2,30 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# dépendances (inclure devDeps pour avoir la CLI prisma)
+COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Copie le schéma AVANT generate
-COPY prisma ./prisma
-RUN npx prisma generate
-
-# Build Remix
+# code + prisma
 COPY . .
+# génère le client Prisma et build Remix
+RUN npx prisma generate
 RUN npm run build
 
 # ---------- RUNTIME ----------
 FROM node:20-alpine AS runtime
 WORKDIR /app
+
 ENV NODE_ENV=production
-ENV PORT=10000
 EXPOSE 10000
 
-# Copie le build, le server et TOUT node_modules (inclut le client Prisma généré)
+# on copie node_modules (contient aussi la CLI prisma), le build, prisma, public, server.js
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
+COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/public ./public
 COPY --from=build /app/server.js ./server.js
 COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/node_modules ./node_modules
 
-CMD ["node", "server.js"]
+# démarrage: crée/maj le schéma DB puis lance le serveur
+CMD ["npm", "run", "docker-start"]
