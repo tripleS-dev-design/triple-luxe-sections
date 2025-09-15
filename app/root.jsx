@@ -2,7 +2,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
 export const headers = () => ({
-  // Autorise l’embed dans l’admin Shopify et les vitrines
   "Content-Security-Policy": "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
 });
 
