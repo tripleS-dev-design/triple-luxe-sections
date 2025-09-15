@@ -12,14 +12,11 @@ export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop; // ex: "selya-store.myshopify.com"
   const shopSub = shop.replace(".myshopify.com", "");
-  return json({
-    shopSub,
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-  });
+  return json({ shopSub, apiKey: process.env.SHOPIFY_API_KEY || "" });
 };
 
 export default function AppLayout() {
-  useLoaderData(); // s’assure que le loader tourne
+  useLoaderData();
   return (
     <PolarisAppProvider i18n={polarisTranslations}>
       <Outlet />
