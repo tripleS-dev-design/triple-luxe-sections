@@ -1,6 +1,5 @@
-// Related: https://github.com/remix-run/remix/issues/2835#issuecomment-1144102176
-// Replace the HOST env var with SHOPIFY_APP_URL so that it doesn't break the remix server. The CLI will eventually
-// stop passing in HOST, so we can remove this workaround after the next major release.
+// remix.config.js
+// Shopify HOST → SHOPIFY_APP_URL workaround (conseillé par Shopify)
 if (
   process.env.HOST &&
   (!process.env.SHOPIFY_APP_URL ||
@@ -10,11 +9,28 @@ if (
   delete process.env.HOST;
 }
 
+import { flatRoutes } from "@remix-run/fs-routes";
+
 /** @type {import('@remix-run/dev').AppConfig} */
-module.exports = {
+export default {
   ignoredRouteFiles: ["**/.*"],
   appDirectory: "app",
-  serverModuleFormat: "cjs",
-  dev: { port: process.env.HMR_SERVER_PORT || 8002 },
-  future: {},
+
+  // Ton projet est en "type": "module" → on garde le serveur en ESM
+  serverModuleFormat: "esm",
+
+  // Vite HMR en dev (optionnel)
+  dev: { port: Number(process.env.HMR_SERVER_PORT) || 8002 },
+
+  // ✅ Déclaration des routes via fs-routes (pas de fichier app/routes.ts/js requis)
+  routes(defineRoutes) {
+    return flatRoutes("routes", defineRoutes); // ← mappe app/routes/*
+  },
+
+  future: {
+    v3_fetcherPersist: true,
+    v3_relativeSplatPath: true,
+    v3_throwAbortReason: true,
+    v3_singleFetch: true,
+  },
 };
