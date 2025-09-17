@@ -4,10 +4,14 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider = "postgresql"          // ← change sqlite → postgresql
+  url      = env("DATABASE_URL")   // ← lue depuis les variables d’env
 }
 
+/**
+ * Table sessions utilisée par PrismaSessionStorage
+ * OK pour Postgres (BigInt supporté).
+ */
 model session {
   id            String   @id
   shop          String
@@ -24,4 +28,7 @@ model session {
   locale        String?
   collaborator  Boolean? @default(false)
   emailVerified Boolean? @default(false)
+
+  @@index([shop])
+  @@index([expires])
 }
