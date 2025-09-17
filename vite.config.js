@@ -25,9 +25,9 @@ export default defineConfig({
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
         v3_throwAbortReason: true,
-        v3_lazyRouteDiscovery: true,
+        v3_lazyRouteDiscovery: true, // découvre automatiquement app/routes/*
         v3_singleFetch: false,
-        v3_routeConfig: true,
+        // ❌ NE PAS activer v3_routeConfig si tu n'as pas app/routes.ts
       },
     }),
     tsconfigPaths(),
