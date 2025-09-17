@@ -28,8 +28,9 @@ scopes = "read_products,write_products,read_themes,write_themes"
   [auth]
 redirect_urls = [
   "https://triple-luxe-sections-1.onrender.com/auth/callback",
-  "https://triple-luxe-sections-1.onrender.com/auth/shopify/callback"
+  "https://triple-luxe-sections-1.onrender.com/auth/login"
 ]
+
 
 
 
