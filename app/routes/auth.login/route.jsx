@@ -1,42 +1,64 @@
-// app/routes/auth.login/route.jsx
-import { redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { login } from "../../shopify.server";
 
-export async function loader({ request }) {
+/** Essaie d’obtenir le shop depuis l’URL (shop/host) ou depuis un POST form-data */
+async function getShopFromRequest(request) {
   const url = new URL(request.url);
   let shop = url.searchParams.get("shop");
 
-  // Si on vient de l’Admin, on récupère le store via host (base64)
   if (!shop) {
     const host = url.searchParams.get("host");
     if (host) {
       try {
         const decoded = Buffer.from(host, "base64").toString("utf-8"); // ex: admin.shopify.com/store/selyadev
         const parts = decoded.split("/");
-        const store = parts[parts.length - 1]; // "selyadev"
+        const store = parts[parts.length - 1];          // "selyadev"
         if (store) shop = `${store}.myshopify.com`;
       } catch {}
     }
   }
 
-  if (shop) {
-    const { login } = await import("../../shopify.server");
-    // Envoie directement vers l’écran d’autorisation Shopify
-    return login.redirectToShopifyOrContinue({ request, shop });
+  // si c’est un POST depuis le petit formulaire
+  if (!shop && request.method === "POST") {
+    const form = await request.formData();
+    const v = (form.get("shop") || "").toString().trim();
+    if (v && !v.includes(".")) {
+      shop = `${v}.myshopify.com`;
+    } else if (v) {
+      shop = v;
+    }
   }
 
-  // Si on n’a pas pu déduire la boutique, on montre le formulaire simple
-  return null;
+  return shop;
+}
+
+/** GET /auth/login */
+export async function loader({ request }) {
+  const shop = await getShopFromRequest(request);
+  if (shop) {
+    // Redirection top-level gérée par le SDK
+    return login.redirectToShopifyOrContinue({ request, shop });
+  }
+  // Affiche simplement la page avec le petit formulaire
+  return json({}, { status: 200 });
+}
+
+/** POST /auth/login (évite 405) */
+export async function action({ request }) {
+  const shop = await getShopFromRequest(request);
+  if (!shop) return json({ error: "Missing shop" }, { status: 400 });
+  return login.redirectToShopifyOrContinue({ request, shop });
 }
 
 export default function Login() {
-  // Fallback minuscule (quasi jamais affiché après le code ci-dessus)
+  // Fallback minimal (s’affiche rarement car on détecte shop via host)
   return (
     <div style={{ padding: 24 }}>
       <h3>Log in</h3>
-      <form method="post" action="/auth/login">
+      <form method="post">
         <input
           name="shop"
-          placeholder="example.myshopify.com"
+          placeholder="example.myshopify.com ou mon-boutique"
           style={{ padding: 8 }}
         />
         <button type="submit" style={{ marginLeft: 8 }}>Log in</button>
