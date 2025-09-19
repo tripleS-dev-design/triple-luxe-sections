@@ -1,6 +1,4 @@
-// app/routes/webhooks.app.uninstalled.jsx
-import { json } from "@remix-run/node";
-import { shopify } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
 export function loader() {
@@ -9,15 +7,17 @@ export function loader() {
 
 export async function action({ request }) {
   try {
-    const { topic, shop } = await shopify.webhooks.process(request);
+    // Vérifie la signature HMAC automatiquement
+    const { shop, topic, session } = await authenticate.webhook(request);
 
-    // Idempotent: supprime les sessions connues pour la boutique
+    console.log(`[WEBHOOK] ${topic} for ${shop}`);
+
+    // L’app est désinstallée → supprime les sessions connues de ce shop
     await db.session.deleteMany({ where: { shop } });
 
-    console.log("[WEBHOOK]", topic, "| shop:", shop, "-> sessions supprimées");
-    return json({ ok: true }, { status: 200 });
+    return new Response("OK", { status: 200 });
   } catch (err) {
-    console.error("[WEBHOOK] uninstalled invalid HMAC:", err?.message);
+    console.error("[WEBHOOK] uninstalled HMAC failed:", err?.message || err);
     return new Response("Unauthorized", { status: 401 });
   }
 }
