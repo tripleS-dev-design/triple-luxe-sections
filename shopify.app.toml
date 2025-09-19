@@ -2,7 +2,7 @@
 
 client_id = "bfb33fe92c4274f1ba39275effdb6c25"
 name = "Triple-Luxe-Sections"
-application_url = "https://lonely-weed-sep-publisher.trycloudflare.com"
+application_url = "https://triple-luxe-sections-1.onrender.com/app"
 embedded = true
 handle = "triple-luxe-sections"
 
@@ -13,19 +13,24 @@ automatically_update_urls_on_dev = true
 api_version = "2025-07"
 
   [[webhooks.subscriptions]]
-  topics = [ "app/scopes_update" ]
-  uri = "https://inter-forgot-consolidated-occupied.trycloudflare.com/webhooks/app/scopes_update"
-
-  [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
   uri = "https://inter-forgot-consolidated-occupied.trycloudflare.com/webhooks/app/uninstalled"
 
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "https://inter-forgot-consolidated-occupied.trycloudflare.com/webhooks/app/scopes_update"
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_products,write_products,read_themes,write_themes"
+optional_scopes = [ ]
+use_legacy_install_flow = false
 
 [auth]
-redirect_urls = ["https://lonely-weed-sep-publisher.trycloudflare.com/auth/callback", "https://lonely-weed-sep-publisher.trycloudflare.com/auth/shopify/callback", "https://lonely-weed-sep-publisher.trycloudflare.com/api/auth/callback"]
+redirect_urls = [
+  "https://triple-luxe-sections-1.onrender.com/auth/callback",
+  "https://triple-luxe-sections-1.onrender.com/auth/login"
+]
 
 [pos]
 embedded = false
