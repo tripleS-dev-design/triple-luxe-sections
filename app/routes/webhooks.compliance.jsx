@@ -8,14 +8,15 @@ export function loader() {
 
 export async function action({ request }) {
   try {
-    // Vérifie et parse le webhook (HMAC inclus).
-    // Si HMAC invalide: ça throw -> on renvoie 401.
+    // Valide la signature HMAC + parse le webhook
     const { topic, shop, payload } = await shopify.webhooks.process(request);
-    console.log("[COMPLIANCE]", topic, shop);
-    // TODO: effectuer la suppression/retour GDPR si tu stockes des données.
-    return json({ ok: true });
+
+    console.log("[WEBHOOK][GDPR]", topic, "| shop:", shop);
+    // TODO: applique tes suppressions/export si nécessaire
+
+    return json({ ok: true }, { status: 200 });
   } catch (err) {
-    console.error("Invalid compliance webhook:", err);
-    return new Response("Invalid webhook", { status: 401 });
+    console.error("[WEBHOOK][GDPR] invalid HMAC:", err?.message);
+    return new Response("Unauthorized", { status: 401 });
   }
 }
