@@ -2,7 +2,6 @@
 
 client_id = "bfb33fe92c4274f1ba39275effdb6c25"
 name = "Triple-Luxe-Sections"
-# 👉 mets le domaine racine (PAS /app ici)
 application_url = "https://triple-luxe-sections-1.onrender.com"
 embedded = true
 handle = "triple-luxe-sections"
@@ -13,20 +12,20 @@ automatically_update_urls_on_dev = true
 [webhooks]
 api_version = "2025-07"
 
-# --- App webhooks ---
-[[webhooks.subscriptions]]
-topics = ["app/uninstalled"]
-uri = "https://triple-luxe-sections-1.onrender.com/webhooks/app/uninstalled"
+  # --- App webhooks ---
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "https://triple-luxe-sections-1.onrender.com/webhooks/app/uninstalled"
 
-[[webhooks.subscriptions]]
-topics = ["app/scopes_update"]
-uri = "https://triple-luxe-sections-1.onrender.com/webhooks/app/scopes_update"
+  [[webhooks.subscriptions]]
+  topics = ["app/scopes_update"]
+  uri = "https://triple-luxe-sections-1.onrender.com/webhooks/app/scopes_update"
 
-# --- GDPR webhooks (obligatoires) ---
-# Un seul endpoint pour les trois topics de conformité
-[[webhooks.subscriptions]]
-compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
-uri = "https://triple-luxe-sections-1.onrender.com/webhooks/compliance"
+  # --- GDPR webhooks (obligatoires) ---
+  # Un seul endpoint pour les 3 topics
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+  uri = "https://triple-luxe-sections-1.onrender.com/webhooks/compliance"
 
 [access_scopes]
 scopes = "read_products,write_products,read_themes,write_themes"
