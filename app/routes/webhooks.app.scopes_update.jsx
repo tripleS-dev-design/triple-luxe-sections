@@ -1,6 +1,4 @@
-// app/routes/webhooks.app.scopes_update.jsx
-import { json } from "@remix-run/node";
-import { shopify } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
 export function loader() {
@@ -9,19 +7,21 @@ export function loader() {
 
 export async function action({ request }) {
   try {
-    const { topic, shop, payload } = await shopify.webhooks.process(request);
+    const { shop, topic, payload, session } = await authenticate.webhook(request);
+    console.log(`[WEBHOOK] ${topic} for ${shop}`);
 
-    // Si tu stockes la portée dans la session DB, mets-la à jour.
-    // Ici on l’enregistre en texte pour l’exemple.
-    await db.session.updateMany({
-      where: { shop },
-      data: { scope: String(payload?.current ?? "") },
-    });
+    // Exemple: persister les scopes actuels si tu veux
+    const current = payload?.current?.toString?.() ?? null;
+    if (session && current) {
+      await db.session.update({
+        where: { id: session.id },
+        data: { scope: current },
+      });
+    }
 
-    console.log("[WEBHOOK]", topic, "| shop:", shop, "| scope:", payload?.current);
-    return json({ ok: true }, { status: 200 });
+    return new Response("OK", { status: 200 });
   } catch (err) {
-    console.error("[WEBHOOK] scopes_update invalid HMAC:", err?.message);
+    console.error("[WEBHOOK] scopes_update HMAC failed:", err?.message || err);
     return new Response("Unauthorized", { status: 401 });
   }
 }
