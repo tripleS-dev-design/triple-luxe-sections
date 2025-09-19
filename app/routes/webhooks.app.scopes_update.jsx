@@ -1,17 +1,28 @@
-// webhooks.app.scopes_update.jsx
-import { authenticate } from "../shopify.server";
+import { json } from "@remix-run/node";
+import { shopify } from "../shopify.server";
 import db from "../db.server";
 
-export async function action({ request }) {
-  const { payload, session, topic, shop } = await authenticate.webhook(request);
-  console.log(`Received ${topic} webhook for ${shop}`);
+export function loader() {
+  return new Response("Method Not Allowed", { status: 405 });
+}
 
-  const current = payload?.current;
-  if (session && current) {
-    await db.session.update({
-      where: { id: session.id },
-      data: { scope: current.toString() },
-    });
+export async function action({ request }) {
+  try {
+    // ✅ Vérifie la signature HMAC
+    const { topic, shop, payload } = await shopify.webhooks.process(request);
+    console.log(`[WEBHOOK] ${topic} from ${shop}`);
+
+    // Si tu stockes le scope offline en DB, mets-le à jour ici (idempotent)
+    if (payload?.current) {
+      await db.session.updateMany({
+        where: { shop },
+        data: { scope: String(payload.current) },
+      });
+    }
+
+    return new Response(null, { status: 200 });
+  } catch (err) {
+    console.error("Invalid webhook (app/scopes_update):", err);
+    return new Response("Invalid webhook", { status: 401 });
   }
-  return new Response(); // <= 200
 }
