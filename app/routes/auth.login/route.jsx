@@ -1,53 +1,46 @@
 // app/routes/auth.login/route.jsx
 import { redirect } from "@remix-run/node";
-import { Form, useSearchParams } from "@remix-run/react";
 
-export const loader = async ({ request }) => {
+export async function loader({ request }) {
   const url = new URL(request.url);
+  let shop = url.searchParams.get("shop");
 
-  // si ?shop=... est déjà présent, on laisse la page s'afficher (ou l'install continue)
-  const shop = url.searchParams.get("shop");
-  if (shop) return null;
-
-  // auto-détection depuis ?host=... fourni par l’Admin Shopify
-  const host = url.searchParams.get("host");
-  if (host) {
-    try {
-      const decoded = Buffer.from(host, "base64").toString("utf8"); // ex: admin.shopify.com/store/<handle>
-      const handle = decoded.split("/").pop();
-      if (handle && !handle.includes("admin.shopify.com")) {
-        return redirect(`/auth/login?shop=${handle}.myshopify.com`);
-      }
-    } catch {
-      // on ignore et on affiche le formulaire
+  // Si on vient de l’Admin, on récupère le store via host (base64)
+  if (!shop) {
+    const host = url.searchParams.get("host");
+    if (host) {
+      try {
+        const decoded = Buffer.from(host, "base64").toString("utf-8"); // ex: admin.shopify.com/store/selyadev
+        const parts = decoded.split("/");
+        const store = parts[parts.length - 1]; // "selyadev"
+        if (store) shop = `${store}.myshopify.com`;
+      } catch {}
     }
   }
 
+  if (shop) {
+    const { login } = await import("../../shopify.server");
+    // Envoie directement vers l’écran d’autorisation Shopify
+    return login.redirectToShopifyOrContinue({ request, shop });
+  }
+
+  // Si on n’a pas pu déduire la boutique, on montre le formulaire simple
   return null;
-};
+}
 
 export default function Login() {
-  const [params] = useSearchParams();
-  const preset = params.get("shop") ?? "";
-
+  // Fallback minuscule (quasi jamais affiché après le code ci-dessus)
   return (
-    <div style={{ maxWidth: 520, margin: "48px auto", fontFamily: "system-ui" }}>
-      <h2 style={{ marginBottom: 16 }}>Log in</h2>
-      <Form method="GET" action="/auth/login">
-        <label htmlFor="shop" style={{ display: "block", marginBottom: 8 }}>
-          Shop domain
-        </label>
+    <div style={{ padding: 24 }}>
+      <h3>Log in</h3>
+      <form method="post" action="/auth/login">
         <input
-          id="shop"
           name="shop"
           placeholder="example.myshopify.com"
-          defaultValue={preset}
-          style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+          style={{ padding: 8 }}
         />
-        <button type="submit" style={{ marginTop: 12, padding: "10px 16px", borderRadius: 8 }}>
-          Log in
-        </button>
-      </Form>
+        <button type="submit" style={{ marginLeft: 8 }}>Log in</button>
+      </form>
     </div>
   );
 }
