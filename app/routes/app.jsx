@@ -1,25 +1,30 @@
 // app/routes/app.jsx
 import { json, redirect } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
-import { ensureSubscription } from "../utils/billing.server";
+
+function passthroughFrom(request) {
+  const url = new URL(request.url);
+  const p = new URLSearchParams();
+  const shop = url.searchParams.get("shop");
+  const host = url.searchParams.get("host");
+  const embedded = url.searchParams.get("embedded");
+  const locale = url.searchParams.get("locale");
+  if (shop) p.set("shop", shop);
+  if (host) p.set("host", host);
+  if (embedded) p.set("embedded", embedded);
+  if (locale) p.set("locale", locale);
+  return { shop, passthrough: p };
+}
 
 export async function loader({ request }) {
-  // Si pas de session valide => le SDK déclenche la redirection vers /auth/login
-  const { admin, session } = await authenticate.admin(request);
-
-  // Abonnement requis (0.99 USD / 30 jours)
-  const confirmationUrl = await ensureSubscription({
-    admin,
-    returnUrl: `${process.env.SHOPIFY_APP_URL}/app.billing.confirm`,
-    test: process.env.SHOPIFY_BILLING_TEST === "true",
-    price: "0.99",
-    currency: "USD",
-  });
-
-  if (confirmationUrl) return redirect(confirmationUrl);
-  return json({ shop: session.shop });
+  const { passthrough } = passthroughFrom(request);
+  try {
+    const { admin, session } = await authenticate.admin(request);
+    return json({ shop: session.shop, scope: session.scope });
+  } catch {
+    const qs = passthrough.toString();
+    return redirect(`/auth/login${qs ? `?${qs}` : ""}`);
+  }
 }
 
-export default function App() {
-  return null; // ton UI embarquée (ou mets ton composant React ici)
-}
+export default function AppRoute() { return null; }
