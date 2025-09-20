@@ -1,35 +1,22 @@
 // app/routes/auth.login/route.jsx
-import { json, redirect } from "@remix-run/node";
-import { login } from "../../shopify.server"; // <- ajuste à ../shopify.server si besoin
+import { json } from "@remix-run/node";
+import { login } from "../../shopify.server";
 
-/** GET /auth/login */
+/**
+ * GET /auth/login?shop=xxxx.myshopify.com&host=...
+ * Posera le cookie top-level et redirigera automatiquement vers /auth?...
+ */
 export async function loader({ request }) {
-  const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
-  // On a bien shop → on laisse le SDK faire le top-level login + redirection vers /auth
-  if (shop) {
-    return await login(request);
-  }
-  // Pas de "shop" => afficher le petit formulaire
-  return json({}, { status: 200 });
+  return await login(request);
 }
 
-/** POST /auth/login (soumission du formulaire) */
+/**
+ * POST /auth/login
+ * Le formulaire soumet un champ "shop" (avec ou sans .myshopify.com)
+ * On délègue au loader (ci-dessus) via une redirection 302 implicite faite par login(request)
+ */
 export async function action({ request }) {
-  const url = new URL(request.url);
-  const host = url.searchParams.get("host") || "";
-
-  const fd = await request.formData();
-  let shop = (fd.get("shop") || "").toString().trim();
-  if (!shop) return json({ error: "Missing shop" }, { status: 400 });
-  if (!shop.includes(".")) shop = `${shop}.myshopify.com`;
-
-  const qs = new URLSearchParams();
-  qs.set("shop", shop);
-  if (host) qs.set("host", host); // <- on préserve le host pour l’embed
-
-  // Reviens sur le LOADER de /auth/login, qui appellera login(request)
-  return redirect(`/auth/login?${qs.toString()}`);
+  return await login(request);
 }
 
 export default function Login() {
@@ -40,7 +27,7 @@ export default function Login() {
         <input
           name="shop"
           placeholder="example.myshopify.com ou mon-boutique"
-          style={{ padding: 8 }}
+          style={{ padding: 8, width: 320 }}
         />
         <button type="submit" style={{ marginLeft: 8 }}>Log in</button>
       </form>
