@@ -1,36 +1,15 @@
-// app/routes/webhooks.compliance.jsx
-import { authenticate } from "../shopify.server";
 import { json } from "@remix-run/node";
-
-export function loader() {
-  return new Response("Method Not Allowed", { status: 405 });
-}
+import { shopify } from "../shopify.server";
 
 export async function action({ request }) {
   try {
-    // Vérifie HMAC & parse le webhook (topic, shop, payload, session si présent)
-    const { topic, shop, payload } = await authenticate.webhook(request);
-
-    // On n’accepte que les 3 topics GDPR obligatoires
-    if (
-      topic !== "customers/data_request" &&
-      topic !== "customers/redact" &&
-      topic !== "shop/redact"
-    ) {
-      // Endpoint partagé : on ignore proprement le reste
-      return new Response("Ignored", { status: 200 });
-    }
-
-    // === À faire selon ton stockage ===
-    // if (topic === "customers/data_request") { ... }
-    // if (topic === "customers/redact") { ... }
-    // if (topic === "shop/redact") { ... }
-
-    console.log(`[GDPR OK] ${topic} for ${shop}`);
-    return json({ ok: true });
+    const { topic, shop, payload } = await shopify.authenticate.webhook(request);
+    console.log("[WEBHOOK][GDPR]", topic, "for", shop);
+    // TODO: exécuter ta logique GDPR ici selon le topic
+    return json({ ok: true }, { status: 200 });
   } catch (err) {
-    // HMAC invalide -> 401 attendu par Shopify
-    console.error("[GDPR] invalid HMAC:", err?.message || err);
-    return new Response("Unauthorized", { status: 401 });
+    console.error("[WEBHOOK][GDPR] invalid HMAC:", err?.message || err);
+    return json({ error: "invalid hmac" }, { status: 401 });
   }
 }
+export const loader = () => new Response("Method Not Allowed", { status: 405 });
