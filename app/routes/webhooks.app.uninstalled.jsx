@@ -1,6 +1,6 @@
 // app/routes/webhooks.app.uninstalled.jsx
 import { json } from "@remix-run/node";
-import { shopify, sessionStorage } from "../../shopify.server";
+import { shopify, sessionStorage } from "../shopify.server";
 
 /**
  * Reçoit le webhook APP_UNINSTALLED.
