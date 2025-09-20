@@ -1,25 +1,17 @@
 // app/utils/billing.server.js
-/**
- * Utilitaire pour vérifier/créer un abonnement App Recurring
- * using Admin GraphQL API.
- */
 export async function hasActiveSubscription(admin) {
-  const resp = await admin.graphql(`
-    query AppActiveSubs {
+  const r = await admin.graphql(`
+    query {
       currentAppInstallation {
         activeSubscriptions {
-          id
-          status
+          id status
           lineItems {
             plan {
               pricingDetails {
                 __typename
                 ... on AppRecurringPricing {
                   interval
-                  price {
-                    amount
-                    currencyCode
-                  }
+                  price { amount currencyCode }
                 }
               }
             }
@@ -28,72 +20,45 @@ export async function hasActiveSubscription(admin) {
       }
     }
   `);
-
-  const data = await resp.json();
-  const subs = data?.data?.currentAppInstallation?.activeSubscriptions || [];
-  const active = subs.find((s) => s.status === "ACTIVE");
-  return active || null;
+  const j = await r.json();
+  const subs = j?.data?.currentAppInstallation?.activeSubscriptions || [];
+  return subs.find(s => s.status === "ACTIVE") || null;
 }
 
 /**
- * S'assure qu'il existe un abonnement actif ; sinon, renvoie une confirmationUrl
- * pour que le marchand accepte le plan (redirection nécessaire).
+ * Crée l'abonnement si absent et renvoie la confirmationUrl.
+ * Retourne null si le shop est déjà abonné.
  */
-export async function ensureSubscription({
-  admin,
-  returnUrl,
-  test = false,
-  price = "0.99",
-  currency = "USD",
-}) {
-  const alreadyActive = await hasActiveSubscription(admin);
-  if (alreadyActive) return null;
+export async function ensureSubscription({ admin, returnUrl, test=false, price="0.99", currency="USD" }) {
+  const active = await hasActiveSubscription(admin);
+  if (active) return null;
 
-  // Si aucun abonnement actif → créer l'abonnement
-  const mutation = `
-    mutation CreateSub(
-      $name: String!
-      $returnUrl: URL!
-      $test: Boolean
-      $lineItems: [AppSubscriptionLineItemInput!]!
-    ) {
-      appSubscriptionCreate(
-        name: $name
-        returnUrl: $returnUrl
-        test: $test
-        lineItems: $lineItems
-      ) {
+  const r = await admin.graphql(`
+    mutation CreateSub($name:String!,$returnUrl:URL!,$test:Boolean,$lineItems:[AppSubscriptionLineItemInput!]!) {
+      appSubscriptionCreate(name:$name, returnUrl:$returnUrl, test:$test, lineItems:$lineItems) {
         userErrors { field message }
         confirmationUrl
-        appSubscription { id }
       }
-    }
-  `;
-
-  const variables = {
-    name: "Premium plan - Monthly $0.99",
-    returnUrl,
-    test,
-    lineItems: [
-      {
-        plan: {
-          appRecurringPricingDetails: {
-            price: { amount: parseFloat(price), currencyCode: currency },
-            interval: "EVERY_30_DAYS", // aucun essai
-          },
-        },
+    }`,
+    {
+      variables: {
+        name: "Premium plan - Monthly $0.99",
+        returnUrl,
+        test,
+        lineItems: [{
+          plan: {
+            appRecurringPricingDetails: {
+              interval: "EVERY_30_DAYS",
+              price: { amount: +price, currencyCode: currency }
+            }
+          }
+        }],
       },
-    ],
-  };
+    }
+  );
 
-  const resp = await admin.graphql(mutation, { variables });
-  const json = await resp.json();
-  const errs = json?.data?.appSubscriptionCreate?.userErrors || [];
-  if (errs.length) {
-    throw new Error(
-      `appSubscriptionCreate errors: ${errs.map((e) => e.message).join(", ")}`
-    );
-  }
-  const confirmationUrl = json?.data?.appSubscriptionCreate?.confirmationUrl || null;
-  return confirmationUrl; // si non null → redirect(confirmationUrl)
+  const j = await r.json();
+  const errs = j?.data?.appSubscriptionCreate?.userErrors || [];
+  if (errs.length) throw new Error(errs.map(e => e.message).join(", "));
+  return j?.data?.appSubscriptionCreate?.confirmationUrl || null;
 }
