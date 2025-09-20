@@ -5,13 +5,7 @@ import { hasActiveSubscription } from "../utils/billing.server";
 
 export async function loader({ request }) {
   const { admin } = await authenticate.admin(request);
-  try {
-    // on tente juste une lecture pour "réveiller" la session côté API
-    await hasActiveSubscription(admin);
-  } catch (_) {}
+  try { await hasActiveSubscription(admin); } catch {}
   return redirect("/app");
 }
-
-export default function BillingConfirm() {
-  return null;
-}
+export default function Confirm() { return null; }
