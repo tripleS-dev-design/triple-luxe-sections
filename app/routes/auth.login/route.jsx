@@ -1,51 +1,51 @@
 import { json, redirect } from "@remix-run/node";
 
-/** Récupère le shop depuis l’URL (shop/host) ou depuis un POST form-data */
-async function getShopFromRequest(request) {
+/** Récupère shop + host depuis l’URL ou le formulaire */
+async function getParams(request) {
   const url = new URL(request.url);
-  let shop = url.searchParams.get("shop");
+  let shop = url.searchParams.get("shop") || "";
+  const host = url.searchParams.get("host") || ""; // on le garde tel quel
 
-  // Essayer de décoder host= (admin.shopify.com/store/xxx)
-  if (!shop) {
-    const host = url.searchParams.get("host");
-    if (host) {
-      try {
-        const decoded = Buffer.from(host, "base64").toString("utf-8");
-        const parts = decoded.split("/");
-        const store = parts[parts.length - 1]; // "selyadev"
-        if (store) shop = `${store}.myshopify.com`;
-      } catch {}
-    }
+  // Si on n'a pas shop, tenter depuis le host décodé (admin.shopify.com/store/<store>)
+  if (!shop && host) {
+    try {
+      const decoded = Buffer.from(host, "base64").toString("utf-8");
+      const parts = decoded.split("/");
+      const store = parts[parts.length - 1];
+      if (store) shop = `${store}.myshopify.com`;
+    } catch {}
   }
 
-  // Si formulaire POST du petit écran "Log in"
+  // Si formulaire POST
   if (!shop && request.method === "POST") {
-    const form = await request.formData();
-    const raw = (form.get("shop") || "").toString().trim();
-    if (raw) {
-      shop = raw.includes(".") ? raw : `${raw}.myshopify.com`;
-    }
+    const fd = await request.formData();
+    const raw = (fd.get("shop") || "").toString().trim();
+    if (raw) shop = raw.includes(".") ? raw : `${raw}.myshopify.com`;
   }
 
-  return shop;
+  // Conserver aussi les autres query params (ex: locale, id_token…)
+  const passthrough = new URLSearchParams(url.search);
+  // on va remplacer/ajouter proprement shop et host
+  if (shop) passthrough.set("shop", shop);
+  if (host) passthrough.set("host", host);
+
+  return { shop, host, passthrough };
 }
 
 /** GET /auth/login */
 export async function loader({ request }) {
-  const shop = await getShopFromRequest(request);
+  const { shop, passthrough } = await getParams(request);
   if (shop) {
-    // On passe la main au flux OAuth géré par ta route /auth.$.jsx
-    return redirect(`/auth?shop=${encodeURIComponent(shop)}`);
+    return redirect(`/auth?${passthrough.toString()}`);
   }
-  // Affiche le petit formulaire si on n'a pas pu déduire le shop
   return json({}, { status: 200 });
 }
 
-/** POST /auth/login – gère le formulaire (évite 405) */
+/** POST /auth/login (formulaire) */
 export async function action({ request }) {
-  const shop = await getShopFromRequest(request);
+  const { shop, passthrough } = await getParams(request);
   if (!shop) return json({ error: "Missing shop" }, { status: 400 });
-  return redirect(`/auth?shop=${encodeURIComponent(shop)}`);
+  return redirect(`/auth?${passthrough.toString()}`);
 }
 
 export default function Login() {
