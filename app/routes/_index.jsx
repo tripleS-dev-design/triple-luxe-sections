@@ -1,4 +1,9 @@
-// app/routes/_index.jsx
 import { redirect } from "@remix-run/node";
-export async function loader() { return redirect("/app"); }
-export default function Index() { return null; }
+
+export const loader = async ({ request }) => {
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop") || process.env.SHOPIFY_DEV_STORE || "selyadev.myshopify.com";
+  return redirect(`/app?shop=${shop}`);
+};
+
+export default function Index(){ return null; }
