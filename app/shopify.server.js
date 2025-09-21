@@ -12,16 +12,14 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-// Sanity ENV
+// vérifs ENV...
 for (const k of ["SHOPIFY_API_KEY", "SHOPIFY_API_SECRET", "SHOPIFY_APP_URL", "SCOPES"]) {
   if (!process.env[k] || !process.env[k].trim()) {
     throw new Error(`Missing env var: ${k}`);
   }
 }
 
-export const PLAN_HANDLES = {
-  monthly: "premium-monthly",
-};
+export const PLAN_HANDLES = { monthly: "premium-monthly" };
 
 export const billing = {
   [PLAN_HANDLES.monthly]: {
@@ -54,4 +52,5 @@ export const unauthenticated = shopify.unauthenticated;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;
+export const sessionStorage = shopify.sessionStorage; // ⬅️ remets CET export
 export const apiVersion = ApiVersion.January25;
