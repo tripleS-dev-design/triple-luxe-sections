@@ -7,7 +7,6 @@ import {
   shopifyApp,
   ApiVersion,
   AppDistribution,
-  BillingInterval,
   DeliveryMethod,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
@@ -21,36 +20,21 @@ for (const k of requiredEnv) {
   }
 }
 
-/** ===== Billing : 1 seul plan à 0.99 USD / 30 jours ===== **/
-export const PLAN_HANDLE = "tls-premium-099";
-
-const billing = {
-  plans: [
-    {
-      id: PLAN_HANDLE,           // <= handle utilisé pour le guard
-      amount: 0.99,
-      currencyCode: "USD",
-      interval: BillingInterval.Every30Days,
-      trialDays: 0,              // mets 0 pour aucun essai
-    },
-  ],
-};
-
 export const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
   apiVersion: ApiVersion.January25,
 
-  appUrl: process.env.SHOPIFY_APP_URL,
+  appUrl: process.env.SHOPIFY_APP_URL, // doit = application_url du TOML
   scopes: process.env.SCOPES.split(",").map((s) => s.trim()).filter(Boolean),
   authPathPrefix: "/auth",
 
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
 
-  billing, // <= important : injecte le plan
+  // ❗ AUCUN "billing.request" ici (Managed Pricing gère les plans).
+  // On utilisera juste billing.check() dans les loaders.
 
-  // (optionnel) webhooks utiles
   webhooks: {
     APP_UNINSTALLED: {
       deliveryMethod: DeliveryMethod.Http,
@@ -60,7 +44,7 @@ export const shopify = shopifyApp({
       deliveryMethod: DeliveryMethod.Http,
       callbackUrl: "/webhooks/app/scopes_update",
     },
-    // GDPR obligatoires
+    // GDPR
     CUSTOMERS_DATA_REQUEST: { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/customers/data_request" },
     CUSTOMERS_REDACT:       { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/customers/redact" },
     SHOP_REDACT:            { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/shop/redact" },
