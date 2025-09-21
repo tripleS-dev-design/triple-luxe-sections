@@ -15,7 +15,7 @@ export const loader = async ({ request }) => {
   const { billing, redirect, session } = await authenticate.admin(request);
 
   const { hasActivePayment } = await billing.check(); // Managed Pricing
-  const appHandle = "triple-luxe-sections";           // = handle dans shopify.app.toml
+  const appHandle = "triple-luxe-sections";           // = handle du shopify.app.toml
   const storeHandle = session.shop.replace(".myshopify.com", "");
 
   if (!hasActivePayment) {
@@ -27,7 +27,7 @@ export const loader = async ({ request }) => {
 
   return json({
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    shopSub: storeHandle, // ← requis par ton app._index.jsx
+    shopSub: storeHandle, // nécessaire à ton app._index.jsx
   });
 };
 
@@ -46,7 +46,5 @@ export default function App() {
   );
 }
 
-export function ErrorBoundary() {
-  return boundary.error(useRouteError());
-}
+export function ErrorBoundary() { return boundary.error(useRouteError()); }
 export const headers = (h) => boundary.headers(h);
