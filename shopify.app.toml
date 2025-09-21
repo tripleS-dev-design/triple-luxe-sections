@@ -4,7 +4,7 @@ client_id = "bfb33fe92c4274f1ba39275effdb6c25"
 name = "Triple-Luxe-Sections"
 application_url = "https://triple-luxe-sections-1.onrender.com"
 embedded = true
-handle = "triple-luxe-sections"
+handle = "triple-luxe-sections"   # ← Doit matcher l'URL admin de pricing_plans
 
 [build]
 automatically_update_urls_on_dev = true
@@ -22,7 +22,6 @@ api_version = "2025-07"
   uri = "https://triple-luxe-sections-1.onrender.com/webhooks/app/scopes_update"
 
   # --- GDPR webhooks (obligatoires) ---
-  # Un seul endpoint pour les 3 topics
   [[webhooks.subscriptions]]
   compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
   uri = "https://triple-luxe-sections-1.onrender.com/webhooks/compliance"
