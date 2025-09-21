@@ -4,11 +4,8 @@ import { shopify, registerWebhooks } from "../shopify.server";
 
 export async function loader({ request }) {
   const { session } = await shopify.authenticate.admin(request);
-  try {
-    await registerWebhooks({ session });
-  } catch (e) {
-    console.error("[auth.$] registerWebhooks error:", e);
-  }
-  console.log("[auth.$] OK for shop:", session.shop);
+  // Inscrire/mettre à jour toutes les subscriptions déclarées dans shopify.server.js
+  await registerWebhooks({ session });
+  // redirige vers ton UI embarquée
   return redirect("/app");
 }
