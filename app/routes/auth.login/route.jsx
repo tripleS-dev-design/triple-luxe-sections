@@ -1,53 +1,46 @@
 // app/routes/auth.login/route.jsx
-import { json, redirect } from "@remix-run/node";
-import { Form, useFetcher, useSearchParams } from "@remix-run/react";
-import { useEffect } from "react";
+import { redirect } from "@remix-run/node";
+import { Form, useSearchParams } from "@remix-run/react";
+import { useEffect, useRef } from "react";
 import { login } from "../../shopify.server";
 
 /**
- * Objectif:
- * - Si ?shop est présent → on passe par /auth?shop=... (OAuth immédiat côté admin)
- * - Sinon on AUTO-POST vers cette même route pour déclencher login(request) (204 + headers)
- *   => évite la page "Log in (shop domain)" et les 200 vides.
+ * - Si ?shop est présent → on passe par /auth?shop=... (OAuth côté admin)
+ * - Sinon : on déclenche un VRAI POST (navigation classique) pour `login(request)`
+ *   ⚠️ Surtout pas de fetcher: il renvoie 200 et ne navigue pas → boucle.
  */
 
 export async function loader({ request }) {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
-  if (shop) {
-    return redirect(`/auth?shop=${shop}`);
-  }
-  // pas de shop fourni par l'admin → on va auto-poster côté client
-  return json({});
+  if (shop) return redirect(`/auth?shop=${shop}`);
+  return null; // pas d'UI, le composant auto-soumettra le <Form>
 }
 
 export async function action({ request }) {
-  // Démarre l'OAuth (Shopify renvoie 204 + headers Location)
+  // Le SDK renvoie un 204 + headers Location pour l'admin OAuth.
   return login(request);
 }
 
 export default function AuthLogin() {
   const [params] = useSearchParams();
   const shop = params.get("shop");
-  const fetcher = useFetcher();
+  const formRef = useRef(null);
 
-  // Si ?shop existe, le loader a déjà redirigé → rien à rendre
+  // Si ?shop est présent, le loader a déjà redirigé → ne rien rendre
   if (shop) return null;
 
-  // Auto-POST dès le montage pour déclencher login(request)
+  // Auto-soumission en navigation classique (pas de fetcher)
   useEffect(() => {
-    if (fetcher.state === "idle") {
-      const formData = new FormData();
-      // Shopify lit aussi host depuis les cookies/params, pas indispensable ici
-      fetcher.submit(formData, { method: "post" });
-    }
-  }, [fetcher]);
+    formRef.current?.submit();
+  }, []);
 
-  // Pas d'UI : on laisse l'auto-POST travailler
+  // Pas d'UI: juste un form pour déclencher l'action en POST
   return (
-    <Form method="post" style={{ display: "none" }}>
-      {/* fallback si JS désactivé */}
-      <button type="submit">Continue</button>
+    <Form method="post" ref={formRef} replace>
+      {/* Champ factice pour éviter certains bloqueurs d'autosoumission */}
+      <input type="hidden" name="auto" value="1" />
+      <noscript><button type="submit">Continue</button></noscript>
     </Form>
   );
 }
