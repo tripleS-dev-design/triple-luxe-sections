@@ -1,27 +1,29 @@
-// app/routes/auth.login.jsx
+// app/routes/auth.login/route.jsx
 import { json, redirect } from "@remix-run/node";
 import { Form, useNavigation, useSearchParams } from "@remix-run/react";
-import { authenticate } from "../shopify.server";
+import { authenticate } from "../../shopify.server"; // ← remonte de 2 niveaux
 
 export async function loader({ request }) {
-  // Essaie de récupérer le shop depuis l'URL (admin passe host/shop)
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
 
-  // Si on a déjà le shop → on lance l’install OAuth automatiquement
+  // Si Shopify fournit ?shop=..., on déclenche l'install OAuth directement
   if (shop) {
-    // redirige vers /auth?shop=...
     return redirect(`/auth?shop=${shop}`);
   }
-
-  // Sinon, on laisse afficher un mini-form pour saisir le shop manquant
   return json({});
 }
 
 export async function action({ request }) {
-  // Le SDK gère la redirection vers admin.shopify.com/.../oauth/install
-  const { session, shop, headers } = await authenticate.login(request);
-  // login() renvoie un 204 avec en-têtes de redirection côté admin; on n’affiche rien ici.
+  // Priorité au ?shop dans l'URL si présent (évite les confusions multi-stores)
+  const url = new URL(request.url);
+  const qsShop = url.searchParams.get("shop");
+  if (qsShop) {
+    return redirect(`/auth?shop=${qsShop}`);
+  }
+
+  // Sinon, on laisse le SDK gérer via le "shop" posté par le formulaire
+  const { headers } = await authenticate.login(request);
   return json({ ok: true }, { headers });
 }
 
@@ -30,11 +32,10 @@ export default function AuthLogin() {
   const nav = useNavigation();
   const busy = nav.state !== "idle";
 
-  // Si admin nous a déjà donné shop en query, on ne montre rien (le loader va redirect)
-  const hasShop = !!params.get("shop");
-  if (hasShop) return null;
+  // Si ?shop existe déjà, le loader redirige → on n'affiche rien
+  if (params.get("shop")) return null;
 
-  // Fallback: petit formulaire pour saisir le domaine si on est hors contexte admin
+  // Fallback simple
   return (
     <div style={{ padding: 24 }}>
       <Form method="post">
