@@ -1,65 +1,58 @@
-import { useState } from "react";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import {
-  AppProvider as PolarisAppProvider,
-  Button,
-  Card,
-  FormLayout,
-  Page,
-  Text,
-  TextField,
-} from "@shopify/polaris";
-import polarisTranslations from "@shopify/polaris/locales/en.json";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
+// app/routes/auth.login.jsx
+import { json, redirect } from "@remix-run/node";
+import { Form, useNavigation, useSearchParams } from "@remix-run/react";
+import { authenticate } from "../shopify.server";
 
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+export async function loader({ request }) {
+  // Essaie de récupérer le shop depuis l'URL (admin passe host/shop)
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
 
-export const loader = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+  // Si on a déjà le shop → on lance l’install OAuth automatiquement
+  if (shop) {
+    // redirige vers /auth?shop=...
+    return redirect(`/auth?shop=${shop}`);
+  }
 
-  return { errors, polarisTranslations };
-};
+  // Sinon, on laisse afficher un mini-form pour saisir le shop manquant
+  return json({});
+}
 
-export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+export async function action({ request }) {
+  // Le SDK gère la redirection vers admin.shopify.com/.../oauth/install
+  const { session, shop, headers } = await authenticate.login(request);
+  // login() renvoie un 204 avec en-têtes de redirection côté admin; on n’affiche rien ici.
+  return json({ ok: true }, { headers });
+}
 
-  return {
-    errors,
-  };
-};
+export default function AuthLogin() {
+  const [params] = useSearchParams();
+  const nav = useNavigation();
+  const busy = nav.state !== "idle";
 
-export default function Auth() {
-  const loaderData = useLoaderData();
-  const actionData = useActionData();
-  const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+  // Si admin nous a déjà donné shop en query, on ne montre rien (le loader va redirect)
+  const hasShop = !!params.get("shop");
+  if (hasShop) return null;
 
+  // Fallback: petit formulaire pour saisir le domaine si on est hors contexte admin
   return (
-    <PolarisAppProvider i18n={loaderData.polarisTranslations}>
-      <Page>
-        <Card>
-          <Form method="post">
-            <FormLayout>
-              <Text variant="headingMd" as="h2">
-                Log in
-              </Text>
-              <TextField
-                type="text"
-                name="shop"
-                label="Shop domain"
-                helpText="example.myshopify.com"
-                value={shop}
-                onChange={setShop}
-                autoComplete="on"
-                error={errors.shop}
-              />
-              <Button submit>Log in</Button>
-            </FormLayout>
-          </Form>
-        </Card>
-      </Page>
-    </PolarisAppProvider>
+    <div style={{ padding: 24 }}>
+      <Form method="post">
+        <label>
+          Shop domain
+          <input
+            type="text"
+            name="shop"
+            placeholder="example.myshopify.com"
+            required
+          />
+        </label>
+        <div style={{ marginTop: 12 }}>
+          <button type="submit" disabled={busy}>
+            {busy ? "Redirecting…" : "Log in"}
+          </button>
+        </div>
+      </Form>
+    </div>
   );
 }
