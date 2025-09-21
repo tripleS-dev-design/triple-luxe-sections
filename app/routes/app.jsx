@@ -8,19 +8,23 @@ import styles from "@shopify/polaris/build/esm/styles.css?url";
 export const links = () => [{ rel: "stylesheet", href: styles }];
 
 export const loader = async ({ request }) => {
-  const appHandle = "triple-luxe-sections"; // = handle dans shopify.app.toml
+  const appHandle = "triple-luxe-sections"; // doit = handle dans shopify.app.toml
   const { authenticate } = await import("../shopify.server");
   const { billing, redirect, session } = await authenticate.admin(request);
 
+  // 1) Vérif abonnement (Managed Pricing)
   const { hasActivePayment } = await billing.check();
 
-  const storeHandle = session.shop.replace(".myshopify.com", "");
+  // 2) Si pas d'abonnement, on envoie vers la page "Pricing plans" dans l'admin
   if (!hasActivePayment) {
+    const storeHandle = session.shop.replace(".myshopify.com", "");
     return redirect(
       `https://admin.shopify.com/store/${storeHandle}/charges/${appHandle}/pricing_plans`,
       { target: "_top" }
     );
   }
+
+  // 3) Sinon on laisse l'app se charger
   return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
 };
 
