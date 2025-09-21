@@ -1,48 +1,65 @@
-// app/routes/auth.login/route.jsx
-import { json, redirect } from "@remix-run/node";
-import { normalizeShop, isValidMyshopifyDomain, passthroughFrom } from "../../utils/params.server";
+import { useState } from "react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  AppProvider as PolarisAppProvider,
+  Button,
+  Card,
+  FormLayout,
+  Page,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import polarisTranslations from "@shopify/polaris/locales/en.json";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { login } from "../../shopify.server";
+import { loginErrorMessage } from "./error.server";
 
-export async function loader({ request }) {
-  const { shop, host, passthrough } = passthroughFrom(request);
-  console.log("[auth.login/loader] shop:", shop, "host:", host);
-  if (shop && isValidMyshopifyDomain(shop)) {
-    return redirect(`/auth?${passthrough.toString()}`);
-  }
-  return json({}, { status: 200 });
-}
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-export async function action({ request }) {
-  const form = await request.formData();
-  let shop = normalizeShop(form.get("shop"));
-  if (!shop) {
-    const { shop: qShop } = passthroughFrom(request);
-    shop = normalizeShop(qShop);
-  }
-  if (!isValidMyshopifyDomain(shop)) {
-    return json(
-      { error: "Shop invalide. Format: myshopify.com (ex: selya-store.myshopify.com)" },
-      { status: 400 }
-    );
-  }
-  const url = new URL(request.url);
-  const host = url.searchParams.get("host");
-  const p = new URLSearchParams();
-  p.set("shop", shop);
-  if (host) p.set("host", host);
-  console.log("[auth.login/action] redirect → /auth?", p.toString());
-  return redirect(`/auth?${p.toString()}`);
-}
+export const loader = async ({ request }) => {
+  const errors = loginErrorMessage(await login(request));
 
-export default function Login() {
+  return { errors, polarisTranslations };
+};
+
+export const action = async ({ request }) => {
+  const errors = loginErrorMessage(await login(request));
+
+  return {
+    errors,
+  };
+};
+
+export default function Auth() {
+  const loaderData = useLoaderData();
+  const actionData = useActionData();
+  const [shop, setShop] = useState("");
+  const { errors } = actionData || loaderData;
+
   return (
-    <form method="post" style={{ padding: 24, display: "flex", gap: 8 }}>
-      <input
-        name="shop"
-        placeholder="ex: selya-store.myshopify.com"
-        style={{ width: 340, padding: 8 }}
-        autoComplete="off"
-      />
-      <button type="submit">Log in</button>
-    </form>
+    <PolarisAppProvider i18n={loaderData.polarisTranslations}>
+      <Page>
+        <Card>
+          <Form method="post">
+            <FormLayout>
+              <Text variant="headingMd" as="h2">
+                Log in
+              </Text>
+              <TextField
+                type="text"
+                name="shop"
+                label="Shop domain"
+                helpText="example.myshopify.com"
+                value={shop}
+                onChange={setShop}
+                autoComplete="on"
+                error={errors.shop}
+              />
+              <Button submit>Log in</Button>
+            </FormLayout>
+          </Form>
+        </Card>
+      </Page>
+    </PolarisAppProvider>
   );
 }
