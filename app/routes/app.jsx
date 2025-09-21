@@ -14,16 +14,14 @@ export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { billing, redirect, session } = await authenticate.admin(request);
 
-  // Managed Pricing: vérifie si un abonnement actif existe
-  const { hasActivePayment } = await billing.check();
+  const { hasActivePayment } = await billing.check(); // Managed Pricing
 
-  // Si pas d’abonnement → page Pricing Plans (admin)
   if (!hasActivePayment) {
-    const appHandle = "triple-luxe-sections"; // = handle de ton shopify.app.toml
+    const appHandle = "triple-luxe-sections"; // = handle dans shopify.app.toml
     const storeHandle = session.shop.replace(".myshopify.com", "");
     return redirect(
       `https://admin.shopify.com/store/${storeHandle}/charges/${appHandle}/pricing_plans`,
-      { target: "_top" } // sortir de l’iframe
+      { target: "_top" }
     );
   }
 
@@ -32,6 +30,7 @@ export const loader = async ({ request }) => {
 
 export default function App() {
   const { apiKey } = useLoaderData();
+
   return (
     <PolarisAppProvider i18n={enTranslations}>
       <AppProvider isEmbeddedApp apiKey={apiKey}>
@@ -48,6 +47,4 @@ export function ErrorBoundary() {
   return boundary.error(useRouteError());
 }
 
-export const headers = (headersArgs) => {
-  return boundary.headers(headersArgs);
-};
+export const headers = (headersArgs) => boundary.headers(headersArgs);
