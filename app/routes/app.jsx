@@ -14,22 +14,30 @@ export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { billing, redirect, session } = await authenticate.admin(request);
 
-  const { hasActivePayment } = await billing.check(); // Managed Pricing
+  // Vérifie l'abonnement (Managed Pricing)
+  const { hasActivePayment } = await billing.check();
+
+  // Handle d'app (doit == handle dans shopify.app.toml)
+  const appHandle = "triple-luxe-sections";
+
+  // storeHandle = "selyadev" à partir de "selyadev.myshopify.com"
+  const storeHandle = session.shop.replace(".myshopify.com", "");
 
   if (!hasActivePayment) {
-    const appHandle = "triple-luxe-sections"; // = handle dans shopify.app.toml
-    const storeHandle = session.shop.replace(".myshopify.com", "");
     return redirect(
       `https://admin.shopify.com/store/${storeHandle}/charges/${appHandle}/pricing_plans`,
       { target: "_top" }
     );
   }
 
-  return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
+  return json({
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    shopSub: storeHandle, // ← IMPORTANT pour app._index.jsx
+  });
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { apiKey, shopSub } = useLoaderData();
 
   return (
     <PolarisAppProvider i18n={enTranslations}>
@@ -37,6 +45,8 @@ export default function App() {
         <NavMenu>
           <Link to="/premium">Premium Interface</Link>
         </NavMenu>
+        {/* Pas besoin de passer le contexte manuellement :
+            app._index.jsx lit ces données via useRouteLoaderData("routes/app") */}
         <Outlet />
       </AppProvider>
     </PolarisAppProvider>
