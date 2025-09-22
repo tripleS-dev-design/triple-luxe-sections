@@ -1,19 +1,22 @@
-
-<section id="grid-{{ block.id }}" class="t2-grid {% if block.settings.full_bleed %}t2-grid--bleed{% endif %}"
+<section
+  id="grid-{{ section.id }}"
+  class="t2-grid {% if section.settings.full_bleed %}t2-grid--bleed{% endif %}"
   style="
-    --cols: {{ block.settings.columns }};
-    --cols-md: {{ block.settings.columns_md }};
-    --cols-sm: {{ block.settings.columns_sm }};
-    --gap: {{ block.settings.gap }}px;
-    --ratio: {{ block.settings.ratio | default: '4/5' }};
-    --radius: {{ block.settings.radius }}px;
-  ">
-  {% if block.settings.title != blank %}
-    <h3 class="t2-grid__title">{{ block.settings.title | escape }}</h3>
+    --cols: {{ section.settings.columns }};
+    --cols-md: {{ section.settings.columns_md }};
+    --cols-sm: {{ section.settings.columns_sm }};
+    --gap: {{ section.settings.gap }}px;
+    --ratio: {{ section.settings.ratio | default: '4/5' }};
+    --radius: {{ section.settings.radius }}px;
+  "
+  data-add-url="{{ routes.cart_add_url }}"
+>
+  {% if section.settings.title != blank %}
+    <h3 class="t2-grid__title">{{ section.settings.title | escape }}</h3>
   {% endif %}
 
-  {% assign coll = block.settings.collection %}
-  {% assign l = block.settings.limit | default: 8 | plus: 0 %}
+  {% assign coll = section.settings.collection %}
+  {% assign l = section.settings.limit | default: 8 | plus: 0 %}
 
   <div class="t2-grid__wrap">
     {% if coll != blank and coll.products_count > 0 %}
@@ -21,7 +24,6 @@
         {% assign price = p.price | default: p.price_min %}
         {% assign compare = p.compare_at_price | default: p.compare_at_price_max %}
 
-        {%- comment -%} Comparaison correcte via IF {%- endcomment -%}
         {% assign has_compare = false %}
         {% if compare and price and compare > price %}
           {% assign has_compare = true %}
@@ -31,7 +33,6 @@
         {% assign first_av = p.variants | where: 'available', true | first %}
         {% if first_av == nil %}{% assign first_av = p.variants | first %}{% endif %}
 
-        {%- comment -%} Rating metafields (standard reviews.*) {%- endcomment -%}
         {% assign rating = nil %}
         {% assign rating_count = 0 %}
         {% if p.metafields.reviews != blank %}
@@ -44,7 +45,7 @@
         {% endif %}
 
         {% assign is_new = false %}
-        {% if block.settings.badge_new_tag != blank and p.tags contains block.settings.badge_new_tag %}
+        {% if section.settings.badge_new_tag != blank and p.tags contains section.settings.badge_new_tag %}
           {% assign is_new = true %}
         {% endif %}
 
@@ -65,50 +66,55 @@
             {% endif %}
 
             {% if img1 %}
-              <img
-                src="{{ img1 | image_url: width: 1200 }}"
-                alt="{{ p.title | escape }}"
-                loading="lazy"
-                class="t2-card__img-el"
-                itemprop="image">
+              {{ img1
+                | image_url: width: 1200
+                | image_tag:
+                    class: 't2-card__img-el',
+                    alt: p.title,
+                    widths: '600,900,1200',
+                    sizes: '(max-width: 639px) 50vw, (max-width: 989px) 33vw, 25vw',
+                    loading: 'lazy' }}
             {% else %}
               <div class="t2-card__img--ph" aria-hidden="true"></div>
             {% endif %}
 
-            {% if block.settings.enable_hover_swap and img2 %}
-              <img
-                src="{{ img2 | image_url: width: 1200 }}"
-                alt="{{ p.title | escape }}"
-                loading="lazy"
-                class="t2-card__img-el t2-card__img-el--hover">
+            {% if section.settings.enable_hover_swap and img2 %}
+              {{ img2
+                | image_url: width: 1200
+                | image_tag:
+                    class: 't2-card__img-el t2-card__img-el--hover',
+                    alt: p.title,
+                    widths: '600,900,1200',
+                    sizes: '(max-width: 639px) 50vw, (max-width: 989px) 33vw, 25vw',
+                    loading: 'lazy' }}
             {% endif %}
 
-            {% if block.settings.show_badges %}
+            {% if section.settings.show_badges %}
               <div class="t2-card__badges">
                 {% if is_new %}
-                  <span class="t2-badge t2-badge--new">{{ block.settings.new_badge_text }}</span>
+                  <span class="t2-badge t2-badge--new">{{ section.settings.new_badge_text }}</span>
                 {% endif %}
-                {% if block.settings.show_discount and has_compare %}
-                  <span class="t2-badge t2-badge--sale" aria-label="Promo -{{ discount_pct }}%">{{ block.settings.sale_badge_text }} -{{ discount_pct }}%</span>
+                {% if section.settings.show_discount and has_compare %}
+                  <span class="t2-badge t2-badge--sale" aria-label="Sale -{{ discount_pct }}%">{{ section.settings.sale_badge_text }} -{{ discount_pct }}%</span>
                 {% endif %}
               </div>
             {% endif %}
 
             {% unless available %}
-              <div class="t2-card__soldout">{{ block.settings.sold_out_text }}</div>
+              <div class="t2-card__soldout">{{ section.settings.sold_out_text }}</div>
             {% endunless %}
           </a>
 
           <div class="t2-card__meta">
-            {% if block.settings.show_vendor and p.vendor != blank %}
+            {% if section.settings.show_vendor and p.vendor != blank %}
               <div class="t2-card__vendor">{{ p.vendor }}</div>
             {% endif %}
 
             <a class="t2-card__name" href="{{ p.url }}" itemprop="name">{{ p.title }}</a>
 
-            {% if block.settings.show_rating and rating %}
+            {% if section.settings.show_rating and rating %}
               {% assign stars_pct = rating | times: 20 %}
-              <div class="t2-card__rating" aria-label="{{ rating }} sur 5, {{ rating_count }} avis" title="{{ rating }} / 5" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+              <div class="t2-card__rating" aria-label="{{ rating }} out of 5, {{ rating_count }} reviews" title="{{ rating }} / 5" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
                 <span class="t2-stars"><span class="t2-stars__fg" style="width:{{ stars_pct }}%"></span></span>
                 {% if rating_count > 0 %}<span class="t2-card__rating-count">({{ rating_count }})</span>{% endif %}
                 <meta itemprop="ratingValue" content="{{ rating }}">
@@ -117,50 +123,50 @@
               </div>
             {% endif %}
 
-            {% if block.settings.show_price %}
+            {% if section.settings.show_price %}
               <div class="t2-card__price" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 <span class="t2-price-now" itemprop="price">{{ price | money }}</span>
-                {% if block.settings.show_compare and has_compare %}
+                {% if section.settings.show_compare and has_compare %}
                   <span class="t2-price-compare">{{ compare | money }}</span>
                 {% endif %}
                 <meta itemprop="priceCurrency" content="{{ shop.currency }}">
-                <link itemprop="availability" href="http://schema.org/{% if available %}InStock{% else %}OutOfStock{% endif %}">
+                <link itemprop="availability" href="https://schema.org/{% if available %}InStock{% else %}OutOfStock{% endif %}">
                 <meta itemprop="url" content="{{ p.url }}">
                 <meta itemprop="price" content="{{ price | divided_by: 100.0 }}">
               </div>
 
-              {%- if first_av.unit_price_measurement and first_av.unit_price -%}
+              {% if first_av.unit_price_measurement and first_av.unit_price %}
                 <div class="t2-card__unit">
                   <span class="t2-unit-price">{{ first_av.unit_price | money }}</span>
                   <span class="t2-unit-ref">/ {{ first_av.unit_price_measurement.reference_value }}{{ first_av.unit_price_measurement.reference_unit }}</span>
                 </div>
-              {%- endif -%}
+              {% endif %}
             {% endif %}
 
             <div class="t2-card__actions">
-              {% if block.settings.show_quick_add and first_av and available %}
-                <form method="post" action="/cart/add" class="t2-qa" data-ajax-add="true" aria-label="Ajouter {{ p.title | escape }} au panier">
+              {% if section.settings.show_quick_add and first_av and available %}
+                <form method="post" action="{{ routes.cart_add_url }}" class="t2-qa" data-ajax-add="true" aria-label="Add {{ p.title | escape }} to cart">
                   <input type="hidden" name="id" value="{{ first_av.id }}">
-                  <button class="t2-btn t2-btn--primary" type="submit" data-qa-btn>{{ block.settings.quick_add_label }}</button>
+                  <button class="t2-btn t2-btn--primary" type="submit" data-qa-btn>{{ section.settings.quick_add_label }}</button>
                 </form>
               {% endif %}
-              <a class="t2-btn t2-btn--ghost" href="{{ p.url }}">{{ block.settings.view_label }}</a>
+              <a class="t2-btn t2-btn--ghost" href="{{ p.url }}">{{ section.settings.view_label }}</a>
             </div>
           </div>
         </article>
       {% endfor %}
     {% else %}
-      <div class="t2-grid__empty">Sélectionnez une collection contenant des produits.</div>
+      <div class="t2-grid__empty">Select a collection with products.</div>
     {% endif %}
   </div>
 
   <div class="t2-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
-    <span class="t2-toast__msg">Ajouté au panier.</span>
+    <span class="t2-toast__msg">Added to cart.</span>
   </div>
 </section>
 
 <style>
-/* ===== Layout global ===== */
+/* ===== Layout ===== */
 .t2-grid{ padding:12px 0; color:var(--fg,#111827) }
 .t2-grid--bleed{ position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; max-width:100vw; }
 .t2-grid__title{ margin:0 0 12px; font-weight:800; font-size:clamp(18px,2.5vw,24px) }
@@ -245,16 +251,17 @@
 }
 .t2-toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); pointer-events:auto }
 
-/* Focus visibles */
+/* Focus visible */
 .t2-card a:focus-visible, .t2-btn:focus-visible{ outline:2px solid #111; outline-offset:2px; border-radius:10px }
 </style>
 
 <script>
 (() => {
-  const root = document.getElementById("grid-{{ block.id }}");
+  const root = document.getElementById("grid-{{ section.id }}");
   if (!root) return;
   const toast = root.querySelector(".t2-toast");
   const msg  = toast?.querySelector(".t2-toast__msg");
+  const addUrl = root.getAttribute("data-add-url") || "/cart/add";
 
   // Progressive enhancement: AJAX Quick Add
   root.querySelectorAll("form.t2-qa[data-ajax-add='true']").forEach((form) => {
@@ -264,24 +271,24 @@
       if (!btn) return;
       const prev = btn.textContent;
       btn.disabled = true;
-      btn.textContent = "Ajout...";
+      btn.textContent = "Adding...";
 
       try {
         const fd = new FormData(form);
-        const res = await fetch("/cart/add.js", { method: "POST", body: fd, headers: { "Accept": "application/json" } });
+        const res = await fetch(addUrl + ".js", { method: "POST", body: fd, headers: { "Accept": "application/json" } });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
 
         if (toast) {
-          const title = (data?.title) ? data.title : "{{ 'Ajouté au panier' | escape }}";
-          if (msg) msg.textContent = `${title} — ajouté au panier`;
+          const title = (data?.title) ? data.title : "Added to cart";
+          if (msg) msg.textContent = `${title} — added to cart`;
           toast.hidden = false;
           toast.classList.add("show");
           setTimeout(() => toast.classList.remove("show"), 1800);
         }
       } catch (err) {
         if (toast) {
-          if (msg) msg.textContent = "Impossible d'ajouter. Réessayez.";
+          if (msg) msg.textContent = "Couldn't add. Please try again.";
           toast.hidden = false;
           toast.classList.add("show");
           setTimeout(() => toast.classList.remove("show"), 2000);
@@ -301,42 +308,46 @@
   "name": "TLX Products Grid PRO",
   "target": "section",
   "settings": [
-    { "type": "text", "id": "title", "label": "Titre", "default": "Produits populaires" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Popular products" },
     { "type": "collection", "id": "collection", "label": "Collection" },
-    { "type": "range", "id": "limit", "label": "Nombre d'articles", "min": 2, "max": 20, "step": 1, "default": 8 },
+    { "type": "range", "id": "limit", "label": "Number of items", "min": 2, "max": 20, "step": 1, "default": 8 },
 
-    { "type": "range", "id": "columns", "label": "Colonnes desktop", "min": 2, "max": 6, "step": 1, "default": 4 },
-    { "type": "range", "id": "columns_md", "label": "Colonnes tablette", "min": 2, "max": 4, "step": 1, "default": 3 },
-    { "type": "range", "id": "columns_sm", "label": "Colonnes mobile", "min": 1, "max": 3, "step": 1, "default": 2 },
-    { "type": "range", "id": "gap", "label": "Espace (px)", "min": 6, "max": 28, "step": 1, "default": 16 },
-    { "type": "select", "id": "ratio", "label": "Ratio image", "default": "4/5",
+    { "type": "range", "id": "columns", "label": "Desktop columns", "min": 2, "max": 6, "step": 1, "default": 4 },
+    { "type": "range", "id": "columns_md", "label": "Tablet columns", "min": 2, "max": 4, "step": 1, "default": 3 },
+    { "type": "range", "id": "columns_sm", "label": "Mobile columns", "min": 1, "max": 3, "step": 1, "default": 2 },
+    { "type": "range", "id": "gap", "label": "Gap (px)", "min": 6, "max": 28, "step": 1, "default": 16 },
+    {
+      "type": "select",
+      "id": "ratio",
+      "label": "Image ratio",
+      "default": "4/5",
       "options": [
         { "value": "4/5",  "label": "4:5 (portrait)" },
-        { "value": "1/1",  "label": "1:1 (carré)" },
+        { "value": "1/1",  "label": "1:1 (square)" },
         { "value": "3/4",  "label": "3:4" },
-        { "value": "16/9", "label": "16:9 (paysage)" }
+        { "value": "16/9", "label": "16:9 (landscape)" }
       ]
     },
-    { "type": "range", "id": "radius", "label": "Rayon des cartes (px)", "min": 0, "max": 24, "step": 1, "default": 14 },
-    { "type": "checkbox", "id": "full_bleed", "label": "Bord à bord (100vw)", "default": false },
+    { "type": "range", "id": "radius", "label": "Card radius (px)", "min": 0, "max": 24, "step": 1, "default": 14 },
+    { "type": "checkbox", "id": "full_bleed", "label": "Edge-to-edge (100vw)", "default": false },
 
-    { "type": "checkbox", "id": "show_price", "label": "Afficher le prix", "default": true },
-    { "type": "checkbox", "id": "show_compare", "label": "Afficher le prix barré si promo", "default": true },
-    { "type": "checkbox", "id": "show_vendor", "label": "Afficher le vendeur", "default": false },
+    { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
+    { "type": "checkbox", "id": "show_compare", "label": "Show compare-at price when on sale", "default": true },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
 
-    { "type": "checkbox", "id": "enable_hover_swap", "label": "Swap image au survol (si 2 images)", "default": true },
-    { "type": "checkbox", "id": "show_badges", "label": "Afficher les badges", "default": true },
-    { "type": "checkbox", "id": "show_discount", "label": "Afficher le % remise", "default": true },
-    { "type": "text", "id": "badge_new_tag", "label": "Tag pour badge Nouveau", "default": "new" },
-    { "type": "text", "id": "new_badge_text", "label": "Texte badge Nouveau", "default": "Nouveau" },
-    { "type": "text", "id": "sale_badge_text", "label": "Texte badge Promo", "default": "Promo" },
-    { "type": "text", "id": "sold_out_text", "label": "Texte Rupture", "default": "Rupture" },
+    { "type": "checkbox", "id": "enable_hover_swap", "label": "Hover image swap (if 2 images)", "default": true },
+    { "type": "checkbox", "id": "show_badges", "label": "Show badges", "default": true },
+    { "type": "checkbox", "id": "show_discount", "label": "Show discount %", "default": true },
+    { "type": "text", "id": "badge_new_tag", "label": "Tag for New badge", "default": "new" },
+    { "type": "text", "id": "new_badge_text", "label": "New badge text", "default": "New" },
+    { "type": "text", "id": "sale_badge_text", "label": "Sale badge text", "default": "Sale" },
+    { "type": "text", "id": "sold_out_text", "label": "Sold out text", "default": "Sold out" },
 
-    { "type": "checkbox", "id": "show_rating", "label": "Afficher la note (metafields)", "default": false },
+    { "type": "checkbox", "id": "show_rating", "label": "Show rating (metafields)", "default": false },
 
-    { "type": "checkbox", "id": "show_quick_add", "label": "Bouton Ajouter au panier", "default": true },
-    { "type": "text", "id": "quick_add_label", "label": "Libellé Ajouter", "default": "Ajouter" },
-    { "type": "text", "id": "view_label", "label": "Libellé Voir", "default": "Voir" }
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show Add to cart button", "default": true },
+    { "type": "text", "id": "quick_add_label", "label": "Add button label", "default": "Add" },
+    { "type": "text", "id": "view_label", "label": "View button label", "default": "View" }
   ]
 }
 {% endschema %}
