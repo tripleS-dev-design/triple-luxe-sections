@@ -25,15 +25,14 @@ export const shopify = shopifyApp({
   apiSecretKey: process.env.SHOPIFY_API_SECRET,
   apiVersion: ApiVersion.January25,
 
-  appUrl: process.env.SHOPIFY_APP_URL, // doit = application_url du TOML
+  appUrl: process.env.SHOPIFY_APP_URL, // = application_url du TOML
   scopes: process.env.SCOPES.split(",").map((s) => s.trim()).filter(Boolean),
   authPathPrefix: "/auth",
 
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
 
-  // ❗ AUCUN "billing.request" ici (Managed Pricing gère les plans).
-  // On utilisera juste billing.check() dans les loaders.
+  // ❌ Aucun "billing" → app gratuite
 
   webhooks: {
     APP_UNINSTALLED: {
@@ -44,10 +43,10 @@ export const shopify = shopifyApp({
       deliveryMethod: DeliveryMethod.Http,
       callbackUrl: "/webhooks/app/scopes_update",
     },
-    // GDPR
-    CUSTOMERS_DATA_REQUEST: { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/customers/data_request" },
-    CUSTOMERS_REDACT:       { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/customers/redact" },
-    SHOP_REDACT:            { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/shop/redact" },
+    // GDPR (un seul endpoint si tu veux)
+    CUSTOMERS_DATA_REQUEST: { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/compliance" },
+    CUSTOMERS_REDACT:       { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/compliance" },
+    SHOP_REDACT:            { deliveryMethod: DeliveryMethod.Http, callbackUrl: "/webhooks/compliance" },
   },
 
   future: {
