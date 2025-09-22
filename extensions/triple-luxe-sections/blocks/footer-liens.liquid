@@ -1,22 +1,21 @@
-
 <footer class="tlx-ftr
-  {% if block.settings.full_bleed %} tlx-ftr--bleed{% endif %}
-  {% if block.settings.center_text %} tlx-ftr--center{% endif %}"
+  {% if section.settings.full_bleed %} tlx-ftr--bleed{% endif %}
+  {% if section.settings.center_text %} tlx-ftr--center{% endif %}"
   style="
-    --fg: {{ block.settings.fg }};
-    --bg: {{ block.settings.bg }};
-    --overlay: {{ block.settings.overlay_color }};
-    --overlay-a: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
-    --maxw: {{ block.settings.max_width }}px;
-    --gap: {{ block.settings.gap }}px;
-    --btn-r: {{ block.settings.btn_radius }};
-    --btn-size: {{ block.settings.btn_size }};
+    --fg: {{ section.settings.fg }};
+    --bg: {{ section.settings.bg }};
+    --overlay: {{ section.settings.overlay_color }};
+    --overlay-a: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --maxw: {{ section.settings.max_width }}px;
+    --gap: {{ section.settings.gap }}px;
+    --btn-r: {{ section.settings.btn_radius }};
+    --btn-size: {{ section.settings.btn_size }};
   "
 >
   <!-- BACKGROUND -->
   <div class="tlx-ftr__bg">
-    {% if block.settings.bg_image != blank %}
-      {{ block.settings.bg_image | image_url: width: 2400 | image_tag:
+    {% if section.settings.bg_image != blank %}
+      {{ section.settings.bg_image | image_url: width: 2400 | image_tag:
         loading: 'lazy',
         class: 'tlx-ftr__bg-img',
         alt: '' }}
@@ -27,13 +26,13 @@
   <div class="tlx-ftr__wrap">
 
     <!-- MENU -> BOUTONS -->
-    {% if block.settings.menu_buttons %}
-      {% assign m1 = linklists[block.settings.menu_buttons] %}
+    {% if section.settings.menu_buttons %}
+      {% assign m1 = linklists[section.settings.menu_buttons] %}
       {% if m1 %}
         <div class="tlx-ftr__row">
           <div class="tlx-col">
             <h4 class="tlx-title">{{ m1.title }}</h4>
-            <div class="tlx-btns tlx-btns--{{ block.settings.btn_style }}">
+            <div class="tlx-btns tlx-btns--{{ section.settings.btn_style }}">
               {% for link in m1.links %}
                 <a class="tlx-btn" href="{{ link.url }}">{{ link.title }}</a>
               {% endfor %}
@@ -45,39 +44,39 @@
 
     <!-- RÉSEAUX SOCIAUX -->
     {% assign has_social = false %}
-    {% if block.settings.whatsapp_number != blank %}{% assign has_social = true %}{% endif %}
-    {% if block.settings.instagram_handle != blank %}{% assign has_social = true %}{% endif %}
-    {% if block.settings.facebook_page != blank %}{% assign has_social = true %}{% endif %}
-    {% if block.settings.tiktok_handle != blank %}{% assign has_social = true %}{% endif %}
-    {% if block.settings.youtube_channel != blank %}{% assign has_social = true %}{% endif %}
-    {% if block.settings.linkedin_slug != blank %}{% assign has_social = true %}{% endif %}
+    {% if section.settings.whatsapp_number != blank %}{% assign has_social = true %}{% endif %}
+    {% if section.settings.instagram_handle != blank %}{% assign has_social = true %}{% endif %}
+    {% if section.settings.facebook_page != blank %}{% assign has_social = true %}{% endif %}
+    {% if section.settings.tiktok_handle != blank %}{% assign has_social = true %}{% endif %}
+    {% if section.settings.youtube_channel != blank %}{% assign has_social = true %}{% endif %}
+    {% if section.settings.linkedin_slug != blank %}{% assign has_social = true %}{% endif %}
 
     {% if has_social %}
       <div class="tlx-ftr__row">
         <div class="tlx-col">
-          <h4 class="tlx-title">{{ block.settings.buttons_title }}</h4>
+          <h4 class="tlx-title">{{ section.settings.buttons_title }}</h4>
           <div class="tlx-social">
-            {% if block.settings.whatsapp_number != blank %}
-              {% assign wa = block.settings.whatsapp_number | remove: ' ' | remove: '+' | remove: '-' | remove: '(' | remove: ')' %}
+            {% if section.settings.whatsapp_number != blank %}
+              {% assign wa = section.settings.whatsapp_number | remove: ' ' | remove: '+' | remove: '-' | remove: '(' | remove: ')' %}
               <a class="tlx-sbtn" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener">WhatsApp</a>
             {% endif %}
-            {% if block.settings.instagram_handle != blank %}
-              {% assign ig = block.settings.instagram_handle | remove: '@' %}
+            {% if section.settings.instagram_handle != blank %}
+              {% assign ig = section.settings.instagram_handle | remove: '@' %}
               <a class="tlx-sbtn" href="https://instagram.com/{{ ig }}" target="_blank" rel="noopener">Instagram</a>
             {% endif %}
-            {% if block.settings.facebook_page != blank %}
-              <a class="tlx-sbtn" href="https://facebook.com/{{ block.settings.facebook_page }}" target="_blank" rel="noopener">Facebook</a>
+            {% if section.settings.facebook_page != blank %}
+              <a class="tlx-sbtn" href="https://facebook.com/{{ section.settings.facebook_page }}" target="_blank" rel="noopener">Facebook</a>
             {% endif %}
-            {% if block.settings.tiktok_handle != blank %}
-              {% assign tk = block.settings.tiktok_handle | remove: '@' %}
+            {% if section.settings.tiktok_handle != blank %}
+              {% assign tk = section.settings.tiktok_handle | remove: '@' %}
               <a class="tlx-sbtn" href="https://www.tiktok.com/@{{ tk }}" target="_blank" rel="noopener">TikTok</a>
             {% endif %}
-            {% if block.settings.youtube_channel != blank %}
-              {% assign yt = block.settings.youtube_channel | remove: '@' %}
+            {% if section.settings.youtube_channel != blank %}
+              {% assign yt = section.settings.youtube_channel | remove: '@' %}
               <a class="tlx-sbtn" href="https://www.youtube.com/@{{ yt }}" target="_blank" rel="noopener">YouTube</a>
             {% endif %}
-            {% if block.settings.linkedin_slug != blank %}
-              <a class="tlx-sbtn" href="https://www.linkedin.com/company/{{ block.settings.linkedin_slug }}" target="_blank" rel="noopener">LinkedIn</a>
+            {% if section.settings.linkedin_slug != blank %}
+              <a class="tlx-sbtn" href="https://www.linkedin.com/company/{{ section.settings.linkedin_slug }}" target="_blank" rel="noopener">LinkedIn</a>
             {% endif %}
           </div>
         </div>
@@ -85,15 +84,15 @@
     {% endif %}
 
     <!-- CONTACT -->
-    {% if block.settings.contact_phone != blank or block.settings.contact_email != blank %}
+    {% if section.settings.contact_phone != blank or section.settings.contact_email != blank %}
       <div class="tlx-ftr__row">
         <div class="tlx-col">
-          <div class="tlx-btns tlx-btns--{{ block.settings.btn_style }}">
-            {% if block.settings.contact_phone != blank %}
-              <a class="tlx-btn" href="tel:{{ block.settings.contact_phone }}">📞 Appeler</a>
+          <div class="tlx-btns tlx-btns--{{ section.settings.btn_style }}">
+            {% if section.settings.contact_phone != blank %}
+              <a class="tlx-btn" href="tel:{{ section.settings.contact_phone }}">📞 Appeler</a>
             {% endif %}
-            {% if block.settings.contact_email != blank %}
-              <a class="tlx-btn" href="mailto:{{ block.settings.contact_email }}">✉️ Email</a>
+            {% if section.settings.contact_email != blank %}
+              <a class="tlx-btn" href="mailto:{{ section.settings.contact_email }}">✉️ Email</a>
             {% endif %}
           </div>
         </div>
@@ -102,8 +101,8 @@
 
     <!-- COPYRIGHT -->
     {% assign current_year = 'now' | date: '%Y' %}
-    {% if block.settings.copyright_text != blank %}
-      <div class="tlx-ftr__copy">{{ block.settings.copyright_text }}</div>
+    {% if section.settings.copyright_text != blank %}
+      <div class="tlx-ftr__copy">{{ section.settings.copyright_text }}</div>
     {% else %}
       <div class="tlx-ftr__copy">© {{ current_year }} Votre boutique. Tous droits réservés.</div>
     {% endif %}
