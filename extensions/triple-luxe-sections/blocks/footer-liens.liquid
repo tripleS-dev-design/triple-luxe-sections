@@ -24,8 +24,6 @@
   </div>
 
   <div class="tlx-ftr__wrap">
-
-    <!-- MENU -> BOUTONS -->
     {% if section.settings.menu_buttons %}
       {% assign m1 = linklists[section.settings.menu_buttons] %}
       {% if m1 %}
@@ -42,7 +40,6 @@
       {% endif %}
     {% endif %}
 
-    <!-- RÉSEAUX SOCIAUX -->
     {% assign has_social = false %}
     {% if section.settings.whatsapp_number != blank %}{% assign has_social = true %}{% endif %}
     {% if section.settings.instagram_handle != blank %}{% assign has_social = true %}{% endif %}
@@ -83,13 +80,12 @@
       </div>
     {% endif %}
 
-    <!-- CONTACT -->
     {% if section.settings.contact_phone != blank or section.settings.contact_email != blank %}
       <div class="tlx-ftr__row">
         <div class="tlx-col">
           <div class="tlx-btns tlx-btns--{{ section.settings.btn_style }}">
             {% if section.settings.contact_phone != blank %}
-              <a class="tlx-btn" href="tel:{{ section.settings.contact_phone }}">📞 Appeler</a>
+              <a class="tlx-btn" href="tel:{{ section.settings.contact_phone }}">📞 Call</a>
             {% endif %}
             {% if section.settings.contact_email != blank %}
               <a class="tlx-btn" href="mailto:{{ section.settings.contact_email }}">✉️ Email</a>
@@ -99,14 +95,12 @@
       </div>
     {% endif %}
 
-    <!-- COPYRIGHT -->
     {% assign current_year = 'now' | date: '%Y' %}
     {% if section.settings.copyright_text != blank %}
       <div class="tlx-ftr__copy">{{ section.settings.copyright_text }}</div>
     {% else %}
-      <div class="tlx-ftr__copy">© {{ current_year }} Votre boutique. Tous droits réservés.</div>
+      <div class="tlx-ftr__copy">© {{ current_year }} Your store. All rights reserved.</div>
     {% endif %}
-
   </div>
 </footer>
 
@@ -139,54 +133,54 @@
   "name": "TLX Footer Buttons PRO",
   "target": "section",
   "settings": [
-    { "type": "link_list", "id": "menu_buttons", "label": "Menu → Boutons (1 seul autorisé)" },
+    { "type": "link_list", "id": "menu_buttons", "label": "Menu → Buttons (single menu only)" },
 
-    { "type": "text", "id": "buttons_title", "label": "Titre réseaux", "default": "Suivez-nous" },
-    { "type": "text", "id": "whatsapp_number", "label": "WhatsApp (ex: +212612345678)" },
-    { "type": "text", "id": "instagram_handle", "label": "Instagram (ex: @votrecompte)" },
-    { "type": "text", "id": "facebook_page", "label": "Facebook (ex: votrepage)" },
-    { "type": "text", "id": "tiktok_handle", "label": "TikTok (ex: @votrecompte)" },
-    { "type": "text", "id": "youtube_channel", "label": "YouTube (ex: @votrechaine)" },
-    { "type": "text", "id": "linkedin_slug", "label": "LinkedIn (slug entreprise)" },
+    { "type": "text", "id": "buttons_title", "label": "Social title", "default": "Follow us" },
+    { "type": "text", "id": "whatsapp_number", "label": "WhatsApp (e.g. +212612345678)" },
+    { "type": "text", "id": "instagram_handle", "label": "Instagram (e.g. @yourhandle)" },
+    { "type": "text", "id": "facebook_page", "label": "Facebook (page handle)" },
+    { "type": "text", "id": "tiktok_handle", "label": "TikTok (e.g. @yourhandle)" },
+    { "type": "text", "id": "youtube_channel", "label": "YouTube (e.g. @yourchannel)" },
+    { "type": "text", "id": "linkedin_slug", "label": "LinkedIn (company slug)" },
 
-    { "type": "text", "id": "contact_phone", "label": "Téléphone (ex: +212601234567)" },
-    { "type": "text", "id": "contact_email", "label": "Email (ex: contact@exemple.com)" },
+    { "type": "text", "id": "contact_phone", "label": "Phone (e.g. +212601234567)" },
+    { "type": "text", "id": "contact_email", "label": "Email (e.g. contact@example.com)" },
 
-    { "type": "text", "id": "copyright_text", "label": "Copyright", "default": "© Votre boutique. Tous droits réservés." },
+    { "type": "text", "id": "copyright_text", "label": "Copyright", "default": "© Your store. All rights reserved." },
 
-    { "type": "select", "id": "btn_style", "label": "Style des boutons", "default": "solid",
+    { "type": "select", "id": "btn_style", "label": "Button style", "default": "solid",
       "options": [
-        { "value": "solid", "label": "Plein (blanc)" },
-        { "value": "outline", "label": "Contour (transparent)" }
+        { "value": "solid", "label": "Solid (white)" },
+        { "value": "outline", "label": "Outline (transparent)" }
       ]
     },
-    { "type": "select", "id": "btn_radius", "label": "Arrondi des boutons", "default": "9999px",
+    { "type": "select", "id": "btn_radius", "label": "Button radius", "default": "9999px",
       "options": [
         { "value": "8px", "label": "8px" },
         { "value": "16px", "label": "16px" },
         { "value": "24px", "label": "24px" },
-        { "value": "9999px", "label": "Pilule" }
+        { "value": "9999px", "label": "Pill" }
       ]
     },
-    { "type": "select", "id": "btn_size", "label": "Taille des boutons", "default": "10px 14px",
+    { "type": "select", "id": "btn_size", "label": "Button size", "default": "10px 14px",
       "options": [
-        { "value": "8px 12px", "label": "Petite" },
-        { "value": "10px 14px", "label": "Normale" },
-        { "value": "12px 18px", "label": "Grande" }
+        { "value": "8px 12px", "label": "Small" },
+        { "value": "10px 14px", "label": "Normal" },
+        { "value": "12px 18px", "label": "Large" }
       ]
     },
 
-    { "type": "color", "id": "bg", "label": "Couleur de fond", "default": "#0f0f0f" },
-    { "type": "image_picker", "id": "bg_image", "label": "Image d’arrière-plan (optionnel)" },
-    { "type": "color", "id": "overlay_color", "label": "Couleur overlay", "default": "#000000" },
-    { "type": "range", "id": "overlay_opacity", "label": "Opacité overlay (%)", "min": 0, "max": 90, "step": 5, "default": 35 },
+    { "type": "color", "id": "bg", "label": "Background color", "default": "#0f0f0f" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image (optional)" },
+    { "type": "color", "id": "overlay_color", "label": "Overlay color", "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity (%)", "min": 0, "max": 90, "step": 5, "default": 35 },
 
-    { "type": "color", "id": "fg", "label": "Couleur du texte", "default": "#ffffff" },
-    { "type": "range", "id": "gap", "label": "Espace vertical (px)", "min": 12, "max": 40, "step": 2, "default": 24 },
-    { "type": "range", "id": "max_width", "label": "Largeur max (px)", "min": 900, "max": 1600, "step": 10, "default": 1200 },
+    { "type": "color", "id": "fg", "label": "Text color", "default": "#ffffff" },
+    { "type": "range", "id": "gap", "label": "Vertical spacing (px)", "min": 12, "max": 40, "step": 2, "default": 24 },
+    { "type": "range", "id": "max_width", "label": "Max width (px)", "min": 900, "max": 1600, "step": 10, "default": 1200 },
 
-    { "type": "checkbox", "id": "center_text", "label": "Centrer le contenu", "default": true },
-    { "type": "checkbox", "id": "full_bleed", "label": "Bord à bord (extrême écran)", "default": true }
+    { "type": "checkbox", "id": "center_text", "label": "Center content", "default": true },
+    { "type": "checkbox", "id": "full_bleed", "label": "Edge-to-edge (full width)", "default": true }
   ]
 }
 {% endschema %}
