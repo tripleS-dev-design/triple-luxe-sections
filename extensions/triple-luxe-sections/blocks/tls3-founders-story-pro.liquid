@@ -1,11 +1,18 @@
 <section class="tls3-founders">
   <div class="tls3-founders__in">
     <div>
-      {% if block.settings.title != blank %}<h2>{{ block.settings.title }}</h2>{% endif %}
-      {% if block.settings.text != blank %}<p>{{ block.settings.text }}</p>{% endif %}
+      {% if section.settings.title != blank %}
+        <h2>{{ section.settings.title }}</h2>
+      {% endif %}
+      {% if section.settings.text != blank %}
+        <p>{{ section.settings.text }}</p>
+      {% endif %}
     </div>
-    {% if block.settings.image != blank %}
-      {{ block.settings.image | image_url: width: 1200 | image_tag: class: 'tls3-founders__img', alt: block.settings.title, loading: 'lazy' }}
+
+    {% if section.settings.image != blank %}
+      {{ section.settings.image
+        | image_url: width: 1200
+        | image_tag: class: 'tls3-founders__img', alt: section.settings.title, loading: 'lazy' }}
     {% endif %}
   </div>
 </section>
@@ -22,8 +29,8 @@
   "name": "Founders story",
   "target": "section",
   "settings": [
-    { "type": "text", "id": "title", "label": "Titre", "default": "Notre histoire" },
-    { "type": "textarea", "id": "text", "label": "Texte" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Our story" },
+    { "type": "textarea", "id": "text", "label": "Text" },
     { "type": "image_picker", "id": "image", "label": "Image" }
   ]
 }
