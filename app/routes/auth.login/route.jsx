@@ -1,20 +1,65 @@
-// app/routes/auth.login/route.jsx
+import { useState } from "react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  AppProvider as PolarisAppProvider,
+  Button,
+  Card,
+  FormLayout,
+  Page,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import polarisTranslations from "@shopify/polaris/locales/en.json";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { login } from "../../shopify.server";
+import { loginErrorMessage } from "./error.server";
 
-/**
- * Route d’auth recommandée par Shopify Remix.
- * - Pas de fetcher, pas d’auto-submit, pas d’UI.
- * - Le SDK gère la redirection (install / OAuth) depuis le loader & l’action.
- */
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-export async function loader({ request }) {
-  return login(request);
-}
+export const loader = async ({ request }) => {
+  const errors = loginErrorMessage(await login(request));
 
-export async function action({ request }) {
-  return login(request);
-}
+  return { errors, polarisTranslations };
+};
 
-export default function AuthLogin() {
-  return null;
+export const action = async ({ request }) => {
+  const errors = loginErrorMessage(await login(request));
+
+  return {
+    errors,
+  };
+};
+
+export default function Auth() {
+  const loaderData = useLoaderData();
+  const actionData = useActionData();
+  const [shop, setShop] = useState("");
+  const { errors } = actionData || loaderData;
+
+  return (
+    <PolarisAppProvider i18n={loaderData.polarisTranslations}>
+      <Page>
+        <Card>
+          <Form method="post">
+            <FormLayout>
+              <Text variant="headingMd" as="h2">
+                Log in
+              </Text>
+              <TextField
+                type="text"
+                name="shop"
+                label="Shop domain"
+                helpText="example.myshopify.com"
+                value={shop}
+                onChange={setShop}
+                autoComplete="on"
+                error={errors.shop}
+              />
+              <Button submit>Log in</Button>
+            </FormLayout>
+          </Form>
+        </Card>
+      </Page>
+    </PolarisAppProvider>
+  );
 }
