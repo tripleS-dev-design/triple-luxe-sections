@@ -21,9 +21,11 @@ import {
   ViewIcon,
 } from "@shopify/polaris-icons";
 
-/* ===== externals (YouTube / WhatsApp) ===== */
-const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ"; // change if needed
-const WHATSAPP_URL = "https://wa.me/212681570887";  // removed '+' per wa.me spec
+/* ===== externals (YouTube / WhatsApp / Promo) ===== */
+const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ";          // change if needed
+const WHATSAPP_URL = "https://wa.me/212681570887";            // wa.me without '+'
+const PROMO_URL =
+  "https://apps.shopify.com/announcement-bar-app-1?locale=fr&search_id=fe6f0bc9-6312-4be5-b8b1-5240df16264e&surface_detail=triple-annoucncemnt-bar&surface_inter_position=1&surface_intra_position=18&surface_type=search";
 
 /* ===== shared button base (for floating FABs) ===== */
 const BUTTON_FAB = {
@@ -78,6 +80,20 @@ const LAYOUT_CSS = `
   .tls-theme-chip[data-on="1"] { outline:2px solid #2563EB; }
   .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
+
+  /* Right sticky promo card (uses admin right empty gutter) */
+  .tls-right-promo {
+    position: fixed;
+    top: 110px;               /* sits under the page title */
+    right: 24px;
+    width: 300px;
+    max-width: calc(100vw - 32px);
+    z-index: 55;
+    pointer-events: auto;
+  }
+  @media (max-width: 1400px){
+    .tls-right-promo{ display:none; } /* hide on smaller admin widths */
+  }
 `;
 /* inject CSS at first paint (avoid CLS) */
 function InlineCss() {
@@ -355,6 +371,29 @@ export default function TLSBuilderIndex() {
     >
       <InlineCss />
 
+      {/* ===== Explainer banner (EN) ===== */}
+      <Box paddingBlockEnd="200">
+        <Banner tone="info" title="How Triple-Luxe-Sections works">
+          <BlockStack gap="100">
+            <Text as="p">
+              • Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).
+            </Text>
+            <Text as="p">
+              • Pick a theme above, then click <em>Add to theme</em> on any block.
+            </Text>
+            <Text as="p">
+              • Every block is <strong>fully customizable</strong> from the Theme Editor (content, colors, layout).
+            </Text>
+            <Text as="p">
+              • You can add a single block or <strong>all blocks</strong> to your theme — your choice.
+            </Text>
+            <Text as="p">
+              • Design faster: our presets help you build a professional storefront in minutes.
+            </Text>
+          </BlockStack>
+        </Banner>
+      </Box>
+
       <BlockStack gap="400">
         <Card>
           <Box padding="300">
@@ -427,6 +466,26 @@ export default function TLSBuilderIndex() {
           </Box>
         </Card>
       </BlockStack>
+
+      {/* ===== Right sticky promo card (uses the empty right gutter) ===== */}
+      <div className="tls-right-promo" aria-hidden={false}>
+        <Card>
+          <Box padding="300">
+            <BlockStack gap="150">
+              <Text as="h3" variant="headingSm">
+                Boost announcements (FREE)
+              </Text>
+              <Text as="p" tone="subdued">
+                Try our <strong>Triple Announcement Bar</strong> app to promote sales,
+                shipping, and news at the top of your store.
+              </Text>
+              <Button url={PROMO_URL} target="_blank" external>
+                View app on Shopify
+              </Button>
+            </BlockStack>
+          </Box>
+        </Card>
+      </div>
 
       {/* ===== Floating buttons wrapper: no overlay on the page ===== */}
       <div style={{ pointerEvents: "none" }}>
