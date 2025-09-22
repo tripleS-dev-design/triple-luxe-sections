@@ -1,36 +1,45 @@
-<section class="pg-glow" style="--cols: {{ block.settings.columns }}; --gap: {{ block.settings.gap }}px;">
-  {% if block.settings.title != blank %}
-    <h3 class="pg-glow__title">{{ block.settings.title | escape }}</h3>
+<section class="pg-glow" style="--cols: {{ section.settings.columns }}; --gap: {{ section.settings.gap }}px;">
+  {% if section.settings.title != blank %}
+    <h3 class="pg-glow__title">{{ section.settings.title | escape }}</h3>
   {% endif %}
 
-  {% assign coll = block.settings.collection %}
-  {% assign l = block.settings.limit | default: 8 | plus: 0 %}
+  {% assign coll = section.settings.collection %}
+  {% assign l = section.settings.limit | default: 8 | plus: 0 %}
 
   <div class="pg-glow__grid">
     {% if coll != blank %}
       {% for p in coll.products limit: l %}
         <article class="pg-glow__card">
-          <a class="pg-glow__img" href="{{ p.url }}">
+          <a class="pg-glow__img" href="{{ p.url }}" aria-label="{{ p.title | escape }}">
             {% if p.featured_image %}
-              {% assign src = p.featured_image | image_url: width: 900 %}
-              <img src="{{ src }}" alt="{{ p.title | escape }}" loading="lazy" class="pg-glow__img-el">
+              {{ p.featured_image
+                | image_url: width: 900
+                | image_tag:
+                  alt: p.title,
+                  loading: 'lazy',
+                  class: 'pg-glow__img-el',
+                  widths: '360,540,720,900',
+                  sizes: '(max-width:640px) 50vw, (max-width:990px) 33vw, 25vw'
+              }}
             {% endif %}
           </a>
           <div class="pg-glow__meta">
             <a class="pg-glow__name" href="{{ p.url }}">{{ p.title }}</a>
-            {% if block.settings.show_price %}
+
+            {% if section.settings.show_price %}
               <div class="pg-glow__price">
                 {{ p.price | default: p.price_min | money }}
               </div>
             {% endif %}
-            {% if block.settings.show_cta %}
-              <a class="pg-glow__btn" href="{{ p.url }}">{{ block.settings.cta_label | default: 'Voir' }}</a>
+
+            {% if section.settings.show_cta %}
+              <a class="pg-glow__btn" href="{{ p.url }}">{{ section.settings.cta_label | default: 'View' }}</a>
             {% endif %}
           </div>
         </article>
       {% endfor %}
     {% else %}
-      <div class="pg-glow__empty">Sélectionnez une collection.</div>
+      <div class="pg-glow__empty">Select a collection.</div>
     {% endif %}
   </div>
 </section>
@@ -59,14 +68,14 @@
   "name": "Products Grid Glow",
   "target": "section",
   "settings": [
-    { "type": "text", "id": "title", "label": "Titre", "default": "Notre sélection" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Our selection" },
     { "type": "collection", "id": "collection", "label": "Collection" },
-    { "type": "range", "id": "limit", "label": "Nombre d'articles", "min": 2, "max": 12, "step": 1, "default": 8 },
-    { "type": "range", "id": "columns", "label": "Colonnes", "min": 2, "max": 5, "step": 1, "default": 4 },
-    { "type": "range", "id": "gap", "label": "Espace (px)", "min": 6, "max": 28, "step": 1, "default": 16 },
-    { "type": "checkbox", "id": "show_price", "label": "Afficher le prix", "default": true },
-    { "type": "checkbox", "id": "show_cta", "label": "Afficher le bouton", "default": true },
-    { "type": "text", "id": "cta_label", "label": "Label du bouton", "default": "Voir" }
+    { "type": "range", "id": "limit", "label": "Number of items", "min": 2, "max": 12, "step": 1, "default": 8 },
+    { "type": "range", "id": "columns", "label": "Columns", "min": 2, "max": 5, "step": 1, "default": 4 },
+    { "type": "range", "id": "gap", "label": "Gap (px)", "min": 6, "max": 28, "step": 1, "default": 16 },
+    { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
+    { "type": "checkbox", "id": "show_cta", "label": "Show button", "default": true },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "View" }
   ]
 }
 {% endschema %}
