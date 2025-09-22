@@ -22,8 +22,8 @@ import {
 } from "@shopify/polaris-icons";
 
 /* ===== externals (YouTube / WhatsApp) ===== */
-const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ"; // change si besoin
-const WHATSAPP_URL = "https://wa.me/+212681570887";
+const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ"; // change if needed
+const WHATSAPP_URL = "https://wa.me/212681570887";  // removed '+' per wa.me spec
 
 /* ===== shared button base (for floating FABs) ===== */
 const BUTTON_FAB = {
@@ -79,16 +79,9 @@ const LAYOUT_CSS = `
   .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
 `;
-function InjectCssOnce() {
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    if (document.getElementById("tls-layout-css")) return;
-    const t = document.createElement("style");
-    t.id = "tls-layout-css";
-    t.appendChild(document.createTextNode(LAYOUT_CSS));
-    document.head.appendChild(t);
-  }, []);
-  return null;
+/* inject CSS at first paint (avoid CLS) */
+function InlineCss() {
+  return <style id="tls-layout-css">{LAYOUT_CSS}</style>;
 }
 
 /* ===== META (Polaris icons only) ===== */
@@ -206,10 +199,9 @@ const THEMES = [
     label: "Triple-S Branding",
     emoji: "✨",
     desc: "All blocks in one place (branding + tech + fashion).",
-    header: { handle: "header-informatique", template: "index" }, // header par défaut
+    header: { handle: "header-informatique", template: "index" }, // default header
     content: [
-      // ---- tous les blocs existants ----
-       // Pro (restants)
+      // Pro
       { handle: "tls3-hero-brand-video-pro", template: "index" },
       { handle: "tls3-founders-story-pro", template: "index" },
       // Tech
@@ -218,14 +210,11 @@ const THEMES = [
       { handle: "product-grid-glow", template: "index" },
       { handle: "packs-descriptifs", template: "index" },
       { handle: "social-icons", template: "index" },
-
       // Fashion
       { handle: "t2-hero-runway", template: "index" },
       { handle: "t2-categories-pills", template: "index" },
       { handle: "t2-products-grid", template: "index" },
       { handle: "t2-social-proof", template: "index" },
-
-     
     ],
     footer: { handle: "footer-liens", template: "index" },
   },
@@ -346,7 +335,10 @@ export default function TLSBuilderIndex() {
     () => THEMES.find((t) => t.key === themeKey) || THEMES[0],
     [themeKey]
   );
-  const countBlocks = (t) => 1 + (t.content?.length || 0) + 1;
+  const countBlocks = React.useCallback(
+    (t) => 1 + (t.content?.length || 0) + 1,
+    []
+  );
 
   return (
     <Page
@@ -361,11 +353,9 @@ export default function TLSBuilderIndex() {
         },
       ]}
     >
-      <InjectCssOnce />
+      <InlineCss />
 
       <BlockStack gap="400">
-       
-
         <Card>
           <Box padding="300">
             <InlineStack gap="200" wrap>
@@ -377,6 +367,8 @@ export default function TLSBuilderIndex() {
                   data-on={themeKey === t.key ? 1 : 0}
                   onClick={() => setThemeKey(t.key)}
                   title={t.desc}
+                  role="switch"
+                  aria-checked={themeKey === t.key}
                 >
                   <span style={{ fontSize: 16, marginRight: 6 }}>{t.emoji}</span>
                   <span style={{ fontWeight: 700 }}>{t.label}</span>
@@ -458,7 +450,7 @@ export default function TLSBuilderIndex() {
 
         {/* WhatsApp (bottom-left) */}
         <a
-          href="https://wa.me/+212681570887"
+          href={WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="WhatsApp support"
