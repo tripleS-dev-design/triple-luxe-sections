@@ -1,24 +1,26 @@
-<section class="t2-proof {% if block.settings.full_bleed %}t2-proof--bleed{% endif %}"
+<section
+  class="t2-proof {% if section.settings.full_bleed %}t2-proof--bleed{% endif %}"
   style="
-    --bg: {{ block.settings.bg }};
-    --fg: {{ block.settings.fg }};
-    --card: {{ block.settings.card_bg }};
-    --accent: {{ block.settings.accent }};
-    --radius: {{ block.settings.radius }}px;
-    --cols: {{ block.settings.columns }};
-    --ava: {{ block.settings.avatar_size }}px;
-  ">
+    --bg: {{ section.settings.bg }};
+    --fg: {{ section.settings.fg }};
+    --card: {{ section.settings.card_bg }};
+    --accent: {{ section.settings.accent }};
+    --radius: {{ section.settings.radius }}px;
+    --cols: {{ section.settings.columns }};
+    --ava: {{ section.settings.avatar_size }}px;
+  "
+>
   <div class="t2-proof__inner">
-    {% if block.settings.title != blank %}
-      <h2 class="t2-proof__title">{{ block.settings.title | escape }}</h2>
+    {% if section.settings.title != blank %}
+      <h2 class="t2-proof__title">{{ section.settings.title | escape }}</h2>
     {% endif %}
-    {% if block.settings.subtitle != blank %}
-      <p class="t2-proof__subtitle">{{ block.settings.subtitle }}</p>
+    {% if section.settings.subtitle != blank %}
+      <p class="t2-proof__subtitle">{{ section.settings.subtitle }}</p>
     {% endif %}
 
-    {% assign layout = block.settings.layout %}
+    {% assign layout = section.settings.layout %}
     <div class="t2-proof__wrap {% if layout == 'carousel' %}t2-proof__wrap--carousel{% else %}t2-proof__wrap--grid{% endif %}">
-      {% assign lines = block.settings.items | newline_to_br | split: '<br />' %}
+      {% assign lines = section.settings.items | newline_to_br | split: '<br />' %}
 
       {% for l in lines %}
         {% assign s = l | strip %}
@@ -32,7 +34,7 @@
           {% assign note   = 0 %}
           {% if note_s != '' %}{% assign note = note_s | plus: 0 %}{% endif %}
 
-          <figure class="t2-quote {% if block.settings.border_style == 'glow' %}t2-quote--glow{% elsif block.settings.border_style == 'soft' %}t2-quote--soft{% endif %}">
+          <figure class="t2-quote {% if section.settings.border_style == 'glow' %}t2-quote--glow{% elsif section.settings.border_style == 'soft' %}t2-quote--soft{% endif %}">
             <div class="t2-quote__header">
               <div class="t2-quote__avatar">
                 {% if avatar != '' %}
@@ -41,11 +43,11 @@
                     alt="{{ author | default: 'Avatar' | escape }}"
                     loading="lazy"
                     decoding="async"
-                    width="{{ block.settings.avatar_size }}"
-                    height="{{ block.settings.avatar_size }}"
+                    width="{{ section.settings.avatar_size }}"
+                    height="{{ section.settings.avatar_size }}"
                     style="aspect-ratio:1/1; object-fit:cover;">
                 {% else %}
-                  <svg width="{{ block.settings.avatar_size }}" height="{{ block.settings.avatar_size }}" viewBox="0 0 40 40" aria-hidden="true" class="t2-quote__avatar-ph">
+                  <svg width="{{ section.settings.avatar_size }}" height="{{ section.settings.avatar_size }}" viewBox="0 0 40 40" aria-hidden="true" class="t2-quote__avatar-ph">
                     <circle cx="20" cy="20" r="20" fill="#f3f4f6"/>
                     <circle cx="20" cy="16" r="8" fill="#d1d5db"/>
                     <path d="M6 36c3-7 9-11 14-11s11 4 14 11" fill="#d1d5db"/>
@@ -63,9 +65,9 @@
               <blockquote class="t2-quote__text">“{{ text }}”</blockquote>
             {% endif %}
 
-            {% if block.settings.show_rating and note > 0 %}
+            {% if section.settings.show_rating and note > 0 %}
               {% assign stars_pct = note | times: 20 %}
-              <div class="t2-rating" aria-label="{{ note }} sur 5">
+              <div class="t2-rating" aria-label="{{ note }} out of 5">
                 <span class="t2-stars"><span class="t2-stars__fg" style="width:{{ stars_pct }}%"></span></span>
               </div>
             {% endif %}
@@ -128,7 +130,7 @@
 /* Text */
 .t2-quote__text{ margin:0; line-height:1.55 }
 
-/* Stars (decorative, pas de JSON-LD) */
+/* Stars */
 .t2-rating{ display:flex; align-items:center }
 .t2-stars{ --s: 14px; position:relative; display:inline-block; width:calc(var(--s)*5); height:var(--s);
   background:linear-gradient(90deg,#ddd 0 100%);
@@ -142,38 +144,43 @@
   "name": "Social proof — PRO",
   "target": "section",
   "settings": [
-    { "type": "text", "id": "title", "label": "Titre", "default": "Ils nous font confiance" },
-    { "type": "textarea", "id": "subtitle", "label": "Sous-titre" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Trusted by customers" },
+    { "type": "textarea", "id": "subtitle", "label": "Subtitle" },
 
-    { "type": "select", "id": "layout", "label": "Disposition", "default": "grid",
+    {
+      "type": "select", "id": "layout", "label": "Layout", "default": "grid",
       "options": [
-        { "value": "grid", "label": "Grille" },
+        { "value": "grid", "label": "Grid" },
         { "value": "carousel", "label": "Carousel (scroll)" }
       ]
     },
-    { "type": "range", "id": "columns", "label": "Colonnes (grille)", "min": 1, "max": 4, "step": 1, "default": 3 },
+    { "type": "range", "id": "columns", "label": "Columns (grid)", "min": 1, "max": 4, "step": 1, "default": 3 },
 
-    { "type": "checkbox", "id": "show_rating", "label": "Afficher les étoiles", "default": true },
-    { "type": "checkbox", "id": "full_bleed", "label": "Bord à bord (100vw)", "default": false },
+    { "type": "checkbox", "id": "show_rating", "label": "Show stars", "default": true },
+    { "type": "checkbox", "id": "full_bleed", "label": "Edge-to-edge (100vw)", "default": false },
 
-    { "type": "select", "id": "border_style", "label": "Style de bordure", "default": "soft",
+    {
+      "type": "select", "id": "border_style", "label": "Card border style", "default": "soft",
       "options": [
-        { "value": "none", "label": "Aucune" },
-        { "value": "soft", "label": "Douce" },
-        { "value": "glow", "label": "Glow accent" }
+        { "value": "none", "label": "None" },
+        { "value": "soft", "label": "Soft" },
+        { "value": "glow", "label": "Accent glow" }
       ]
     },
 
-    { "type": "range", "id": "radius", "label": "Rayon cartes (px)", "min": 0, "max": 24, "step": 1, "default": 14 },
-    { "type": "range", "id": "avatar_size", "label": "Taille avatar (px)", "min": 24, "max": 64, "step": 2, "default": 40 },
+    { "type": "range", "id": "radius", "label": "Card radius (px)", "min": 0, "max": 24, "step": 1, "default": 14 },
+    { "type": "range", "id": "avatar_size", "label": "Avatar size (px)", "min": 24, "max": 64, "step": 2, "default": 40 },
 
-    { "type": "color", "id": "bg", "label": "Fond section", "default": "#f8fafc" },
-    { "type": "color", "id": "fg", "label": "Texte", "default": "#111827" },
-    { "type": "color", "id": "card_bg", "label": "Fond cartes", "default": "#ffffff" },
-    { "type": "color", "id": "accent", "label": "Couleur accent / étoiles", "default": "#e11d2e" },
+    { "type": "color", "id": "bg", "label": "Section background", "default": "#f8fafc" },
+    { "type": "color", "id": "fg", "label": "Text color", "default": "#111827" },
+    { "type": "color", "id": "card_bg", "label": "Card background", "default": "#ffffff" },
+    { "type": "color", "id": "accent", "label": "Accent / stars color", "default": "#e11d2e" },
 
-    { "type": "textarea", "id": "items", "label": "Avis (1 ligne = Texte | Auteur | Rôle/ville | URL avatar | Note/5)",
-      "default": "Service rapide et soigné | Marie L. | Casablanca | https://cdn.shopify.com/s/files/…/avatar1.jpg | 5\nDes prix super, je recommande | Yassine R. | Rabat | https://cdn.shopify.com/s/files/…/avatar2.jpg | 5\nQualité au top, SAV réactif | Nadia K. | Marrakech | https://cdn.shopify.com/s/files/…/avatar3.jpg | 4"
+    {
+      "type": "textarea",
+      "id": "items",
+      "label": "Reviews (1 line = Text | Author | Role/city | Avatar URL | Rating/5)",
+      "default": "Fast and careful service | Marie L. | Casablanca | https://cdn.shopify.com/s/files/.../avatar1.jpg | 5\nGreat prices, highly recommend | Yassine R. | Rabat | https://cdn.shopify.com/s/files/.../avatar2.jpg | 5\nTop quality, responsive support | Nadia K. | Marrakech | https://cdn.shopify.com/s/files/.../avatar3.jpg | 4"
     }
   ]
 }
