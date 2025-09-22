@@ -1,18 +1,18 @@
 <section class="tlx-social">
-  {% if block.settings.title != blank %}
-    <h3 class="tlx-social__title">{{ block.settings.title }}</h3>
+  {% if section.settings.title != blank %}
+    <h3 class="tlx-social__title">{{ section.settings.title }}</h3>
   {% endif %}
-  {% if block.settings.subtitle != blank %}
-    <p class="tlx-social__subtitle">{{ block.settings.subtitle }}</p>
+  {% if section.settings.subtitle != blank %}
+    <p class="tlx-social__subtitle">{{ section.settings.subtitle }}</p>
   {% endif %}
 
   <ul class="tlx-social__list">
-    {% assign tgt = block.settings.open_new %}
+    {% assign tgt = section.settings.open_new %}
 
-    {% if block.settings.facebook_url != blank %}
+    {% if section.settings.facebook_url != blank %}
       <li>
-        <a href="{{ block.settings.facebook_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="Facebook">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon">
+        <a href="{{ section.settings.facebook_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="Facebook">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon" role="img" aria-hidden="true" focusable="false">
             <path fill="#1877F2" d="M24 4C12.95 4 4 12.95 4 24c0 9.95 7.45 18.2 17.05 19.8V30.7h-5.1v-6.7h5.1v-5.1c0-5.05 3-7.9 7.6-7.9 2.2 0 4.5.4 4.5.4v4.9h-2.55c-2.5 0-3.3 1.55-3.3 3.15v4.55h5.6l-.9 6.7h-4.7v13.1C36.55 42.2 44 33.95 44 24c0-11.05-8.95-20-20-20z"/>
             <path fill="#fff" d="M33.1 30.7l.9-6.7h-5.6v-4.55c0-1.6.8-3.15 3.3-3.15h2.55v-4.9s-2.3-.4-4.5-.4c-4.6 0-7.6 2.85-7.6 7.9v5.1h-5.1v6.7h5.1v13.1c1.02.17 2.07.27 3.15.27 1.08 0 2.13-.1 3.15-.27V30.7h4.7z"/>
           </svg>
@@ -20,10 +20,10 @@
       </li>
     {% endif %}
 
-    {% if block.settings.instagram_url != blank %}
+    {% if section.settings.instagram_url != blank %}
       <li>
-        <a href="{{ block.settings.instagram_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="Instagram">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon">
+        <a href="{{ section.settings.instagram_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="Instagram">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon" role="img" aria-hidden="true" focusable="false">
             <radialGradient id="IG" cx="19" cy="48" r="49" gradientUnits="userSpaceOnUse">
               <stop offset="0" stop-color="#fd5"/>
               <stop offset=".5" stop-color="#ff543e"/>
@@ -36,10 +36,10 @@
       </li>
     {% endif %}
 
-    {% if block.settings.youtube_url != blank %}
+    {% if section.settings.youtube_url != blank %}
       <li>
-        <a href="{{ block.settings.youtube_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="YouTube">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon">
+        <a href="{{ section.settings.youtube_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="YouTube">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon" role="img" aria-hidden="true" focusable="false">
             <path fill="#FF0000" d="M43.6 14.5s-.4-3-1.6-4.4c-1.6-1.6-3.4-1.6-4.3-1.7-6-0.4-15.1-0.4-15.1-0.4h-.1s-9.1 0-15.1.4c-.9 0-2.7.1-4.3 1.7-1.2 1.4-1.6 4.4-1.6 4.4S1 17.9 1 21.3v5.4c0 3.4.4 6.8.4 6.8s.4 3 1.6 4.4c1.6 1.6 3.7 1.5 4.7 1.7 3.4.3 14.3.4 14.3.4s9.1 0 15.1-.4c.9 0 2.7-.1 4.3-1.7 1.2-1.4 1.6-4.4 1.6-4.4s.4-3.4.4-6.8v-5.4c0-3.4-.4-6.8-.4-6.8z"/>
             <polygon fill="#fff" points="19,16 31,24 19,32"/>
           </svg>
@@ -47,10 +47,10 @@
       </li>
     {% endif %}
 
-    {% if block.settings.linkedin_url != blank %}
+    {% if section.settings.linkedin_url != blank %}
       <li>
-        <a href="{{ block.settings.linkedin_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="LinkedIn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon">
+        <a href="{{ section.settings.linkedin_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="LinkedIn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon" role="img" aria-hidden="true" focusable="false">
             <path fill="#0077B5" d="M42 37.5c0 2.5-2 4.5-4.5 4.5H10.5C8 42 6 40 6 37.5v-27C6 8 8 6 10.5 6h27C40 6 42 8 42 10.5v27z"/>
             <path fill="#fff" d="M12 19h5v17h-5V19zm2.5-7c-1.6 0-2.5 1.1-2.5 2.5S12.9 17 14.5 17c1.6 0 2.5-1.1 2.5-2.5S16.1 12 14.5 12zM19 19h4.7v2.3h.1c.7-1.3 2.5-2.6 5.2-2.6 5.6 0 6.7 3.7 6.7 8.6V36h-5v-7.5c0-1.8 0-4-2.4-4s-2.8 1.9-2.8 3.9V36H19V19z"/>
           </svg>
@@ -58,10 +58,10 @@
       </li>
     {% endif %}
 
-    {% if block.settings.whatsapp_url != blank %}
+    {% if section.settings.whatsapp_url != blank %}
       <li>
-        <a href="{{ block.settings.whatsapp_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="WhatsApp">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon">
+        <a href="{{ section.settings.whatsapp_url }}" {% if tgt %}target="_blank" rel="noopener"{% endif %} aria-label="WhatsApp">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="tlx-social__icon" role="img" aria-hidden="true" focusable="false">
             <path fill="#25D366" d="M24 4C12.3 4 3 13.3 3 25c0 3.7 1 7.3 2.9 10.4L3 45l9.9-2.9C16 43 20 44 24 44c11.7 0 21-9.3 21-21S35.7 4 24 4z"/>
             <path fill="#fff" d="M35.2 28.3c-.5-.2-2.9-1.4-3.3-1.5-.4-.2-.7-.2-1 .2-.3.5-1.2 1.5-1.5 1.8-.3.3-.6.3-1.1.1-3.2-1.3-5.2-2.3-7.3-5.2-.6-.8.6-.7 1.6-2.3.2-.3.1-.7 0-1-.1-.2-1-2.4-1.4-3.3-.4-.9-.7-.8-1-.8h-.9c-.3 0-.8.1-1.2.6-.4.4-1.6 1.6-1.6 3.9s1.6 4.5 1.9 4.8c.2.3 3.1 4.7 7.5 6.5 1 .4 1.8.6 2.4.9 1 .3 1.9.3 2.6.2.8-.1 2.9-1.2 3.3-2.3.4-1.1.4-2.1.3-2.3-.2-.3-.4-.4-.9-.6z"/>
           </svg>
@@ -72,47 +72,32 @@
 </section>
 
 <style>
-.tlx-social {
-  padding:20px 0;
-  text-align:center;
-}
+.tlx-social { padding:20px 0; text-align:center; }
 .tlx-social__title{font-size:20px;font-weight:700;margin-bottom:6px}
 .tlx-social__subtitle{opacity:.8;margin-bottom:12px}
-.tlx-social__list {
-  display:flex;
-  justify-content:center !important;
-  align-items:center !important;
-  gap:20px;
-  flex-wrap:wrap;
-  list-style:none;
-  padding:0;
-  margin:0 auto;
-  max-width:100%;
+.tlx-social__list{
+  display:flex;justify-content:center;align-items:center;gap:20px;
+  flex-wrap:wrap;list-style:none;padding:0;margin:0 auto;max-width:100%;
 }
-.tlx-social__list li {display:flex}
-.tlx-social__icon {width:40px;height:40px;display:block}
-.tlx-social a {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+.tlx-social__list li{display:flex}
+.tlx-social__icon{width:40px;height:40px;display:block}
+.tlx-social a{display:flex;align-items:center;justify-content:center}
 .tlx-social a:hover{transform:scale(1.1);transition:.2s}
 </style>
-
 
 {% schema %}
 {
   "name": "TLX Social Official",
   "target": "section",
   "settings": [
-    { "type": "text", "id": "title", "label": "Titre", "default": "Suivez-nous" },
-    { "type": "text", "id": "subtitle", "label": "Texte", "default": "Voilà notre page — contactez-nous" },
-    { "type": "checkbox", "id": "open_new", "label": "Ouvrir dans un nouvel onglet", "default": true },
-    { "type": "url", "id": "facebook_url", "label": "Facebook" },
-    { "type": "url", "id": "instagram_url", "label": "Instagram" },
-    { "type": "url", "id": "youtube_url", "label": "YouTube" },
-    { "type": "url", "id": "linkedin_url", "label": "LinkedIn" },
-    { "type": "url", "id": "whatsapp_url", "label": "WhatsApp" }
+    { "type": "text", "id": "title", "label": "Title", "default": "Follow us" },
+    { "type": "text", "id": "subtitle", "label": "Subtitle", "default": "Here are our official pages — reach out anytime." },
+    { "type": "checkbox", "id": "open_new", "label": "Open in a new tab", "default": true },
+    { "type": "url", "id": "facebook_url", "label": "Facebook URL" },
+    { "type": "url", "id": "instagram_url", "label": "Instagram URL" },
+    { "type": "url", "id": "youtube_url", "label": "YouTube URL" },
+    { "type": "url", "id": "linkedin_url", "label": "LinkedIn URL" },
+    { "type": "url", "id": "whatsapp_url", "label": "WhatsApp URL" }
   ]
 }
 {% endschema %}
