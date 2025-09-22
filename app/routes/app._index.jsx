@@ -22,8 +22,8 @@ import {
 } from "@shopify/polaris-icons";
 
 /* ===== externals (YouTube / WhatsApp) ===== */
-const YOUTUBE_URL = "https://www.youtube.com/@yourchannel"; // change si besoin
-const WHATSAPP_URL = "https://wa.me/+212630079763";
+const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ"; // change si besoin
+const WHATSAPP_URL = "https://wa.me/+212681570887";
 
 /* ===== shared button base (for floating FABs) ===== */
 const BUTTON_FAB = {
@@ -458,7 +458,7 @@ export default function TLSBuilderIndex() {
 
         {/* WhatsApp (bottom-left) */}
         <a
-          href={WHATSAPP_URL}
+          href="https://wa.me/+212681570887"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="WhatsApp support"
