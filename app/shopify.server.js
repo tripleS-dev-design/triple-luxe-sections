@@ -21,8 +21,20 @@ for (const k of requiredEnv) {
   }
 }
 
+/** ===== Billing : 1 seul plan à 0.99 USD / 30 jours ===== **/
+export const PLAN_HANDLE = "Free";
 
-
+const billing = {
+  plans: [
+    {
+      id: PLAN_HANDLE,           // <= handle utilisé pour le guard
+      amount: 0,
+      currencyCode: "USD",
+      interval: BillingInterval.Every30Days,
+      trialDays: 0,              // mets 0 pour aucun essai
+    },
+  ],
+};
 
 export const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
