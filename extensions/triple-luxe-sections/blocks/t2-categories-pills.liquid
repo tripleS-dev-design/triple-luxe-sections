@@ -1,24 +1,24 @@
-<section class="t2-cat {% if block.settings.full_bleed %}t2-cat--bleed{% endif %}"
+<section class="t2-cat {% if section.settings.full_bleed %}t2-cat--bleed{% endif %}"
   style="
-    --gap: {{ block.settings.gap }}px;
-    --radius: {{ block.settings.radius }}px;
-    --ratio: {{ block.settings.ratio }};
-    --overlay-opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+    --gap: {{ section.settings.gap }}px;
+    --radius: {{ section.settings.radius }}px;
+    --ratio: {{ section.settings.ratio }};
+    --overlay-opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
   "
 >
-  {% if block.settings.title != blank %}
-    <h3 class="t2-cat__title">{{ block.settings.title | escape }}</h3>
+  {% if section.settings.title != blank %}
+    <h3 class="t2-cat__title">{{ section.settings.title | escape }}</h3>
   {% endif %}
 
   <div class="t2-cat__grid">
     {%- comment -%} ==== CARD 1 ==== {%- endcomment -%}
-    {% assign img = block.settings.image_1 %}
-    {% assign label = block.settings.label_1 %}
-    {% assign sub = block.settings.sub_1 %}
-    {% assign url = block.settings.url_1 %}
-    {% assign cta = block.settings.btn_label_1 %}
+    {% assign img = section.settings.image_1 %}
+    {% assign label = section.settings.label_1 %}
+    {% assign sub = section.settings.sub_1 %}
+    {% assign url = section.settings.url_1 %}
+    {% assign cta = section.settings.btn_label_1 %}
     {% if img != blank %}
-      {% if url != blank %}<a class="t2-card" href="{{ url }}">{% else %}<div class="t2-card">{% endif %}
+      {% if url != blank %}<a class="t2-card" href="{{ url }}" aria-label="{{ label | default: 'Category 1' | escape }}">{% else %}<div class="t2-card">{% endif %}
         <div class="t2-card__media">
           {{ img
             | image_url: width: 1600
@@ -40,13 +40,13 @@
     {% endif %}
 
     {%- comment -%} ==== CARD 2 ==== {%- endcomment -%}
-    {% assign img = block.settings.image_2 %}
-    {% assign label = block.settings.label_2 %}
-    {% assign sub = block.settings.sub_2 %}
-    {% assign url = block.settings.url_2 %}
-    {% assign cta = block.settings.btn_label_2 %}
+    {% assign img = section.settings.image_2 %}
+    {% assign label = section.settings.label_2 %}
+    {% assign sub = section.settings.sub_2 %}
+    {% assign url = section.settings.url_2 %}
+    {% assign cta = section.settings.btn_label_2 %}
     {% if img != blank %}
-      {% if url != blank %}<a class="t2-card" href="{{ url }}">{% else %}<div class="t2-card">{% endif %}
+      {% if url != blank %}<a class="t2-card" href="{{ url }}" aria-label="{{ label | default: 'Category 2' | escape }}">{% else %}<div class="t2-card">{% endif %}
         <div class="t2-card__media">
           {{ img
             | image_url: width: 1600
@@ -68,13 +68,13 @@
     {% endif %}
 
     {%- comment -%} ==== CARD 3 ==== {%- endcomment -%}
-    {% assign img = block.settings.image_3 %}
-    {% assign label = block.settings.label_3 %}
-    {% assign sub = block.settings.sub_3 %}
-    {% assign url = block.settings.url_3 %}
-    {% assign cta = block.settings.btn_label_3 %}
+    {% assign img = section.settings.image_3 %}
+    {% assign label = section.settings.label_3 %}
+    {% assign sub = section.settings.sub_3 %}
+    {% assign url = section.settings.url_3 %}
+    {% assign cta = section.settings.btn_label_3 %}
     {% if img != blank %}
-      {% if url != blank %}<a class="t2-card" href="{{ url }}">{% else %}<div class="t2-card">{% endif %}
+      {% if url != blank %}<a class="t2-card" href="{{ url }}" aria-label="{{ label | default: 'Category 3' | escape }}">{% else %}<div class="t2-card">{% endif %}
         <div class="t2-card__media">
           {{ img
             | image_url: width: 1600
@@ -96,14 +96,14 @@
     {% endif %}
   </div>
 
-  {% if block.settings.promo_enable %}
+  {% if section.settings.promo_enable %}
     <div class="t2-promo">
       <div class="t2-promo__content">
-        {% if block.settings.promo_text != blank %}
-          <strong class="t2-promo__text">{{ block.settings.promo_text }}</strong>
+        {% if section.settings.promo_text != blank %}
+          <strong class="t2-promo__text">{{ section.settings.promo_text }}</strong>
         {% endif %}
-        {% if block.settings.promo_btn_label != blank and block.settings.promo_btn_url != blank %}
-          <a class="t2-promo__btn" href="{{ block.settings.promo_btn_url }}">{{ block.settings.promo_btn_label }}</a>
+        {% if section.settings.promo_btn_label != blank and section.settings.promo_btn_url != blank %}
+          <a class="t2-promo__btn" href="{{ section.settings.promo_btn_url }}">{{ section.settings.promo_btn_label }}</a>
         {% endif %}
       </div>
     </div>
@@ -111,17 +111,17 @@
 </section>
 
 <style>
-/* ===== Layout global ===== */
+/* ===== Layout ===== */
 .t2-cat{ width:100%; padding-left:16px; padding-right:16px }
 .t2-cat--bleed{ position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; max-width:100vw; padding-left:0; padding-right:0 }
 .t2-cat__title{ margin:0 0 14px; font-weight:800; font-size:clamp(18px,2.4vw,24px) }
 
-/* Grille 1→3 colonnes */
+/* Grid 1→3 columns */
 .t2-cat__grid{ display:grid; gap:var(--gap,16px); grid-template-columns:1fr }
 @media (min-width: 750px){ .t2-cat__grid{ grid-template-columns: repeat(2, 1fr) } }
 @media (min-width: 1100px){ .t2-cat__grid{ grid-template-columns: repeat(3, 1fr) } }
 
-/* Carte */
+/* Card */
 .t2-card{
   position:relative; display:block; border-radius:var(--radius,16px);
   overflow:hidden; text-decoration:none; color:inherit; background:#f7f7f8;
@@ -150,7 +150,7 @@
 }
 .t2-card:hover .t2-card__img{ transform: scale(1.05); filter: saturate(1.05) }
 
-/* Promo (séparateur) */
+/* Promo separator */
 .t2-promo{
   margin-top: clamp(10px, 2vw, 16px);
   background: linear-gradient(90deg, #111827, #1f2937);
@@ -171,49 +171,53 @@
 
 {% schema %}
 {
-  "name": "Catégories Trio",
+  "name": "Categories Trio",
   "target": "section",
   "settings": [
-    { "type": "checkbox", "id": "full_bleed", "label": "Bord à bord (100vw)", "default": false },          // 1
-    { "type": "text", "id": "title", "label": "Titre", "default": "Catégories" },                            // 2
+    { "type": "checkbox", "id": "full_bleed", "label": "Edge-to-edge (100vw)", "default": false },
+    { "type": "text", "id": "title", "label": "Title", "default": "Categories" },
 
-    { "type": "range", "id": "gap", "label": "Espacement entre cartes (px)", "min": 8, "max": 32, "step": 1, "default": 16 }, // 3
-    { "type": "range", "id": "radius", "label": "Rayon des coins (px)", "min": 0, "max": 36, "step": 1, "default": 16 },      // 4
-    { "type": "select", "id": "ratio", "label": "Ratio image", "default": "4/5",                                              // 5
+    { "type": "range", "id": "gap", "label": "Card spacing (px)", "min": 8, "max": 32, "step": 1, "default": 16 },
+    { "type": "range", "id": "radius", "label": "Corner radius (px)", "min": 0, "max": 36, "step": 1, "default": 16 },
+    {
+      "type": "select",
+      "id": "ratio",
+      "label": "Image ratio",
+      "default": "4/5",
       "options": [
-        { "value": "16/9", "label": "Paysage 16:9" },
-        { "value": "1/1", "label": "Carré 1:1" },
-        { "value": "4/5", "label": "Portrait 4:5" }
+        { "value": "16/9", "label": "Landscape 16:9" },
+        { "value": "1/1",  "label": "Square 1:1" },
+        { "value": "4/5",  "label": "Portrait 4:5" }
       ]
     },
-    { "type": "range", "id": "overlay_opacity", "label": "Intensité overlay (%)", "min": 0, "max": 100, "step": 5, "default": 35 }, // 6
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay intensity (%)", "min": 0, "max": 100, "step": 5, "default": 35 },
 
-    { "type": "header", "content": "Carte 1" },
-    { "type": "image_picker", "id": "image_1", "label": "Image 1" },                         // 7
-    { "type": "text", "id": "label_1", "label": "Titre 1", "default": "Homme" },             // 8
-    { "type": "text", "id": "sub_1", "label": "Sous-titre 1", "default": "Nouveautés" },     // 9
-    { "type": "url", "id": "url_1", "label": "URL 1" },                                      // 10
-    { "type": "text", "id": "btn_label_1", "label": "Texte bouton 1", "default": "Découvrir" }, // 11
+    { "type": "header", "content": "Card 1" },
+    { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+    { "type": "text", "id": "label_1", "label": "Title 1", "default": "Men" },
+    { "type": "text", "id": "sub_1", "label": "Subtitle 1", "default": "New arrivals" },
+    { "type": "url", "id": "url_1", "label": "URL 1" },
+    { "type": "text", "id": "btn_label_1", "label": "Button 1 label", "default": "Discover" },
 
-    { "type": "header", "content": "Carte 2" },
-    { "type": "image_picker", "id": "image_2", "label": "Image 2" },                         // 12
-    { "type": "text", "id": "label_2", "label": "Titre 2", "default": "Femme" },             // 13
-    { "type": "text", "id": "sub_2", "label": "Sous-titre 2", "default": "Best-sellers" },   // 14
-    { "type": "url", "id": "url_2", "label": "URL 2" },                                      // 15
-    { "type": "text", "id": "btn_label_2", "label": "Texte bouton 2", "default": "Acheter" }, // 16
+    { "type": "header", "content": "Card 2" },
+    { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+    { "type": "text", "id": "label_2", "label": "Title 2", "default": "Women" },
+    { "type": "text", "id": "sub_2", "label": "Subtitle 2", "default": "Best sellers" },
+    { "type": "url", "id": "url_2", "label": "URL 2" },
+    { "type": "text", "id": "btn_label_2", "label": "Button 2 label", "default": "Shop" },
 
-    { "type": "header", "content": "Carte 3" },
-    { "type": "image_picker", "id": "image_3", "label": "Image 3" },                         // 17
-    { "type": "text", "id": "label_3", "label": "Titre 3", "default": "Enfants" },           // 18
-    { "type": "text", "id": "sub_3", "label": "Sous-titre 3", "default": "Back to school" }, // 19
-    { "type": "url", "id": "url_3", "label": "URL 3" },                                      // 20
-    { "type": "text", "id": "btn_label_3", "label": "Texte bouton 3", "default": "Voir" },   // 21
+    { "type": "header", "content": "Card 3" },
+    { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+    { "type": "text", "id": "label_3", "label": "Title 3", "default": "Kids" },
+    { "type": "text", "id": "sub_3", "label": "Subtitle 3", "default": "Back to school" },
+    { "type": "url", "id": "url_3", "label": "URL 3" },
+    { "type": "text", "id": "btn_label_3", "label": "Button 3 label", "default": "View" },
 
-    { "type": "header", "content": "Séparateur Promotion" },
-    { "type": "checkbox", "id": "promo_enable", "label": "Afficher le séparateur promo", "default": true }, // 22
-    { "type": "text", "id": "promo_text", "label": "Texte principal", "default": "Livraison gratuite dès 499 MAD" }, // 23
-    { "type": "text", "id": "promo_btn_label", "label": "Bouton — libellé", "default": "Profiter" }, // 24
-    { "type": "url", "id": "promo_btn_url", "label": "Bouton — URL", "default": "/collections/all" } // 25
+    { "type": "header", "content": "Promo separator" },
+    { "type": "checkbox", "id": "promo_enable", "label": "Show promo separator", "default": true },
+    { "type": "text", "id": "promo_text", "label": "Main text", "default": "Free shipping from 499 MAD" },
+    { "type": "text", "id": "promo_btn_label", "label": "Button label", "default": "Get it" },
+    { "type": "url", "id": "promo_btn_url", "label": "Button URL", "default": "/collections/all" }
   ]
 }
 {% endschema %}
