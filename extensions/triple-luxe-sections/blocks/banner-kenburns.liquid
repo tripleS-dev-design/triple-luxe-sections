@@ -1,38 +1,40 @@
 <section class="tls-kenburns
-  {% if block.settings.full_bleed %} tls-kenburns--bleed{% endif %}
-  {% if block.settings.full_screen %} tls-kenburns--fullscreen{% endif %}
+  {% if section.settings.full_bleed %} tls-kenburns--bleed{% endif %}
+  {% if section.settings.full_screen %} tls-kenburns--fullscreen{% endif %}
 ">
-  {% if block.settings.heading != blank %}
-    <h2 class="tls-kenburns__title">{{ block.settings.heading }}</h2>
+  {% if section.settings.heading != blank %}
+    <h2 class="tls-kenburns__title">{{ section.settings.heading }}</h2>
   {% endif %}
 
   {%- comment -%} Compter le nombre d’images valides {%- endcomment -%}
   {%- assign slide_count = 0 -%}
   {%- for i in (1..5) -%}
     {%- capture key -%}image_{{ i }}{%- endcapture -%}
-    {%- assign img = block.settings[key] -%}
+    {%- assign img = section.settings[key] -%}
     {%- if img != blank -%}{%- assign slide_count = slide_count | plus: 1 -%}{%- endif -%}
   {%- endfor -%}
 
   <div class="tls-kenburns__wrap"
-       style="--kb-speed: {{ block.settings.speed | default: 24 }}s;
-              --kb-height: {{ block.settings.height | default: 520 }}px;
+       style="--kb-speed: {{ section.settings.speed | default: 24 }}s;
+              --kb-height: {{ section.settings.height | default: 520 }}px;
               --kb-count: {{ slide_count | default: 1 }};">
     {%- assign idx = 0 -%}
     {%- for i in (1..5) -%}
       {%- capture key -%}image_{{ i }}{%- endcapture -%}
-      {%- assign img = block.settings[key] -%}
+      {%- assign img = section.settings[key] -%}
       {%- if img != blank -%}
         {%- assign idx = idx | plus: 1 -%}
         <figure class="tls-kenburns__slide" style="--i: {{ idx | minus: 1 }};" aria-hidden="true">
-          <img
-            class="tls-kenburns__img"
-            src="{{ img | image_url: width: 2400 }}"
-            alt=""
-            loading="eager"
-            width="2400"
-            height="1350"
-          >
+          {%- assign is_first = idx == 1 -%}
+          {{ img
+            | image_url: width: 2400
+            | image_tag:
+              class: 'tls-kenburns__img',
+              alt: section.settings.heading | default: 'Banner',
+              loading: is_first | default: true | ternary: 'eager', 'lazy',
+              widths: '1200,1600,2000,2400',
+              sizes: '100vw'
+          }}
         </figure>
       {%- endif -%}
     {%- endfor -%}
@@ -68,7 +70,7 @@
 .tls-kenburns__slide{
   position:absolute; inset:0;
   margin:0; opacity:0;
-  animation-name: kb-fade;                 /* logique de visibilité */
+  animation-name: kb-fade;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-duration: calc(var(--kb-speed) * var(--kb-count));
@@ -90,23 +92,14 @@
 }
 
 /* Ken Burns (zoom doux) */
-@keyframes kb-zoom{
-  0%   { transform: scale(1) }
-  100% { transform: scale(1.08) }
-}
+@keyframes kb-zoom{0%{transform:scale(1)}100%{transform:scale(1.08)}}
 
-/* Fenêtre de visibilité : dès 0% un slide est visible */
-@keyframes kb-fade{
-  0%   { opacity: 1 }
-  72%  { opacity: 1 }
-  82%  { opacity: 0 }
-  100% { opacity: 0 }
-}
+/* Fenêtre de visibilité */
+@keyframes kb-fade{0%{opacity:1}72%{opacity:1}82%{opacity:0}100%{opacity:0}}
 
-/* Responsive : si pas plein écran, hauteur auto adaptée */
-@media (max-width: 990px){
+@media (max-width:990px){
   .tls-kenburns:not(.tls-kenburns--fullscreen) .tls-kenburns__wrap{
-    height: min(60vw, var(--kb-height, 520px));
+    height:min(60vw, var(--kb-height, 520px));
   }
 }
 </style>
