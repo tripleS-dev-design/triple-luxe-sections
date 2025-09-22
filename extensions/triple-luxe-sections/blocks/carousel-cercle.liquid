@@ -27,19 +27,7 @@
         {% endif %}
       {% endfor %}
 
-      {% for i in (1..6) %}
-        {% capture k_img %}image_{{ i }}{% endcapture %}
-        {% capture k_alt %}alt_{{ i }}{% endcapture %}
-        {% capture k_link %}link_{{ i }}{% endcapture %}
-        {% assign img = block.settings[k_img] %}
-        {% assign alt = block.settings[k_alt] %}
-        {% assign lnk = block.settings[k_link] %}
-        {% if img != blank %}
-          <a {% if lnk != blank %}href="{{ lnk }}"{% endif %} class="cm-item" aria-label="{{ alt | escape }}">
-            {{ img | image_url: width: 600 | image_tag: class: 'cm-img', alt: alt, loading: 'lazy' }}
-          </a>
-        {% endif %}
-      {% endfor %}
+
     </div>
   </div>
 </section>
