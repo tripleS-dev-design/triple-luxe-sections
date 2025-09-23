@@ -1,4 +1,3 @@
-svp le text demontratife je veux a gauche svp 
 // app/routes/app._index.jsx — Triple Theme Blocks-Sections · 3 themes (Polaris-only icons)
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouteLoaderData } from "@remix-run/react";
