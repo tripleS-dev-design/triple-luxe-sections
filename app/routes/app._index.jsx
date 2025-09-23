@@ -48,25 +48,25 @@ function useParentData() {
   return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
 }
 
-/* ===== Deep links Theme Editor ===== */
+/* ===== Theme Editor URLs (with activateAppId + addAppBlockId) ===== */
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
-function linkAddBlock({
-  shopSub,
-  template = "index",
-  apiKey,
-  handle,
-  target = "main",
-}) {
-  const base = editorBase({ shopSub });
-  const p = new URLSearchParams({
-    context: "apps",
-    template,
-    target,
-    addAppBlockId: `${apiKey}/${handle}`,
-  });
-  return `${base}?${p.toString()}`;
+function editorLink({ shopSub, template = "index", appId }) {
+  const u = new URL(editorBase({ shopSub }));
+  u.searchParams.set("context", "apps");
+  u.searchParams.set("template", template);
+  if (appId) u.searchParams.set("activateAppId", appId);
+  return u.toString();
+}
+function linkAddBlock({ shopSub, template = "index", appId, blockHandle }) {
+  const u = new URL(editorBase({ shopSub }));
+  u.searchParams.set("context", "apps");
+  u.searchParams.set("template", template);
+  u.searchParams.set("activateAppId", appId);
+  // IMPORTANT : blockHandle doit être le handle EXACT défini dans l’extension de thème
+  u.searchParams.set("addAppBlockId", `${appId}/${blockHandle}`);
+  return u.toString();
 }
 
 /* ===== Light CSS ===== */
@@ -163,7 +163,7 @@ const META = {
   "t2-social-proof": {
     title: "Social Proof",
     icon: StarIcon,
-    desc: "Testimonials / customer reviews.",
+    desc: "Testimonials / customer reviews.\nNote: ships with demo content for preview only.",
   },
 
   // Theme 3 — Triple-S Branding (pro)
@@ -264,8 +264,8 @@ function BlockRow({ shopSub, apiKey, block }) {
               url={linkAddBlock({
                 shopSub,
                 template: block.template,
-                apiKey,
-                handle: block.handle,
+                appId: apiKey,
+                blockHandle: block.handle,
               })}
               target="_top"
               variant="primary"
@@ -273,7 +273,12 @@ function BlockRow({ shopSub, apiKey, block }) {
             >
               Add to theme
             </Button>
-            <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
+            <Button
+              url={editorLink({ shopSub, template: block.template, appId: apiKey })}
+              target="_blank"
+              external
+              icon={ViewIcon}
+            >
               Open editor
             </Button>
           </InlineStack>
@@ -363,7 +368,7 @@ export default function TLSBuilderIndex() {
       secondaryActions={[
         {
           content: "Theme editor",
-          url: editorBase({ shopSub }),
+          url: editorLink({ shopSub, appId: apiKey }),
           target: "_blank",
           external: true,
         },
@@ -371,7 +376,77 @@ export default function TLSBuilderIndex() {
     >
       <InlineCss />
 
-      {/* ===== Explainer banner (EN) ===== */}
+      {/* ===== Setup card (demandé par le review) ===== */}
+      <Card>
+        <Box padding="300">
+          <BlockStack gap="200">
+            <Text as="h3" variant="headingSm">
+              Setup (3 steps)
+            </Text>
+            <BlockStack gap="150">
+              <Box>
+                <Text as="p">
+                  <strong>1) Open Theme Editor</strong> — open the Shopify Theme
+                  Editor with our app activated.
+                </Text>
+                <Button
+                  url={editorLink({ shopSub, template: "index", appId: apiKey })}
+                  target="_blank"
+                  external
+                  icon={ViewIcon}
+                >
+                  Open Theme Editor
+                </Button>
+              </Box>
+
+              <Box>
+                <Text as="p">
+                  <strong>2) Add blocks</strong> — click “Add to theme” next to
+                  any block below, or use these quick links:
+                </Text>
+                <InlineStack gap="200" wrap>
+                  <Button
+                    url={linkAddBlock({
+                      shopSub,
+                      template: "index",
+                      appId: apiKey,
+                      blockHandle: "banner-kenburns",
+                    })}
+                    target="_top"
+                    icon={ThemeEditIcon}
+                  >
+                    Add · Ken Burns Banner
+                  </Button>
+                  <Button
+                    url={linkAddBlock({
+                      shopSub,
+                      template: "index",
+                      appId: apiKey,
+                      blockHandle: "footer-liens",
+                    })}
+                    target="_top"
+                    icon={ThemeEditIcon}
+                  >
+                    Add · Footer Links
+                  </Button>
+                </InlineStack>
+              </Box>
+
+              <Box>
+                <Text as="p">
+                  <strong>3) Customize</strong> — adjust content, colors and
+                  layout directly in the Theme Editor. <em>Note:</em> some blocks
+                  include <strong>demo content for preview only</strong>
+                  (e.g., testimonials). Replace it with your own content before
+                  publishing.
+                </Text>
+              </Box>
+            </BlockStack>
+          </BlockStack>
+        </Box>
+      </Card>
+
+      {/* ===== Info banner ===== */}
       <Box paddingBlockEnd="200">
         <Banner tone="info" title="How Triple Theme Blocks-Sections works">
           <BlockStack gap="100">
@@ -379,7 +454,7 @@ export default function TLSBuilderIndex() {
               • Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).
             </Text>
             <Text as="p">
-              • Pick a theme above, then click <em>Add to theme</em> on any block.
+              • Pick a theme below, then click <em>Add to theme</em> on any block.
             </Text>
             <Text as="p">
               • Every block is <strong>fully customizable</strong> from the Theme Editor (content, colors, layout).
@@ -433,7 +508,12 @@ export default function TLSBuilderIndex() {
               Quick links
             </Text>
             <BlockStack gap="200">
-              <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
+              <Button
+                url={editorLink({ shopSub, appId: apiKey })}
+                target="_blank"
+                external
+                icon={ViewIcon}
+              >
                 Open Theme Editor
               </Button>
               <InlineStack gap="200" wrap>
@@ -441,8 +521,8 @@ export default function TLSBuilderIndex() {
                   url={linkAddBlock({
                     shopSub,
                     template: "index",
-                    apiKey,
-                    handle: "banner-kenburns",
+                    appId: apiKey,
+                    blockHandle: "banner-kenburns",
                   })}
                   target="_top"
                   icon={ThemeEditIcon}
@@ -453,8 +533,8 @@ export default function TLSBuilderIndex() {
                   url={linkAddBlock({
                     shopSub,
                     template: "index",
-                    apiKey,
-                    handle: "footer-liens",
+                    appId: apiKey,
+                    blockHandle: "footer-liens",
                   })}
                   target="_top"
                   icon={ThemeEditIcon}
@@ -473,7 +553,7 @@ export default function TLSBuilderIndex() {
           <Box padding="300">
             <BlockStack gap="150">
               <Text as="h3" variant="headingSm">
-                Boost announcements 
+                Boost announcements
               </Text>
               <Text as="p" tone="subdued">
                 Try our <strong>Triple Announcement Bar</strong> app to promote sales,
