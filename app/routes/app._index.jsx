@@ -68,31 +68,41 @@ const LAYOUT_CSS = `
   .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
 
-  /* Left sticky explainer (uses admin left empty gutter) */
+  /* === Side cards (fixed) === */
   .tls-left-explain {
     position: fixed;
     top: 110px;            /* under page title */
     left: 24px;
     width: 340px;
-    max-width: calc(100vw - 32px);
     z-index: 55;
     pointer-events: auto;
   }
-
-  /* Right sticky promo (existing) */
   .tls-right-promo {
     position: fixed;
     top: 110px;
     right: 24px;
     width: 300px;
-    max-width: calc(100vw - 32px);
     z-index: 55;
     pointer-events: auto;
   }
 
-  /* Hide both sticky side cards on small admin widths */
+  /* === Main column — keep clear of side cards === */
+  .tls-main{
+    /* 340(left) + 24 gap = 364 | 300(right) + 24 gap = 324 */
+    margin-left: 364px;
+    margin-right: 324px;
+  }
+
+  /* Medium screens: hide right promo first, keep left explainer */
+  @media (max-width: 1600px){
+    .tls-right-promo { display:none; }
+    .tls-main { margin-right: 24px; }
+  }
+
+  /* Small admin widths: hide both side cards and reset margins */
   @media (max-width: 1400px){
-    .tls-left-explain, .tls-right-promo { display:none; }
+    .tls-left-explain { display:none; }
+    .tls-main { margin: 0 24px; }
   }
 `;
 function InlineCss() {
@@ -276,7 +286,7 @@ export default function TLSBuilderIndex() {
     >
       <InlineCss />
 
-      {/* ===== LEFT sticky explainer ===== */}
+      {/* LEFT sticky explainer */}
       <div className="tls-left-explain" aria-hidden={false}>
         <Card>
           <Box padding="300">
@@ -285,71 +295,74 @@ export default function TLSBuilderIndex() {
               <Text as="p">• Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).</Text>
               <Text as="p">• Pick a theme above, then click <em>Add to theme</em> on any block.</Text>
               <Text as="p">• Every block is <strong>fully customizable</strong> from the Theme Editor (content, colors, layout).</Text>
-              <Text as="p">• You can add a single block or <strong>all blocks</strong> — your choice.</Text>
+              <Text as="p">• Add one block or <strong>all blocks</strong> — your choice.</Text>
               <Text as="p">• Design faster with our presets for a professional storefront in minutes.</Text>
             </BlockStack>
           </Box>
         </Card>
       </div>
 
-      <BlockStack gap="400">
-        <Card>
-          <Box padding="300">
-            <InlineStack gap="200" wrap>
-              {THEMES.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  className="tls-theme-chip"
-                  data-on={themeKey === t.key ? 1 : 0}
-                  onClick={() => setThemeKey(t.key)}
-                  title={t.desc}
-                  role="switch"
-                  aria-checked={themeKey === t.key}
-                >
-                  <span style={{ fontSize: 16, marginRight: 6 }}>{t.emoji}</span>
-                  <span style={{ fontWeight: 700 }}>{t.label}</span>
-                  <span style={{ marginLeft: 8 }}><Badge>{countBlocks(t)}</Badge></span>
-                </button>
-              ))}
-            </InlineStack>
-            <Box paddingBlockStart="200">
-              <Text as="p" tone="subdued">{theme.desc}</Text>
-            </Box>
-          </Box>
-        </Card>
-
-        <ThemeBlocksView theme={theme} shopSub={shopSub} apiKey={apiKey} />
-
-        <Card>
-          <Box padding="300">
-            <Text as="h3" variant="headingSm">Quick links</Text>
-            <BlockStack gap="200">
-              <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
-                Open Theme Editor
-              </Button>
+      {/* CENTER column */}
+      <div className="tls-main">
+        <BlockStack gap="400">
+          <Card>
+            <Box padding="300">
               <InlineStack gap="200" wrap>
-                <Button
-                  url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "banner-kenburns" })}
-                  target="_top"
-                  icon={ThemeEditIcon}
-                >
-                  Try · Ken Burns Banner
-                </Button>
-                <Button
-                  url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "footer-liens" })}
-                  target="_top"
-                  icon={ThemeEditIcon}
-                >
-                  Try · Footer Links
-                </Button>
+                {THEMES.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    className="tls-theme-chip"
+                    data-on={themeKey === t.key ? 1 : 0}
+                    onClick={() => setThemeKey(t.key)}
+                    title={t.desc}
+                    role="switch"
+                    aria-checked={themeKey === t.key}
+                  >
+                    <span style={{ fontSize: 16, marginRight: 6 }}>{t.emoji}</span>
+                    <span style={{ fontWeight: 700 }}>{t.label}</span>
+                    <span style={{ marginLeft: 8 }}><Badge>{countBlocks(t)}</Badge></span>
+                  </button>
+                ))}
               </InlineStack>
-            </BlockStack>
-          </Box>
-        </Card>
-      </BlockStack>
+              <Box paddingBlockStart="200">
+                <Text as="p" tone="subdued">{theme.desc}</Text>
+              </Box>
+            </Box>
+          </Card>
 
-      {/* ===== Right sticky promo card ===== */}
+          <ThemeBlocksView theme={theme} shopSub={shopSub} apiKey={apiKey} />
+
+          <Card>
+            <Box padding="300">
+              <Text as="h3" variant="headingSm">Quick links</Text>
+              <BlockStack gap="200">
+                <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
+                  Open Theme Editor
+                </Button>
+                <InlineStack gap="200" wrap>
+                  <Button
+                    url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "banner-kenburns" })}
+                    target="_top"
+                    icon={ThemeEditIcon}
+                  >
+                    Try · Ken Burns Banner
+                  </Button>
+                  <Button
+                    url={linkAddBlock({ shopSub, template: "index", apiKey, handle: "footer-liens" })}
+                    target="_top"
+                    icon={ThemeEditIcon}
+                  >
+                    Try · Footer Links
+                  </Button>
+                </InlineStack>
+              </BlockStack>
+            </Box>
+          </Card>
+        </BlockStack>
+      </div>
+
+      {/* RIGHT sticky promo card */}
       <div className="tls-right-promo" aria-hidden={false}>
         <Card>
           <Box padding="300">
@@ -365,7 +378,7 @@ export default function TLSBuilderIndex() {
         </Card>
       </div>
 
-      {/* ===== Floating buttons (YouTube / WhatsApp) ===== */}
+      {/* Floating buttons */}
       <div style={{ pointerEvents: "none" }}>
         <a
           href={YOUTUBE_URL}
