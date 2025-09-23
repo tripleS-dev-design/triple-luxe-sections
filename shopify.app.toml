@@ -1,10 +1,10 @@
 # Learn more: https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "bfb33fe92c4274f1ba39275effdb6c25"
-name = "Triple-Luxe-Sections"
+name = "Triple Theme Blocks-Sections"
 application_url = "https://triple-luxe-sections-1.onrender.com"
 embedded = true
-handle = "triple-luxe-sections"   # ← Doit matcher l'URL admin de pricing_plans
+handle = "triple-theme-blocks-sections"   # ← doit matcher le slug/URL côté Admin (pricing_plans)
 
 [build]
 automatically_update_urls_on_dev = true
