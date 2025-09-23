@@ -1,4 +1,4 @@
-// app/routes/app._index.jsx — TLS · 3 themes (Polaris-only icons)
+// app/routes/app._index.jsx — Triple Theme Blocks-Sections · 3 themes (Polaris-only icons)
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouteLoaderData } from "@remix-run/react";
 import {
@@ -23,7 +23,7 @@ import {
 
 /* ===== externals (YouTube / WhatsApp / Promo) ===== */
 const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ";          // change if needed
-const WHATSAPP_URL = "https://wa.me/212681570887";            // wa.me without '+'
+const WHATSAPP_URL = "https://wa.me/212681570887";           // wa.me without '+'
 const PROMO_URL =
   "https://apps.shopify.com/announcement-bar-app-1?locale=fr&search_id=fe6f0bc9-6312-4be5-b8b1-5240df16264e&surface_detail=triple-annoucncemnt-bar&surface_inter_position=1&surface_intra_position=18&surface_type=search";
 
@@ -358,7 +358,7 @@ export default function TLSBuilderIndex() {
 
   return (
     <Page
-      title="Triple-Luxe-Sections"
+      title="Triple Theme Blocks-Sections"
       subtitle="Choose a theme • Add blocks in 1 click"
       secondaryActions={[
         {
@@ -373,7 +373,7 @@ export default function TLSBuilderIndex() {
 
       {/* ===== Explainer banner (EN) ===== */}
       <Box paddingBlockEnd="200">
-        <Banner tone="info" title="How Triple-Luxe-Sections works">
+        <Banner tone="info" title="How Triple Theme Blocks-Sections works">
           <BlockStack gap="100">
             <Text as="p">
               • Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).
