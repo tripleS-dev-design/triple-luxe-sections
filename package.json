@@ -1,5 +1,5 @@
 {
-  "name": "triple-luxe-sections",
+  "name": "triple theme blocks-sections",
   "private": true,
   "scripts": {
     "build": "remix vite:build",
