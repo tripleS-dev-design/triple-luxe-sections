@@ -473,7 +473,7 @@ export default function TLSBuilderIndex() {
           <Box padding="300">
             <BlockStack gap="150">
               <Text as="h3" variant="headingSm">
-                Boost announcements (FREE)
+                Boost announcements 
               </Text>
               <Text as="p" tone="subdued">
                 Try our <strong>Triple Announcement Bar</strong> app to promote sales,
