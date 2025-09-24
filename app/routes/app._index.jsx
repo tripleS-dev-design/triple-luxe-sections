@@ -53,16 +53,17 @@ function useParentData() {
    👉 addAppBlockId = {API_KEY}/{handle}
 ================================ */
 function editorBase({ shopSub }) {
-  // admin.shopify.com est le plus fiable et ne hardcode pas de boutique
+  // admin.shopify.com est le plus fiable
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
 
-/** Ouvre l’éditeur (onglet Apps) */
-function openEditorLink({ shopSub, template = "index" }) {
+/** Ouvre l’éditeur avec l’app activée (utile pour l’onglet Apps du Theme Editor) */
+function editorLink({ shopSub, template = "index", apiKey }) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
     context: "apps",
     template,
+    activateAppId: apiKey,
     enable_app_theme_extension_dev_preview: "1",
   });
   return `${base}?${p.toString()}`;
@@ -73,8 +74,8 @@ function makeAddBlockLink({
   shopSub,
   apiKey,
   template = "index",
-  handle,                // ex: "banner-kenburns" (nom du .liquid dans /blocks)
-  target = "newAppsSection", // "newAppsSection" | "mainSection" | "sectionGroup:header" | `sectionId:${id}`
+  handle, // ex: "banner-kenburns" (nom du .liquid dans /blocks)
+  target = "newAppsSection", // "newAppsSection" | "main" | "mainSection" | "sectionGroup:header" | `sectionId:${id}`
 }) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
@@ -284,7 +285,8 @@ function BlockRow({ shopSub, apiKey, block }) {
                 apiKey,
                 template: block.template,
                 handle: block.handle,
-                target: "newAppsSection",
+                // si besoin, remplace "newAppsSection" par "main"
+                // target: "main",
               })}
               target="_top"
               variant="primary"
@@ -293,7 +295,7 @@ function BlockRow({ shopSub, apiKey, block }) {
               Add to theme
             </Button>
             <Button
-              url={openEditorLink({ shopSub, template: block.template })}
+              url={editorLink({ shopSub, template: block.template, apiKey })}
               target="_blank"
               external
               icon={ViewIcon}
@@ -387,7 +389,7 @@ export default function TLSBuilderIndex() {
       secondaryActions={[
         {
           content: "Theme editor",
-          url: openEditorLink({ shopSub, template: "index" }),
+          url: editorLink({ shopSub, template: "index", apiKey }),
           target: "_blank",
           external: true,
         },
@@ -395,7 +397,7 @@ export default function TLSBuilderIndex() {
     >
       <InlineCss />
 
-      {/* ===== Setup card (review friendly) ===== */}
+      {/* ===== Setup card (demandé par le review) ===== */}
       <Card>
         <Box padding="300">
           <BlockStack gap="200">
@@ -406,10 +408,10 @@ export default function TLSBuilderIndex() {
               <Box>
                 <Text as="p">
                   <strong>1) Open Theme Editor</strong> — open the Shopify Theme
-                  Editor with our app section.
+                  Editor with our app activated.
                 </Text>
                 <Button
-                  url={openEditorLink({ shopSub, template: "index" })}
+                  url={editorLink({ shopSub, template: "index", apiKey })}
                   target="_blank"
                   external
                   icon={ViewIcon}
@@ -430,7 +432,6 @@ export default function TLSBuilderIndex() {
                       apiKey,
                       template: "index",
                       handle: "banner-kenburns",
-                      target: "newAppsSection",
                     })}
                     target="_top"
                     icon={ThemeEditIcon}
@@ -443,7 +444,6 @@ export default function TLSBuilderIndex() {
                       apiKey,
                       template: "index",
                       handle: "footer-liens",
-                      target: "newAppsSection",
                     })}
                     target="_top"
                     icon={ThemeEditIcon}
@@ -456,8 +456,8 @@ export default function TLSBuilderIndex() {
               <Box>
                 <Text as="p">
                   <strong>3) Customize</strong> — adjust content, colors and
-                  layout directly in the Theme Editor. <em>Note:</em> some blocks
-                  include <strong>demo content for preview only</strong>.
+                  layout directly in the Theme Editor.</strong>
+                  publishing.
                 </Text>
               </Box>
             </BlockStack>
@@ -465,28 +465,6 @@ export default function TLSBuilderIndex() {
         </Box>
       </Card>
 
-      {/* ===== Info banner ===== */}
-      <Box paddingBlockEnd="200">
-        <Banner tone="info" title="How Triple Theme Blocks-Sections works">
-          <BlockStack gap="100">
-            <Text as="p">
-              • Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).
-            </Text>
-            <Text as="p">
-              • Pick a theme below, then click <em>Add to theme</em> on any block.
-            </Text>
-            <Text as="p">
-              • Every block is <strong>fully customizable</strong> from the Theme Editor (content, colors, layout).
-            </Text>
-            <Text as="p">
-              • You can add a single block or <strong>all blocks</strong> to your theme — your choice.
-            </Text>
-            <Text as="p">
-              • Design faster: our presets help you build a professional storefront in minutes.
-            </Text>
-          </BlockStack>
-        </Banner>
-      </Box>
 
       <BlockStack gap="400">
         <Card>
@@ -528,7 +506,7 @@ export default function TLSBuilderIndex() {
             </Text>
             <BlockStack gap="200">
               <Button
-                url={openEditorLink({ shopSub, template: "index" })}
+                url={editorLink({ shopSub, template: "index", apiKey })}
                 target="_blank"
                 external
                 icon={ViewIcon}
@@ -542,7 +520,6 @@ export default function TLSBuilderIndex() {
                     apiKey,
                     template: "index",
                     handle: "banner-kenburns",
-                    target: "newAppsSection",
                   })}
                   target="_top"
                   icon={ThemeEditIcon}
@@ -555,7 +532,6 @@ export default function TLSBuilderIndex() {
                     apiKey,
                     template: "index",
                     handle: "footer-liens",
-                    target: "newAppsSection",
                   })}
                   target="_top"
                   icon={ThemeEditIcon}
