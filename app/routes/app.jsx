@@ -7,12 +7,13 @@ import styles from "@shopify/polaris/build/esm/styles.css?url";
 
 export const links = () => [{ rel: "stylesheet", href: styles }];
 
-/** Helper: استخرج shop من host (base64) أو من الـ path ديال admin.shopify.com */
+/** استخرج shop من host (base64) أو من نص الدومين */
 function extractShopFromHostParam(hostB64) {
   try {
     const decoded = Buffer.from(hostB64, "base64").toString("utf8");
-    // أمثلة decoded:
-    // "admin.shopify.com/store/samifinal" أو "samifinal.myshopify.com/admin"
+    // أمثلة محتملة:
+    // "admin.shopify.com/store/samifinal"
+    // "samifinal.myshopify.com/admin"
     const m1 = decoded.match(/\/store\/([^/]+)/); // admin.shopify.com/store/<sub>
     if (m1?.[1]) return `${m1[1].toLowerCase()}.myshopify.com`;
     const m2 = decoded.match(/([^./]+)\.myshopify\.com/i);
@@ -22,61 +23,51 @@ function extractShopFromHostParam(hostB64) {
 }
 
 export const loader = async ({ request }) => {
-  // نجيب الـ SDK من shopify.server (فرضًا عندك default export سميتو shopify)
-  const shopify = (await import("../shopify.server")).default;
+  // Shopify Remix v3: كنستعمل authenticate فقط
+  const { authenticate } = await import("../shopify.server");
 
   const url = new URL(request.url);
   let qsShop = (url.searchParams.get("shop") || "").toLowerCase();
   if (qsShop && !qsShop.endsWith(".myshopify.com")) {
-    // لو جا غير sub (نادرًا)، كنكملو الدومين
     qsShop = `${qsShop}.myshopify.com`;
   }
 
-  // جرّب نستخرج المتجر من host إذا ما عطاناش ?shop
+  // جرّب host إلى ما كانش ?shop
   if (!qsShop) {
     const hostB64 = url.searchParams.get("host");
-    const shopFromHost = hostB64 ? extractShopFromHostParam(hostB64) : "";
-    if (shopFromHost) qsShop = shopFromHost;
+    const fromHost = hostB64 ? extractShopFromHostParam(hostB64) : "";
+    if (fromHost) qsShop = fromHost;
   }
 
-  // Auth (كترد session إلا كانت صالحة، ولا كتدي للـ OAuth إلا خاص)
-  const { session } = await shopify.authenticate.admin(request).catch(() => ({ session: null }));
+  // جرّب تصادق (غادي يرد session إلا كانت)
+  const { session } = await authenticate
+    .admin(request)
+    .catch(() => ({ session: null }));
 
   const sessionShop = (session?.shop || "").toLowerCase();
 
-  // CASE A: كاين ?shop (أو host) و مختلف على session → نبدّلو الكونتكست به
+  // A) عندي session و shop فالكواري ومختلفين → نكمّل OAuth للـ qsShop
   if (qsShop && sessionShop && sessionShop !== qsShop) {
-    const authUrl = await shopify.auth.begin({
-      shop: qsShop,
-      callbackPath: "/auth/callback",
-      isOnline: false,
-      request,
-    });
-    throw redirect(authUrl);
+    throw redirect(`/auth?shop=${encodeURIComponent(qsShop)}`);
   }
 
-  // CASE B: ما كايناش session و عندنا qsShop → نكمّلو OAuth لهاد المتجر
+  // B) ما عنديش session ولكن عندي qsShop → بدا OAuth
   if (!sessionShop && qsShop) {
-    const authUrl = await shopify.auth.begin({
-      shop: qsShop,
-      callbackPath: "/auth/callback",
-      isOnline: false,
-      request,
-    });
-    throw redirect(authUrl);
+    throw redirect(`/auth?shop=${encodeURIComponent(qsShop)}`);
   }
 
-  // CASE C: ما عندنا لا session لا qsShop → خلّي Shopify يكمّل الإنستال
+  // C) لا session لا qsShop → رجّع للمسار العام ديال auth/login
   if (!sessionShop && !qsShop) {
-    // توجيه لصفحة لوجين/إنستال العامة ديالك (حسب إعداداتك)
+    // هادي هي صفحة البدء اللي كتجي مع تيمبلايت Shopify
     throw redirect("/auth/login");
   }
 
-  // المتجر الفعّال
+  // دابا حددنا المتجر الفعّال:
   const activeShop = (sessionShop || qsShop).toLowerCase();
   const shopSub = activeShop.replace(".myshopify.com", "");
   const apiKey = process.env.SHOPIFY_API_KEY || "";
 
+  // هاد القيم هما اللي كياخدهم app._index.jsx عبر useRouteLoaderData("routes/app")
   return json({ shopSub, apiKey });
 };
 
