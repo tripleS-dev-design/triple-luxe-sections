@@ -22,8 +22,8 @@ import {
 } from "@shopify/polaris-icons";
 
 /* ===== externals (YouTube / WhatsApp / Promo) ===== */
-const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ";          // change if needed
-const WHATSAPP_URL = "https://wa.me/212681570887";           // wa.me without '+'
+const YOUTUBE_URL = "https://youtu.be/kqtaJU14qzQ";
+const WHATSAPP_URL = "https://wa.me/212681570887";
 const PROMO_URL =
   "https://apps.shopify.com/announcement-bar-app-1?locale=fr&search_id=fe6f0bc9-6312-4be5-b8b1-5240df16264e&surface_detail=triple-annoucncemnt-bar&surface_inter_position=1&surface_intra_position=18&surface_type=search";
 
@@ -43,9 +43,22 @@ const BUTTON_FAB = {
   backgroundColor: "#000",
 };
 
-/* ===== get parent data (shopSub, apiKey) ===== */
+/* ===== helper: get shopSub from top admin URL (always current store) ===== */
+function getTopShopSub() {
+  try {
+    const path = window.top?.location?.pathname || "";
+    // ex: /store/my-shop/themes/... => capture "my-shop"
+    const m = path.match(/\/store\/([^/]+)/);
+    if (m && m[1]) return m[1];
+  } catch {}
+  return null;
+}
+
+/* ===== get parent data (fallback apiKey + shopSub) ===== */
 function useParentData() {
-  return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
+  const pd = useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
+  const topShop = getTopShopSub();
+  return { shopSub: topShop || pd.shopSub, apiKey: pd.apiKey };
 }
 
 /* ==============================
@@ -53,11 +66,10 @@ function useParentData() {
    👉 addAppBlockId = {API_KEY}/{handle}
 ================================ */
 function editorBase({ shopSub }) {
-  // admin.shopify.com est le plus fiable
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
 
-/** Ouvre l’éditeur avec l’app activée (utile pour l’onglet Apps du Theme Editor) */
+/** Ouvre l’éditeur avec l’app activée */
 function editorLink({ shopSub, template = "index", apiKey }) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
@@ -74,7 +86,7 @@ function makeAddBlockLink({
   shopSub,
   apiKey,
   template = "index",
-  handle, // ex: "banner-kenburns" (nom du .liquid dans /blocks)
+  handle,
   target = "newAppsSection", // "newAppsSection" | "main" | "mainSection" | "sectionGroup:header" | `sectionId:${id}`
 }) {
   const base = editorBase({ shopSub });
@@ -100,10 +112,9 @@ const LAYOUT_CSS = `
   .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
 
-  /* Right sticky promo card (uses admin right empty gutter) */
   .tls-right-promo {
     position: fixed;
-    top: 110px;               /* sits under the page title */
+    top: 110px;
     right: 24px;
     width: 300px;
     max-width: calc(100vw - 32px);
@@ -111,17 +122,15 @@ const LAYOUT_CSS = `
     pointer-events: auto;
   }
   @media (max-width: 1400px){
-    .tls-right-promo{ display:none; } /* hide on smaller admin widths */
+    .tls-right-promo{ display:none; }
   }
 `;
-/* inject CSS at first paint (avoid CLS) */
 function InlineCss() {
   return <style id="tls-layout-css">{LAYOUT_CSS}</style>;
 }
 
 /* ===== META (Polaris icons only) ===== */
 const META = {
-  // Theme 1 — Tech
   "header-informatique": {
     title: "Header — Tech",
     icon: ThemeEditIcon,
@@ -158,7 +167,6 @@ const META = {
     desc: "2–4 link columns.",
   },
 
-  // Theme 2 — Fashion
   "t2-header-fashion": {
     title: "Header — Fashion",
     icon: ThemeEditIcon,
@@ -185,7 +193,6 @@ const META = {
     desc: "Testimonials / customer reviews.\nNote: ships with demo content for preview only.",
   },
 
-  // Theme 3 — Triple-S Branding (pro)
   "tls3-hero-brand-video-pro": {
     title: "Hero Video — Brand Pro",
     icon: ImageIcon,
@@ -234,18 +241,15 @@ const THEMES = [
     label: "Triple-S Branding",
     emoji: "✨",
     desc: "All blocks in one place (branding + tech + fashion).",
-    header: { handle: "header-informatique", template: "index" }, // default header
+    header: { handle: "header-informatique", template: "index" },
     content: [
-      // Pro
       { handle: "tls3-hero-brand-video-pro", template: "index" },
       { handle: "tls3-founders-story-pro", template: "index" },
-      // Tech
       { handle: "banner-kenburns", template: "index" },
       { handle: "carousel-cercle", template: "index" },
       { handle: "product-grid-glow", template: "index" },
       { handle: "packs-descriptifs", template: "index" },
       { handle: "social-icons", template: "index" },
-      // Fashion
       { handle: "t2-hero-runway", template: "index" },
       { handle: "t2-categories-pills", template: "index" },
       { handle: "t2-products-grid", template: "index" },
@@ -285,8 +289,6 @@ function BlockRow({ shopSub, apiKey, block }) {
                 apiKey,
                 template: block.template,
                 handle: block.handle,
-                // si besoin, remplace "newAppsSection" par "main"
-                // target: "main",
               })}
               target="_top"
               variant="primary"
@@ -397,7 +399,7 @@ export default function TLSBuilderIndex() {
     >
       <InlineCss />
 
-      {/* ===== Setup card (demandé par le review) ===== */}
+      {/* ===== Setup card ===== */}
       <Card>
         <Box padding="300">
           <BlockStack gap="200">
@@ -456,8 +458,8 @@ export default function TLSBuilderIndex() {
               <Box>
                 <Text as="p">
                   <strong>3) Customize</strong> — adjust content, colors and
-                  layout directly in the Theme Editor.</strong>
-                  publishing.
+                  layout directly in the Theme Editor. <em>Note:</em> some blocks
+                  include <strong>demo content for preview only</strong>.
                 </Text>
               </Box>
             </BlockStack>
@@ -465,6 +467,18 @@ export default function TLSBuilderIndex() {
         </Box>
       </Card>
 
+      {/* ===== Info banner ===== */}
+      <Box paddingBlockEnd="200">
+        <Banner tone="info" title="How Triple Theme Blocks-Sections works">
+          <BlockStack gap="100">
+            <Text as="p">• Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).</Text>
+            <Text as="p">• Pick a theme below, then click <em>Add to theme</em> on any block.</Text>
+            <Text as="p">• Every block is <strong>fully customizable</strong> from the Theme Editor.</Text>
+            <Text as="p">• You can add a single block or <strong>all blocks</strong> — your choice.</Text>
+            <Text as="p">• Presets help you build fast.</Text>
+          </BlockStack>
+        </Banner>
+      </Box>
 
       <BlockStack gap="400">
         <Card>
@@ -544,14 +558,11 @@ export default function TLSBuilderIndex() {
         </Card>
       </BlockStack>
 
-      {/* ===== Right sticky promo card (uses the empty right gutter) ===== */}
       <div className="tls-right-promo" aria-hidden={false}>
         <Card>
           <Box padding="300">
             <BlockStack gap="150">
-              <Text as="h3" variant="headingSm">
-                Boost announcements
-              </Text>
+              <Text as="h3" variant="headingSm">Boost announcements</Text>
               <Text as="p" tone="subdued">
                 Try our <strong>Triple Announcement Bar</strong> app to promote sales,
                 shipping, and news at the top of your store.
@@ -564,38 +575,26 @@ export default function TLSBuilderIndex() {
         </Card>
       </div>
 
-      {/* ===== Floating buttons wrapper: no overlay on the page ===== */}
+      {/* FABs */}
       <div style={{ pointerEvents: "none" }}>
-        {/* YouTube (bottom-right) */}
         <a
           href={YOUTUBE_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="YouTube tutorial"
-          style={{
-            ...BUTTON_FAB,
-            right: "24px",
-            backgroundColor: "#FF0000",
-            pointerEvents: "auto",
-          }}
+          style={{ ...BUTTON_FAB, right: "24px", backgroundColor: "#FF0000", pointerEvents: "auto" }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 576 512" fill="#fff" aria-hidden="true">
             <path d="M549.7 124.1c-6.3-23.7-24.9-42.3-48.6-48.6C458.8 64 288 64 288 64S117.2 64 74.9 75.5c-23.7 6.3-42.3 24.9-48.6 48.6C15.9 166.3 16 256 16 256s0 89.7 10.3 131.9c6.3 23.7 24.9 42.3 48.6 48.6C117.2 448 288 448 288 448s170.8 0 213.1-11.5c23.7-6.3 42.3-24.9 48.6-48.6C560.1 345.7 560 256 560 256s.1-89.7-10.3-131.9zM232 336V176l142 80-142 80z"/>
           </svg>
         </a>
 
-        {/* WhatsApp (bottom-left) */}
         <a
           href={WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="WhatsApp support"
-          style={{
-            ...BUTTON_FAB,
-            left: "24px",
-            backgroundColor: "#25D366",
-            pointerEvents: "auto",
-          }}
+          style={{ ...BUTTON_FAB, left: "24px", backgroundColor: "#25D366", pointerEvents: "auto" }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 448 512" fill="#fff" aria-hidden="true">
             <path d="M380.9 97.1C339.4 55.6 283.3 32 224 32S108.6 55.6 67.1 97.1C25.6 138.6 2 194.7 2 254c0 45.3 13.5 89.3 39 126.7L0 480l102.6-38.7C140 481.5 181.7 494 224 494c59.3 0 115.4-23.6 156.9-65.1C422.4 370.6 446 314.5 446 254s-23.6-115.4-65.1-156.9zM224 438c-37.4 0-73.5-11.1-104.4-32l-7.4-4.9-61.8 23.3 23.2-60.6-4.9-7.6C50.1 322.9 38 289.1 38 254c0-102.6 83.4-186 186-186s186 83.4 186 186-83.4 186-186 186zm101.5-138.6c-5.5-2.7-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.7-12.5 2.7s-14.3 17.9-17.5 21.6c-3.2 3.7-6.4 4.1-11.9 1.4s-23.2-8.5-44.2-27.1c-16.3-14.5-27.3-32.4-30.5-37.9-3.2-5.5-.3-8.5 2.4-11.2 2.5-2.5 5.5-6.4 8.3-9.6 2.8-3.2 3.7-5.5 5.5-9.2s.9-6.9-.5-9.6c-1.4-2.7-12.5-30.1-17.2-41.3-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2s-9.6 1.4-14.6 6.9-19.2 18.7-19.2 45.7 19.7 53 22.4 56.7c2.7 3.7 38.6 59.1 93.7 82.8 13.1 5.7 23.3 9.1 31.3 11.7 13.1 4.2 25.1 3.6 34.6 2.2 10.5-1.6 32.7-13.4 37.3-26.3 4.6-12.7 4.6-23.5 3.2-25.7-1.4-2.2-5-3.6-10.5-6.2z"/>
