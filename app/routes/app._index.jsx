@@ -368,7 +368,7 @@ export default function TLSBuilderIndex() {
       secondaryActions={[
         {
           content: "Theme editor",
-          url: editorLink({ shopSub, appId: apiKey }),
+          url: editorLink({ shopSub, template: "index", appId: apiKey }),
           target: "_blank",
           external: true,
         },
@@ -446,28 +446,7 @@ export default function TLSBuilderIndex() {
         </Box>
       </Card>
 
-      {/* ===== Info banner ===== */}
-      <Box paddingBlockEnd="200">
-        <Banner tone="info" title="How Triple Theme Blocks-Sections works">
-          <BlockStack gap="100">
-            <Text as="p">
-              • Add blocks directly from the <strong>Shopify Theme Editor</strong> (no code).
-            </Text>
-            <Text as="p">
-              • Pick a theme below, then click <em>Add to theme</em> on any block.
-            </Text>
-            <Text as="p">
-              • Every block is <strong>fully customizable</strong> from the Theme Editor (content, colors, layout).
-            </Text>
-            <Text as="p">
-              • You can add a single block or <strong>all blocks</strong> to your theme — your choice.
-            </Text>
-            <Text as="p">
-              • Design faster: our presets help you build a professional storefront in minutes.
-            </Text>
-          </BlockStack>
-        </Banner>
-      </Box>
+
 
       <BlockStack gap="400">
         <Card>
@@ -509,7 +488,7 @@ export default function TLSBuilderIndex() {
             </Text>
             <BlockStack gap="200">
               <Button
-                url={editorLink({ shopSub, appId: apiKey })}
+                url={editorLink({ shopSub, template: "index", appId: apiKey })}
                 target="_blank"
                 external
                 icon={ViewIcon}
