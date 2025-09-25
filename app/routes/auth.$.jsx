@@ -1,11 +1,27 @@
 // app/routes/auth.$.jsx
 import { redirect } from "@remix-run/node";
-import { shopify, registerWebhooks } from "../shopify.server";
+import { authenticate, registerWebhooks } from "../shopify.server";
 
-export async function loader({ request }) {
-  const { session } = await shopify.authenticate.admin(request);
-  // Inscrire/mettre à jour toutes les subscriptions déclarées dans shopify.server.js
-  await registerWebhooks({ session });
-  // redirige vers ton UI embarquée
-  return redirect("/app");
-}
+/**
+ * Gère les 2 phases:
+ *  - GET /auth?shop=...           -> begin OAuth
+ *  - GET /auth/callback?code=...  -> finish OAuth
+ */
+export const loader = async ({ request }) => {
+  const url = new URL(request.url);
+  const pathname = url.pathname.toLowerCase();
+
+  // --- Callback phase ---
+  if (pathname.endsWith("/auth/callback")) {
+    const { session, headers } = await authenticate.callback(request);
+    // (optionnel) بعد نجاح الأوث، سجل/حدّث الويبهوكس
+    await registerWebhooks({ session });
+
+    const host = url.searchParams.get("host") || "";
+    const shop = (session?.shop || "").toLowerCase();
+    return redirect(`/app?shop=${shop}&host=${host}`, { headers });
+  }
+
+  // --- Begin phase (/auth?shop=...) ---
+  return authenticate.begin(request);
+};
