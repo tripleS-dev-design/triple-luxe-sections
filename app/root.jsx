@@ -1,13 +1,11 @@
+// app/root.jsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
-// Autoriser l'embed dans l'Admin Shopify (et *.myshopify.com)
-export const headers = () => {
-  return {
-    "Content-Security-Policy":
-      "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
-    "Referrer-Policy": "origin-when-cross-origin",
-  };
-};
+export const headers = () => ({
+  "Content-Security-Policy": "frame-ancestors https://admin.shopify.com https://*.myshopify.com;",
+  "Referrer-Policy": "origin-when-cross-origin",
+  "Cache-Control": "no-store",
+});
 
 export default function Root() {
   return (
