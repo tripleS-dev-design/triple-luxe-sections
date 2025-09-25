@@ -15,7 +15,7 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 /**
  * IMPORTANT :
  * - Ne pas try/catch authenticate.admin(request)
- * - S’il n’y a pas de session, il redirige tout seul vers /auth
+ * - S’il n’y a pas de session, il redirige vers /auth automatiquement
  */
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
@@ -49,11 +49,3 @@ export default function AppRoute() {
 export function ErrorBoundary() {
   return boundary.error(useRouteError());
 }
-
-export const headers = (args) => {
-  // boundary.headers peut retourner undefined/HeadersInit selon versions -> on normalise
-  const base = boundary.headers(args);
-  const h = new Headers(base || undefined);
-  h.set("Cache-Control", "no-store");
-  return h;
-};
