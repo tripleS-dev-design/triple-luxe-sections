@@ -1,19 +1,16 @@
-// app/routes/app.jsx
 import { json } from "@remix-run/node";
 import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
-
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import fr from "@shopify/polaris/locales/fr.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { authenticate } from "../shopify.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
-  const { admin, session } = await authenticate.admin(request); // لا try/catch
+  const { admin, session } = await authenticate.admin(request); // pas de try/catch
 
   const url = new URL(request.url);
   let host = url.searchParams.get("host") || "";
@@ -21,7 +18,6 @@ export const loader = async ({ request }) => {
   const shopDomain = (session?.shop || "").toLowerCase();
   let shopSub = shopDomain.replace(".myshopify.com", "");
 
-  // fallback صغير إذا host ناقص (نادر)
   if (!host) {
     const ref = request.headers.get("referer") || "";
     const m = ref.match(/admin\.shopify\.com\/store\/([^/]+)/i);
@@ -31,16 +27,11 @@ export const loader = async ({ request }) => {
     }
   }
 
-  return json({
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-    host,
-    shopSub,
-  });
+  return json({ apiKey: process.env.SHOPIFY_API_KEY || "", host, shopSub });
 };
 
 export default function AppRoute() {
   const { apiKey, host } = useLoaderData();
-
   return (
     <PolarisAppProvider i18n={fr}>
       <AppProvider isEmbeddedApp apiKey={apiKey} host={host}>
