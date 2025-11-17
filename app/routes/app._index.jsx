@@ -16,7 +16,6 @@ import {
 } from "@shopify/polaris";
 import * as PI from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
-import { getFeaturesForShop } from "../services/shopFeatures.server";
 
 /* ======================= LOADER ======================= */
 
