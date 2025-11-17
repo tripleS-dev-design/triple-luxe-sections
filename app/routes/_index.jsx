@@ -1,26 +1,14 @@
 // app/routes/_index.jsx
 import { redirect } from "@remix-run/node";
-import { unauthenticated } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
 
-  // Si Shopify appelle ton app avec ?shop=...
-  if (shop) {
-    return redirect(`/app?shop=${shop}`);
-  }
+  // On garde tous les paramètres Shopify (?embedded=1&hmac=...&shop=...)
+  // et on les renvoie vers /auth/login
+  const search = url.search || "";
 
-  // Sinon, on laisse Shopify gérer l'installation / login
-  const installUrl = await unauthenticated.admin.install({ request });
-
-  if (installUrl) {
-    // Redirection vers la page d'installation / autorisation Shopify
-    return redirect(installUrl);
-  }
-
-  // Fallback : formulaire login manuel
-  return redirect("/auth/login");
+  return redirect(`/auth/login${search}`);
 };
 
 export default function Index() {
