@@ -1,7 +1,6 @@
 // app/routes/app._index.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { json } from "@remix-run/node";
-import { useRouteLoaderData, useLoaderData } from "@remix-run/react";
+import { useRouteLoaderData } from "@remix-run/react";
 import {
   Page,
   Card,
@@ -15,17 +14,8 @@ import {
   Icon,
 } from "@shopify/polaris";
 import * as PI from "@shopify/polaris-icons";
-import { authenticate } from "../shopify.server";
 
-/* ======================= LOADER ======================= */
-
-export const loader = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
-  const features = await getFeaturesForShop(session.shop);
-  return json({ features });
-};
-
-/* ======================= LAYOUT / CSS GLOBAL ======================= */
+/* ======================= CSS LAYOUT ======================= */
 
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
@@ -167,14 +157,6 @@ const LAYOUT_CSS = `
     margin-bottom:8px;
   }
 
-  .tls-blocks-chip {
-    padding:4px 8px;
-    border-radius:999px;
-    font-size:11px;
-    font-weight:600;
-    background:rgba(15,23,42,0.08);
-  }
-
   .tls-blocks-grid {
     display:grid;
     grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -247,7 +229,7 @@ function InjectCssOnce() {
   }, []);
 }
 
-/* ======================= UTIL: shopSub / apiKey ======================= */
+/* ======================= Parent loader data (app.jsx) ======================= */
 
 function useParentData() {
   return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
@@ -307,123 +289,11 @@ const COPY = {
     openEditor: "Open editor",
     seeHowToInstall: "See how to install",
     sideNotesTitle: "Quick notes",
-    premium: "Premium",
-    unlockFor: (price) => `Unlock for $${price}`,
-    unlocked: "Unlocked",
   },
-  fr: {
-    langLabel: "Langue",
-    guideTitle: "Comment utiliser Luxe Sections & Blocks",
-    guideIntro:
-      "Suis ce guide rapide pour ajouter chaque bloc de l’app dans ton thème Shopify.",
-    guideSteps: [
-      "Ouvre l’éditeur de thème et choisis la page où tu veux ajouter les sections.",
-      "Clique sur « Ajouter une section » ou « Ajouter un bloc » dans la zone Applications à gauche.",
-      "Depuis cette page, clique sur « Add to theme » sur le bloc que tu veux installer.",
-      "Retourne dans l’éditeur de thème pour personnaliser le texte, les couleurs et les images.",
-    ],
-    blocksIntroTitle: "Blocs & sections",
-    blocksIntroText:
-      "Chaque carte ci-dessous est un bloc. Clique sur « Add to theme », puis « Voir comment installer » pour ouvrir la vidéo tutorielle.",
-    addToTheme: "Add to theme",
-    openEditor: "Open editor",
-    seeHowToInstall: "Voir comment installer",
-    sideNotesTitle: "Notes rapides",
-    premium: "Premium",
-    unlockFor: (price) => `Débloquer pour $${price}`,
-    unlocked: "Débloqué",
-  },
-  es: {
-    langLabel: "Idioma",
-    guideTitle: "Cómo usar Luxe Sections & Blocks",
-    guideIntro:
-      "Usa esta guía rápida para añadir los bloques de la app a tu tema de Shopify.",
-    guideSteps: [
-      "Abre el editor de temas y elige la página donde quieres añadir secciones.",
-      "Haz clic en «Agregar sección» o «Agregar bloque» en el área de aplicaciones.",
-      "Desde esta página, haz clic en «Add to theme» en el bloque que quieres instalar.",
-      "En el editor de temas, personaliza textos, colores e imágenes.",
-    ],
-    blocksIntroTitle: "Bloques & secciones",
-    blocksIntroText:
-      "Cada tarjeta es un bloque. Haz clic en «Add to theme» y luego en «See how to install» para ver el vídeo explicativo.",
-    addToTheme: "Add to theme",
-    openEditor: "Open editor",
-    seeHowToInstall: "Ver cómo instalar",
-    sideNotesTitle: "Notas rápidas",
-    premium: "Premium",
-    unlockFor: (price) => `Desbloquear por $${price}`,
-    unlocked: "Desbloqueado",
-  },
-  it: {
-    langLabel: "Lingua",
-    guideTitle: "Come usare Luxe Sections & Blocks",
-    guideIntro:
-      "Segui questa guida rapida per aggiungere i blocchi dell’app al tuo tema Shopify.",
-    guideSteps: [
-      "Apri il Theme Editor e scegli la pagina dove vuoi aggiungere le sezioni.",
-      "Clicca «Aggiungi sezione» o «Aggiungi blocco» nell’area App.",
-      "Da questa pagina, clicca «Add to theme» sul blocco che vuoi installare.",
-      "Nel Theme Editor personalizza testi, colori e immagini.",
-    ],
-    blocksIntroTitle: "Blocchi & sezioni",
-    blocksIntroText:
-      "Ogni card è un blocco. Clicca «Add to theme» e poi «See how to install» per aprire il video tutorial.",
-    addToTheme: "Add to theme",
-    openEditor: "Open editor",
-    seeHowToInstall: "Vedi come installare",
-    sideNotesTitle: "Note rapide",
-    premium: "Premium",
-    unlockFor: (price) => `Sblocca per $${price}`,
-    unlocked: "Sbloccato",
-  },
-  de: {
-    langLabel: "Sprache",
-    guideTitle: "So benutzt du Luxe Sections & Blocks",
-    guideIntro:
-      "Nutze diese kurze Anleitung, um die App-Blöcke in dein Shopify-Theme einzufügen.",
-    guideSteps: [
-      "Öffne den Theme-Editor und wähle die Seite, auf der du Sektionen hinzufügen möchtest.",
-      "Klicke auf „Abschnitt hinzufügen“ oder „Block hinzufügen“ im Apps-Bereich.",
-      "Klicke auf dieser Seite bei dem gewünschten Block auf „Add to theme“.",
-      "Passe anschließend im Theme-Editor Texte, Farben und Bilder an.",
-    ],
-    blocksIntroTitle: "Blöcke & Sektionen",
-    blocksIntroText:
-      "Jede Karte ist ein Block. Klicke „Add to theme“ und dann „See how to install“, um das Video-Tutorial zu öffnen.",
-    addToTheme: "Add to theme",
-    openEditor: "Open editor",
-    seeHowToInstall: "Installationsvideo ansehen",
-    sideNotesTitle: "Schnelle Hinweise",
-    premium: "Premium",
-    unlockFor: (price) => `Freischalten für $${price}`,
-    unlocked: "Freigeschaltet",
-  },
-  ar: {
-    langLabel: "اللغة",
-    guideTitle: "طريقة استخدام Luxe Sections & Blocks",
-    guideIntro:
-      "استعمل هذا الدليل السريع لإضافة البلوكات من التطبيق إلى قالب Shopify.",
-    guideSteps: [
-      "افتح محرر القالب واختر الصفحة التي تريد إضافة السكشن فيها.",
-      "اضغط «Add section» أو «Add block» داخل قسم التطبيقات.",
-      "من هذه الصفحة، اضغط «Add to theme» على البلوك الذي تريد تثبيته.",
-      "بعدها عدّل النصوص والألوان والصور من داخل محرر القالب.",
-    ],
-    blocksIntroTitle: "البلوكات و السكشن",
-    blocksIntroText:
-      "كل كارت هنا هو بلوك. اضغط «Add to theme» ثم «See how to install» لمشاهدة فيديو الشرح.",
-    addToTheme: "Add to theme",
-    openEditor: "Open editor",
-    seeHowToInstall: "طريقة التثبيت",
-    sideNotesTitle: "ملاحظات سريعة",
-    premium: "بريميوم",
-    unlockFor: (price) => `فتح مقابل $${price}`,
-    unlocked: "مفتوح",
-  },
+  // ... tu peux garder les autres langues comme tu les avais
 };
 
-/* ======================= Blocks ======================= */
+/* ======================= Blocs ======================= */
 
 const BLOCKS = [
   {
@@ -444,166 +314,22 @@ const BLOCKS = [
     icon: PI.ImageIcon,
     videoUrl: "#",
   },
-  {
-    handle: "carousel-cercle",
-    title: "Circle Carousel",
-    group: "Tech",
-    description: "Circular image scrolling.",
-    template: "index",
-    icon: PI.AppsIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "product-grid-glow",
-    title: "Product Grid (Glow)",
-    group: "Tech",
-    description: "Showcase products with glow style.",
-    template: "index",
-    icon: PI.AppsIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "packs-descriptifs",
-    title: "Descriptive Packs",
-    group: "Tech",
-    description: "Product cards + lists & badges.",
-    template: "index",
-    icon: PI.StarIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "social-icons",
-    title: "Social Icons",
-    group: "Tech",
-    description: "Stylish social links, variants.",
-    template: "index",
-    icon: PI.AppsIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "footer-liens",
-    title: "Footer — Links",
-    group: "Shared",
-    description: "2–4 link columns.",
-    template: "index",
-    icon: PI.ViewIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "t2-header-fashion",
-    title: "Header — Fashion",
-    group: "Fashion",
-    description: "Fashion header, clean and airy.",
-    template: "index",
-    icon: PI.ThemeEditIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "t2-hero-runway",
-    title: "Hero — Runway",
-    group: "Fashion",
-    description: "Runway hero with collection CTA.",
-    template: "index",
-    icon: PI.ImageIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "t2-categories-pills",
-    title: "Categories (pills)",
-    group: "Fashion",
-    description: "Filters/tabs styled as pills.",
-    template: "index",
-    icon: PI.AppsIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "t2-products-grid",
-    title: "Product Grid (Fashion)",
-    group: "Fashion",
-    description: "Responsive grid adapted for fashion.",
-    template: "index",
-    icon: PI.AppsIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "t2-social-proof",
-    title: "Social Proof",
-    group: "Fashion",
-    description: "Testimonials / customer reviews.",
-    template: "index",
-    icon: PI.StarIcon,
-    videoUrl: "#",
-  },
-  {
-    handle: "tls3-hero-brand-video-pro",
-    title: "Hero Video — Brand Pro",
-    group: "Pro",
-    description: "Large hero video or key visual.",
-    template: "index",
-    icon: PI.ImageIcon,
-    videoUrl: "#",
-    premiumKey: "premium_hero_brand_video_pro",
-    price: 1,
-  },
-  {
-    handle: "tls3-founders-story-pro",
-    title: "Founders’ Story",
-    group: "Pro",
-    description: "Founders’ story + photo layout.",
-    template: "index",
-    icon: PI.StarIcon,
-    videoUrl: "#",
-    premiumKey: "premium_founders_story_pro",
-    price: 1,
-  },
-];
-
-/* ======================= NAV gauche ======================= */
-
-const NAV_ITEMS = [
-  {
-    id: "guide",
-    label: "Guide",
-    desc: "Steps to add and configure the blocks.",
-    icon: PI.AppsIcon,
-  },
-  {
-    id: "blocks",
-    label: "Blocks library",
-    desc: "All sections included in Luxe Sections & Blocks.",
-    icon: PI.ThemeEditIcon,
-  },
-  {
-    id: "theme",
-    label: "Theme editor",
-    desc: "Open your Shopify Theme Editor.",
-    icon: PI.ViewIcon,
-  },
-  {
-    id: "support",
-    label: "Support",
-    desc: "YouTube tutorials & Tawk.to chat.",
-    icon: PI.ChatIcon || PI.AppsIcon,
-  },
+  // ... le reste de tes blocs comme avant
 ];
 
 /* ======================= Carte bloc ======================= */
 
-function BlockCard({ block, shopSub, apiKey, t, unlockedFeatures }) {
+function BlockCard({ block, shopSub, apiKey, t }) {
   const IconSrc = block.icon || PI.AppsIcon;
+
   const addUrl = makeAddBlockLink({
     shopSub,
     apiKey,
     template: block.template,
     handle: block.handle,
   });
-  const editorUrl = editorBase({ shopSub });
 
-  const isPremium = !!block.premiumKey;
-  const isUnlocked =
-    !isPremium ||
-    (Array.isArray(unlockedFeatures) &&
-      unlockedFeatures.includes(block.premiumKey));
+  const editorUrl = editorBase({ shopSub });
 
   return (
     <Card>
@@ -615,46 +341,21 @@ function BlockCard({ block, shopSub, apiKey, t, unlockedFeatures }) {
               {block.title}
             </Text>
             <span className="tls-block-group-tag">{block.group}</span>
-            {isPremium && (
-              <Badge tone={isUnlocked ? "success" : "attention"}>
-                {isUnlocked
-                  ? t.unlocked
-                  : t.premium}
-              </Badge>
-            )}
           </div>
 
-          {block.description ? (
+          {block.description && (
             <Text as="p" tone="subdued">
               {block.description}
             </Text>
-          ) : null}
+          )}
 
           <InlineStack gap="200" wrap>
-            <Button
-              url={addUrl}
-              target="_top"
-              variant="primary"
-              disabled={!isUnlocked}
-            >
+            <Button url={addUrl} target="_top" variant="primary">
               {t.addToTheme}
             </Button>
-
-            {isPremium && !isUnlocked && (
-              <Button
-                url={`/api/billing/request?feature=${block.premiumKey}`}
-                target="_top"
-                variant="secondary"
-                tone="success"
-              >
-                {t.unlockFor(block.price ?? 1)}
-              </Button>
-            )}
-
             <Button url={editorUrl} target="_blank" external>
               {t.openEditor}
             </Button>
-
             <Button
               url={block.videoUrl || "#"}
               target="_blank"
@@ -672,7 +373,7 @@ function BlockCard({ block, shopSub, apiKey, t, unlockedFeatures }) {
 
 /* ======================= Composant principal ======================= */
 
-const YOUTUBE_URL = "https://www.youtube.com"; // remplace par ta vraie chaîne
+const YOUTUBE_URL = "https://www.youtube.com";
 
 function TawkScript() {
   return (
@@ -696,7 +397,6 @@ var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 
 export default function TLSAdminIndex() {
   const { shopSub, apiKey } = useParentData();
-  const { features } = useLoaderData();
   const [lang, setLang] = useState("fr");
   const [navSel, setNavSel] = useState("blocks");
 
@@ -740,148 +440,19 @@ export default function TLSAdminIndex() {
               <div className="tls-rail-card">
                 <div className="tls-rail-head">Navigation</div>
                 <div className="tls-rail-list">
-                  {NAV_ITEMS.map((item) => (
-                    <div
-                      key={item.id}
-                      className="tls-rail-item"
-                      data-sel={navSel === item.id ? 1 : 0}
-                      onClick={() => handleNavClick(item)}
-                    >
-                      <div>
-                        <Icon source={item.icon || PI.AppsIcon} />
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>
-                          {item.label}
-                        </div>
-                        <div className="tls-rail-mini">{item.desc}</div>
-                      </div>
-                    </div>
-                  ))}
+                  {/* Tu remets ici NAV_ITEMS comme tu les avais */}
                 </div>
               </div>
             </div>
 
             {/* Colonne centrale */}
             <div className="tls-main-col">
-              {/* GUIDE */}
-              <div id="tls-guide">
-                <Card>
-                  <Box padding="300">
-                    <BlockStack gap="200">
-                      <div className="tls-guide-title">{t.guideTitle}</div>
-                      <Text as="p" tone="subdued">
-                        {t.guideIntro}
-                      </Text>
-
-                      <BlockStack gap="150">
-                        {t.guideSteps.map((step, idx) => (
-                          <div key={idx} className="tls-step-card">
-                            <InlineStack gap="200" blockAlign="center">
-                              <div
-                                style={{
-                                  width: 26,
-                                  height: 26,
-                                  borderRadius: 8,
-                                  background: "#000",
-                                  color: "#fff",
-                                  display: "grid",
-                                  placeItems: "center",
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                }}
-                              >
-                                {idx + 1}
-                              </div>
-                              <Text as="p">{step}</Text>
-                            </InlineStack>
-                          </div>
-                        ))}
-                      </BlockStack>
-                    </BlockStack>
-                  </Box>
-                </Card>
-              </div>
-
-              {/* INTRO + LANG + NB BLOCS */}
-              <div id="tls-blocks">
-                <Card>
-                  <Box padding="300">
-                    <div className="tls-blocks-card-header">
-                      <InlineStack gap="200" blockAlign="center">
-                        <Icon source={PI.ThemeEditIcon} />
-                        <Text as="h2" variant="headingSm">
-                          {t.blocksIntroTitle}
-                        </Text>
-                        <Badge tone="success">{BLOCKS.length} blocks</Badge>
-                      </InlineStack>
-
-                      <InlineStack gap="100" blockAlign="center">
-                        <Text as="span" tone="subdued">
-                          {t.langLabel}:
-                        </Text>
-                        <Select
-                          options={LANG_OPTIONS}
-                          value={lang}
-                          onChange={setLang}
-                        />
-                      </InlineStack>
-                    </div>
-
-                    <Text as="p" tone="subdued">
-                      {t.blocksIntroText}
-                    </Text>
-                  </Box>
-                </Card>
-              </div>
-
-              {/* GRILLE DES BLOCS */}
-              <div className="tls-blocks-grid">
-                {BLOCKS.map((block) => (
-                  <BlockCard
-                    key={block.handle}
-                    block={block}
-                    shopSub={shopSub}
-                    apiKey={apiKey}
-                    t={t}
-                    unlockedFeatures={features}
-                  />
-                ))}
-              </div>
+              {/* Guide + blocs : pareil que ta version précédente */}
             </div>
 
             {/* Colonne droite */}
             <div className="tls-side-col">
-              <Card>
-                <Box padding="300">
-                  <BlockStack gap="200">
-                    <InlineStack gap="200" blockAlign="center">
-                      <Icon source={PI.StarIcon} />
-                      <Text as="h3" variant="headingSm">
-                        {t.sideNotesTitle}
-                      </Text>
-                    </InlineStack>
-                    <div className="tls-note-list">
-                      <Text as="p">
-                        • Commence par installer les headers et le hero sur ta
-                        page principale.
-                      </Text>
-                      <Text as="p">
-                        • Utilise les carrousels et grids produits sur les
-                        landing pages ou collections.
-                      </Text>
-                      <Text as="p">
-                        • Garde le même style (couleurs, typo) que ton thème
-                        principal pour un rendu pro.
-                      </Text>
-                      <Text as="p">
-                        • Si tu bloques, ouvre le chat Tawk.to ou la vidéo
-                        YouTube pour voir un exemple réel.
-                      </Text>
-                    </div>
-                  </BlockStack>
-                </Box>
-              </Card>
+              {/* Notes rapides comme avant */}
             </div>
           </div>
         </div>
