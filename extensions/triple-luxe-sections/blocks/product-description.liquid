@@ -1,0 +1,41 @@
+{% comment %} Product Description — simple PDP content block {% endcomment %}
+{% if template.name != 'product' %}
+  <p style="padding:12px 16px;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px">
+    This block is intended for the <strong>product</strong> template.
+  </p>
+{% endif %}
+
+<section class="x-pdesc" aria-label="Product description">
+  {% assign p = product %}
+  {% if p %}
+    {% if section.settings.show_title %}
+      <h2 class="x-pdesc__title">{{ section.settings.title | default: 'Details' }}</h2>
+    {% endif %}
+    <div class="x-pdesc__content rte">
+      {{ p.description | default: section.settings.fallback | escape | newline_to_br }}
+    </div>
+  {% else %}
+    <div class="x-pdesc__content rte">
+      {{ section.settings.fallback | escape | newline_to_br }}
+    </div>
+  {% endif %}
+</section>
+
+<style>
+.x-pdesc{max-width:900px;margin:0 auto;padding:20px 16px;background:#fff;border:1px solid #eee;border-radius:12px}
+.x-pdesc__title{margin-top:0;margin-bottom:10px;font-size:20px;font-weight:700}
+.rte p{margin:0 0 12px}
+.rte ul{padding-left:20px;margin:0 0 12px}
+</style>
+
+{% schema %}
+{
+  "name": "Product Description",
+  "target": "section",
+  "settings": [
+    { "type": "checkbox", "id": "show_title", "label": "Show heading", "default": true },
+    { "type": "text", "id": "title", "label": "Heading", "default": "Details" },
+    { "type": "textarea", "id": "fallback", "label": "Fallback text (when product description is empty)", "default": "No description available yet." }
+  ]
+}
+{% endschema %}

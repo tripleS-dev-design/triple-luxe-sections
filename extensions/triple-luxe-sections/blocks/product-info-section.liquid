@@ -1,0 +1,83 @@
+{% comment %} Product Info — main PDP block {% endcomment %}
+{% if template.name != 'product' %}
+  <p style="padding:12px 16px;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px">
+    This section is intended for the <strong>product</strong> template.
+  </p>
+{% endif %}
+
+<section class="x-pdp" aria-label="Product information">
+  {% assign p = product %}
+  {% if p %}
+    <div class="x-pdp__grid">
+      <div class="x-pdp__media">
+        {% if p.featured_image %}
+          {{ p.featured_image
+            | image_url: width: 1200
+            | image_tag:
+              alt: p.title,
+              class: 'x-pdp__img',
+              loading: 'lazy',
+              widths: '375, 550, 750, 900, 1100, 1200',
+              sizes: '(min-width: 990px) 50vw, 100vw'
+          }}
+        {% endif %}
+      </div>
+
+      <div class="x-pdp__info">
+        <h1 class="x-pdp__title">{{ p.title }}</h1>
+
+        <div class="x-pdp__price">
+          {% if p.compare_at_price_max > p.price %}
+            <span class="old">{{ p.compare_at_price_max | money }}</span>
+          {% endif %}
+          <span class="now">{{ p.price | money }}</span>
+        </div>
+
+        <form method="post" action="/cart/add" id="x-pdp-form">
+          {% assign v = p.selected_or_first_available_variant %}
+          <input type="hidden" name="id" value="{{ v.id }}">
+
+          {% if p.options_with_values.size > 0 %}
+            {% for opt in p.options_with_values %}
+              <label class="x-label">{{ opt.name }}</label>
+              <select name="options[{{ opt.name }}]">
+                {% for val in opt.values %}
+                  <option value="{{ val }}" {% if val == opt.selected_value %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+              </select>
+            {% endfor %}
+          {% endif %}
+
+          <label class="x-label">Quantity</label>
+          <input class="x-qty" type="number" name="quantity" value="1" min="1" inputmode="numeric" pattern="[0-9]*">
+
+          <button class="x-btn-atc" type="submit" {% unless v.available %}disabled{% endunless %}>
+            {% if v.available %}Add to cart{% else %}Sold out{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+.x-pdp{max-width:1200px;margin:0 auto;padding:30px 16px}
+.x-pdp__grid{display:grid;gap:28px;grid-template-columns:1fr 1fr}
+.x-pdp__img{width:100%;height:auto;border-radius:12px;display:block}
+.x-pdp__title{font-size:28px;margin:0 0 6px}
+.x-pdp__price{font-size:20px;margin-bottom:12px}
+.x-pdp__price .old{text-decoration:line-through;color:#888;margin-right:8px}
+.x-label{display:block;margin-top:12px;font-weight:600}
+.x-qty{width:100px;padding:8px;border-radius:8px;border:1px solid #E5E7EB}
+.x-btn-atc{margin-top:14px;padding:12px 18px;border:none;border-radius:10px;background:#0b1f3a;color:#fff;font-weight:700}
+.x-btn-atc[disabled]{opacity:.5}
+@media (max-width: 992px){.x-pdp__grid{grid-template-columns:1fr}}
+</style>
+
+{% schema %}
+{
+  "name": "Product Info",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

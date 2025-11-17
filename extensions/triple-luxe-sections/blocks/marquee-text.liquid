@@ -1,0 +1,136 @@
+{% comment %}
+Marquee Glow — App Block (no-JS, performant)
+- Défilement continu (contenu dupliqué 2x)
+- Pause au survol, respecte "Réduire les animations"
+- Largeur page/full + option edge-to-edge
+- Effet "glow" réglable + pulsation
+{% endcomment %}
+
+<div
+  class="tls-marquee {{ block.settings.section_width }}{% if block.settings.full_bleed %} tls-marquee--full{% endif %}{% if block.settings.pulse_glow %} is-pulse{% endif %}"
+  data-app-block-id="{{ block.id }}"
+  aria-label="Announcement"
+  style="
+    --bg: {{ block.settings.bg }};
+    --fg: {{ block.settings.fg }};
+    --glow: {{ block.settings.glow_color }};
+    --glow-blur: {{ block.settings.glow_strength }}px;
+    --speed: {{ block.settings.speed }}s;
+    --pad-y: {{ block.settings.pad_y }}px;
+    --pad-x: {{ block.settings.pad_x }}px;
+    --font: {{ block.settings.font_size }}px;
+  "
+>
+  {%- assign txt = block.settings.text | default: 'Welcome!' -%}
+  {%- assign href = block.settings.link -%}
+  {%- assign rep = block.settings.repeat | default: 12 -%}
+  {%- assign sep = block.settings.separator -%}
+
+  <div class="tls-marquee__wrap{% if block.settings.direction == 'right' %} dir-r{% endif %}">
+    <div class="tls-marquee__track" aria-live="polite">
+      {%- for _ in (1..2) -%}
+        {%- for i in (1..rep) -%}
+          <span class="tls-item">
+            {%- if href and href != blank -%}<a href="{{ href }}">{%- endif -%}
+              {{ txt }}
+            {%- if href and href != blank -%}</a>{%- endif -%}
+          </span>
+          {%- if sep != blank and i < rep -%}
+            <span class="tls-sep" aria-hidden="true">{{ sep }}</span>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== Scope par block ===== */
+.tls-marquee[data-app-block-id="{{ block.id }}"]{
+  background:var(--bg); color:var(--fg);
+  padding:var(--pad-y) var(--pad-x);
+  overflow:hidden;
+}
+
+/* Largeur */
+.tls-marquee.page-width .tls-marquee__wrap{max-width:var(--page-width,1200px);margin-inline:auto}
+.tls-marquee.full-width .tls-marquee__wrap{max-width:none}
+.tls-marquee.tls-marquee--full{
+  width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); isolation:isolate;
+}
+
+/* Piste */
+.tls-marquee__wrap{overflow:hidden}
+.tls-marquee__track{
+  display:inline-flex; align-items:center; white-space:nowrap;
+  gap:1.25rem; min-width:100%;
+  will-change:transform;
+  animation: tls-scroll var(--speed) linear infinite;
+}
+.tls-marquee__wrap.dir-r .tls-marquee__track{ animation-direction: reverse }
+.tls-marquee__wrap:hover .tls-marquee__track{ animation-play-state: paused }
+@media (prefers-reduced-motion: reduce){ .tls-marquee__track{ animation: none } }
+
+/* Texte + glow */
+.tls-item{
+  font-weight:800; letter-spacing:.02em; font-size:var(--font);
+  text-shadow: 0 0 var(--glow-blur) var(--glow),
+               0 0 calc(var(--glow-blur)*0.5) var(--glow);
+  {% if block.settings.uppercase %} text-transform: uppercase; {% endif %}
+}
+.tls-item a{ color:inherit; text-decoration:none }
+.tls-item a:hover{ text-decoration:underline }
+.tls-sep{ opacity:.7; font-size:var(--font) }
+
+/* Glow pulse (optionnel) */
+.tls-marquee.is-pulse .tls-item{
+  animation: tls-pulse 2.2s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes tls-scroll { from{ transform: translateX(0) } to{ transform: translateX(-50%) } }
+@keyframes tls-pulse {
+  0%,100% { text-shadow: 0 0 var(--glow-blur) var(--glow), 0 0 calc(var(--glow-blur)*0.5) var(--glow); }
+  50%     { text-shadow: 0 0 calc(var(--glow-blur)*1.7) var(--glow), 0 0 calc(var(--glow-blur)*1.2) var(--glow); }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Marquee Glow",
+  "target": "section",
+  "settings": [
+    { "type": "text",   "id": "text",        "label": "Text", "default": "Free shipping on orders over $50" },
+    { "type": "url",    "id": "link",        "label": "Optional link" },
+    { "type": "text",   "id": "separator",   "label": "Separator", "default": "•" },
+    { "type": "range",  "id": "repeat",      "label": "Repeat count (per loop)", "min": 4, "max": 30, "step": 1, "default": 12 },
+
+    { "type": "select", "id": "direction",   "label": "Scroll direction", "default": "left",
+      "options": [
+        { "value": "left",  "label": "Left →" },
+        { "value": "right", "label": "← Right" }
+      ]
+    },
+    { "type": "range",  "id": "speed",       "label": "Scroll duration (seconds)", "min": 6, "max": 60, "step": 1, "default": 20 },
+
+    { "type": "select", "id": "section_width", "label": "Width (container)", "default": "page-width",
+      "options": [
+        { "value": "page-width", "label": "Page width" },
+        { "value": "full-width", "label": "Full width (container)" }
+      ]
+    },
+    { "type": "checkbox","id": "full_bleed", "label": "True full width (edge to edge)", "default": false },
+
+    { "type": "color",  "id": "bg",          "label": "Background", "default": "#0B1F3A" },
+    { "type": "color",  "id": "fg",          "label": "Text color", "default": "#FFFFFF" },
+    { "type": "color",  "id": "glow_color",  "label": "Glow color", "default": "#FFD54D" },
+    { "type": "range",  "id": "glow_strength","label": "Glow strength (blur px)", "min": 0, "max": 40, "step": 1, "default": 12 },
+    { "type": "checkbox","id": "pulse_glow", "label": "Pulse glow", "default": true },
+
+    { "type": "range",  "id": "font_size",   "label": "Font size (px)", "min": 12, "max": 64, "step": 1, "default": 16 },
+    { "type": "checkbox","id": "uppercase",  "label": "Uppercase", "default": false },
+    { "type": "range",  "id": "pad_y",       "label": "Padding Y (px)", "min": 0, "max": 40, "step": 2, "default": 10 },
+    { "type": "range",  "id": "pad_x",       "label": "Padding X (px)", "min": 0, "max": 40, "step": 2, "default": 12 }
+  ]
+}
+{% endschema %}

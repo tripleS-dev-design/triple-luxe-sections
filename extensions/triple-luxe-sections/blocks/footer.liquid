@@ -1,0 +1,231 @@
+{% comment %}
+Footer (App Block) — 1 link_list only
+- Auto-show columns if data present (About / Links / Contact)
+- Background image + overlay
+- Socials: IG/FB/WA/YouTube/TikTok
+- Single link_list (links_menu) used for the Links column and optional bottom menu
+{% endcomment %}
+
+<section class="x-footer"
+  style="
+    --bg: {{ section.settings.bg_color }};
+    --text: {{ section.settings.text_color }};
+    --accent: {{ section.settings.accent_color }};
+    --glow: {{ section.settings.accent_color }};
+    --overlay: {{ section.settings.overlay_color }};
+    --ov: {{ section.settings.overlay_opacity }};
+    --bg-image: {% if section.settings.bg_image %}url('{{ section.settings.bg_image | image_url: width: 2400 }}'){% else %}none{% endif %};
+  "
+  aria-label="Site footer"
+>
+  <div class="x-footer__bg" aria-hidden="true"></div>
+
+  <div class="x-footer__inner">
+    <div class="x-footer__grid">
+      {%- comment -%} Compute column visibility safely {%- endcomment -%}
+      {% assign has_about = false %}
+      {% if section.settings.logo or section.settings.about_title != blank or section.settings.about_text != blank %}
+        {% assign has_about = true %}
+      {% endif %}
+
+      {% assign has_menu = false %}
+      {% if section.settings.links_menu or section.settings.menu_title != blank %}
+        {% assign has_menu = true %}
+      {% endif %}
+
+      {% assign has_contact = false %}
+      {% if section.settings.contact_title != blank or section.settings.addr != blank or section.settings.phone != blank or section.settings.whatsapp != blank or section.settings.email != blank or section.settings.hours != blank %}
+        {% assign has_contact = true %}
+      {% endif %}
+
+      {%- if has_about -%}
+      <div class="x-foot about">
+        {% if section.settings.logo %}
+          {{ section.settings.logo
+            | image_url: width: 560
+            | image_tag:
+              alt: shop.name,
+              class: 'about__logo',
+              loading: 'lazy',
+              widths: '160, 220, 320, 560',
+              sizes: '220px'
+          }}
+        {% endif %}
+        {% if section.settings.about_title != blank %}
+          <h3 class="foot-title">{{ section.settings.about_title }}</h3>
+        {% endif %}
+        {% if section.settings.about_text != blank %}
+          <div class="about__text">{{ section.settings.about_text }}</div>
+        {% endif %}
+      </div>
+      {%- endif -%}
+
+      {%- if has_menu -%}
+      <div class="x-foot menu">
+        {% if section.settings.menu_title != blank %}
+          <h3 class="foot-title">{{ section.settings.menu_title }}</h3>
+        {% endif %}
+        <ul class="foot-links" role="list">
+          {% assign m = section.settings.links_menu %}
+          {% if m and linklists[m] %}
+            {% for l in linklists[m].links %}
+              <li><a href="{{ l.url }}">{{ l.title }}</a></li>
+            {% endfor %}
+          {% else %}
+            <li><em>Select a menu in settings</em></li>
+          {% endif %}
+        </ul>
+      </div>
+      {%- endif -%}
+
+      {%- if has_contact -%}
+      <div class="x-foot contact">
+        {% if section.settings.contact_title != blank %}
+          <h3 class="foot-title">{{ section.settings.contact_title }}</h3>
+        {% endif %}
+        <ul class="contact__list" role="list">
+          {% if section.settings.addr != blank %}<li>📍 {{ section.settings.addr }}</li>{% endif %}
+          {% if section.settings.phone != blank %}<li>📞 <a href="tel:{{ section.settings.phone | replace: ' ', '' }}">{{ section.settings.phone }}</a></li>{% endif %}
+          {% if section.settings.whatsapp != blank %}<li>💬 <a href="https://wa.me/{{ section.settings.whatsapp | replace: ' ', '' }}" target="_blank" rel="noopener">WhatsApp</a></li>{% endif %}
+          {% if section.settings.email != blank %}<li>✉️ <a href="mailto:{{ section.settings.email }}">{{ section.settings.email }}</a></li>{% endif %}
+          {% if section.settings.hours != blank %}<li>🕑 {{ section.settings.hours }}</li>{% endif %}
+        </ul>
+      </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} Compute social presence safely {%- endcomment -%}
+    {% assign has_social = false %}
+    {% if section.settings.ig_url or section.settings.fb_url or section.settings.wa_url or section.settings.yt_url or section.settings.tt_url %}
+      {% assign has_social = true %}
+    {% endif %}
+
+    {% if section.settings.show_social and has_social %}
+      <div class="x-social" aria-label="Social links">
+        {% if section.settings.ig_url != blank %}
+          <a class="social-btn ig" href="{{ section.settings.ig_url }}" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 5.5A5.5 5.5 0 1112 19a5.5 5.5 0 010-11zM12 9a3 3 0 100 6 3 3 0 000-6zm6.75-.5a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/></svg>
+          </a>
+        {% endif %}
+        {% if section.settings.fb_url != blank %}
+          <a class="social-btn fb" href="{{ section.settings.fb_url }}" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M13 22v-8h3l1-4h-4V7a1 1 0 011-1h3V2h-3a5 5 0 00-5 5v3H6v4h3v8h4z"/></svg>
+          </a>
+        {% endif %}
+        {% if section.settings.wa_url != blank %}
+          <a class="social-btn wa" href="{{ section.settings.wa_url }}" target="_blank" rel="noopener" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M20 4.6A9.9 9.9 0 0012.1 2 10 10 0 002 12a10 10 0 001.5 5.2L2 22l4.9-1.3A10 10 0 1012.1 2h-.1zm0 8a8 8 0 01-11.8 6.9l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1112 4a8 8 0 018 8zm-4.1 3.5c-.2.2-.6.4-1 .5-.3.1-.6.1-1 0s-.9-.3-1.6-.6a9.7 9.7 0 01-3-2.4c-.8-.8-1.3-1.6-1.5-2.2-.2-.6 0-1 .2-1.2l.5-.5c.1-.1.3-.2.5-.2h.4c.1 0 .3 0 .4.3l.5 1c.1.2.1.4 0 .5l-.2.3-.2.2c-.1.1-.2.2-.1.4.1.2.3.6.7 1 .5.5.9.8 1.2 1l.3.2c.1.1.3.1.4 0l.4-.1c.2 0 .3 0 .4.2l.6.8c.2.3.2.5.1.6z"/></svg>
+          </a>
+        {% endif %}
+        {% if section.settings.yt_url != blank %}
+          <a class="social-btn yt" href="{{ section.settings.yt_url }}" target="_blank" rel="noopener" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M23 7.5a4 4 0 00-2.8-2.8C18.2 4 12 4 12 4s-6.2 0-8.2.7A4 4 0 001 7.5 41 41 0 001 12a41 41 0 000 4.5A4 4 0 003.8 19C5.8 19.7 12 19.7 12 19.7s6.2 0 8.2-.7A4 4 0 0023 16.5 41 41 0 0023 12a41 41 0 000-4.5zM10 15.3V8.7L15.5 12 10 15.3z"/></svg>
+          </a>
+        {% endif %}
+        {% if section.settings.tt_url != blank %}
+          <a class="social-btn tt" href="{{ section.settings.tt_url }}" target="_blank" rel="noopener" aria-label="TikTok">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M21 8.1a7 7 0 01-4.8-2V15a5 5 0 11-5-5 5 5 0 011 .1V7.2a7 7 0 00-1-.1 7 7 0 107 7V9.8a9 9 0 004.8 1.5V8.1z"/></svg>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="x-bottom">
+      {% assign year = 'now' | date: '%Y' %}
+      <div class="copy">
+        {% if section.settings.copyright != blank %}
+          {{ section.settings.copyright }}
+        {% else %}
+          © {{ year }} {{ shop.name }} — All rights reserved.
+        {% endif %}
+      </div>
+
+      {% if section.settings.show_bottom_menu %}
+        {% assign bm = section.settings.links_menu %}
+        {% if bm and linklists[bm] %}
+          <ul class="bottom-links" role="list">
+            {% for l in linklists[bm].links %}
+              <li><a href="{{ l.url }}">{{ l.title }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<style>
+.x-footer{position:relative;color:var(--text);background:var(--bg)}
+.x-footer__bg{position:absolute;inset:0;z-index:0;background-image:
+  linear-gradient(color-mix(in srgb, var(--overlay) calc(var(--ov)*100%), transparent), color-mix(in srgb, var(--overlay) calc(var(--ov)*100%), transparent)), var(--bg-image);
+  background-size:cover;background-position:center}
+.x-footer__inner{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:48px 16px 22px}
+.x-footer__grid{display:grid;gap:26px;grid-template-columns:repeat(12,1fr)}
+.x-foot{background:color-mix(in srgb, #0f1b33 70%, transparent);border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);border-radius:14px;padding:18px;box-shadow:0 0 16px color-mix(in srgb, var(--accent) 40%, transparent)}
+.x-foot.about{grid-column:span 5}
+.x-foot.menu{grid-column:span 3}
+.x-foot.contact{grid-column:span 4}
+.foot-title{margin:0 0 10px;font-size:16px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 10px var(--accent)}
+.about__logo{display:block;margin-bottom:10px;max-width:220px;height:auto}
+.about__text{opacity:.95;line-height:1.6}
+.foot-links{list-style:none;margin:0;padding:0}
+.foot-links li{margin:6px 0}
+.foot-links a{color:var(--text);text-decoration:none;opacity:.9}
+.foot-links a:hover{opacity:1;text-decoration:underline}
+.contact__list{list-style:none;margin:0;padding:0}
+.contact__list li{margin:6px 0}
+.x-social{display:flex;gap:12px;align-items:center;justify-content:flex-start;margin:26px 0 8px}
+.social-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:999px;background:color-mix(in srgb, var(--accent) 15%, transparent);border:1px solid var(--accent);box-shadow:0 0 14px color-mix(in srgb, var(--accent) 40%, transparent)}
+.social-btn svg{fill:var(--text)}
+.social-btn:hover{transform:translateY(-2px);box-shadow:0 0 22px var(--accent);transition:.25s}
+.x-bottom{display:flex;align-items:center;justify-content:space-between;border-top:1px solid color-mix(in srgb, var(--accent) 40%, transparent);margin-top:18px;padding-top:14px}
+.copy{opacity:.85}
+.bottom-links{display:flex;gap:14px;list-style:none;margin:0;padding:0}
+.bottom-links a{color:var(--text);text-decoration:none;opacity:.9}
+.bottom-links a:hover{opacity:1;text-decoration:underline}
+@media (max-width: 992px){
+  .x-footer__grid{grid-template-columns:1fr}
+  .x-foot.about,.x-foot.menu,.x-foot.contact{grid-column:span 1}
+  .x-bottom{flex-direction:column;gap:10px;align-items:flex-start}
+}
+</style>
+
+{% schema %}
+{
+  "name": "Footer (App Block)",
+  "target": "section",
+  "settings": [
+    { "type": "image_picker", "id": "bg_image", "label": "Background image (optional)" },
+    { "type": "color", "id": "overlay_color", "label": "Overlay color", "default": "#0b1f3a" },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 1, "step": 0.1, "default": 0.6 },
+
+    { "type": "color", "id": "bg_color", "label": "Base color", "default": "#0b1f3a" },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Accent color (titles & glow)", "default": "#ffd54d" },
+
+    { "type": "checkbox", "id": "show_social", "label": "Show social icons", "default": true },
+    { "type": "url", "id": "ig_url", "label": "Instagram URL" },
+    { "type": "url", "id": "fb_url", "label": "Facebook URL" },
+    { "type": "url", "id": "wa_url", "label": "WhatsApp URL (ex: https://wa.me/2126...)" },
+    { "type": "url", "id": "yt_url", "label": "YouTube URL" },
+    { "type": "url", "id": "tt_url", "label": "TikTok URL" },
+
+    { "type": "link_list", "id": "links_menu", "label": "Links menu (used in column and optional bottom menu)" },
+    { "type": "text", "id": "menu_title", "label": "Links column title", "default": "Useful links" },
+    { "type": "checkbox", "id": "show_bottom_menu", "label": "Show bottom menu (uses the same menu)", "default": true },
+
+    { "type": "image_picker", "id": "logo", "label": "About: logo (optional)" },
+    { "type": "text", "id": "about_title", "label": "About: title", "default": "About us" },
+    { "type": "richtext", "id": "about_text", "label": "About: text", "default": "<p>Quality & support guaranteed. Fast shipping, responsive service.</p>" },
+
+    { "type": "text", "id": "contact_title", "label": "Contact: title", "default": "Contact" },
+    { "type": "text", "id": "addr", "label": "Contact: address", "default": "Benguerir, Morocco" },
+    { "type": "text", "id": "phone", "label": "Contact: phone", "default": "+212 6 00 00 00 00" },
+    { "type": "text", "id": "whatsapp", "label": "Contact: WhatsApp (number only)", "default": "212600000000" },
+    { "type": "text", "id": "email", "label": "Contact: email", "default": "support@example.com" },
+    { "type": "text", "id": "hours", "label": "Contact: opening hours", "default": "Mon–Sat 9am–7pm" },
+
+    { "type": "text", "id": "copyright", "label": "Copyright text (optional)" }
+  ]
+}
+{% endschema %}

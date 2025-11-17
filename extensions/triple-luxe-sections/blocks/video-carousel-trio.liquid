@@ -1,0 +1,32 @@
+{% comment %} Video Carousel Trio — three embeds side by side {% endcomment %}
+<section class="x-video-trio" aria-label="Video carousel trio">
+  <div class="wrap">
+    {% for i in (1..3) %}
+      {% capture key %}embed_{{ i }}{% endcapture %}
+      {% assign embed = section.settings[key] %}
+      {% if embed %}
+        <div class="cell">{{ embed }}</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+.x-video-trio{padding:28px 16px;max-width:1200px;margin:0 auto}
+.x-video-trio .wrap{display:grid;gap:16px;grid-template-columns:repeat(3,1fr)}
+.x-video-trio .cell{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.x-video-trio .cell iframe{position:absolute;inset:0;width:100%;height:100%}
+@media (max-width: 992px){.x-video-trio .wrap{grid-template-columns:1fr}}
+</style>
+
+{% schema %}
+{
+  "name": "Video Carousel Trio",
+  "target": "section",
+  "settings": [
+    { "type": "html", "id": "embed_1", "label": "Embed 1 (YouTube/Vimeo iframe)" },
+    { "type": "html", "id": "embed_2", "label": "Embed 2 (YouTube/Vimeo iframe)" },
+    { "type": "html", "id": "embed_3", "label": "Embed 3 (YouTube/Vimeo iframe)" }
+  ]
+}
+{% endschema %}

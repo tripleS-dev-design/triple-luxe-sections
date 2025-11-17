@@ -1,0 +1,61 @@
+{% comment %} Image Details — feature highlight images {% endcomment %}
+<section class="x-img-details" aria-label="Product details images">
+  <div class="grid">
+    {% for i in (1..section.settings.count) %}
+      {% capture key_img %}image_{{ i }}{% endcapture %}
+      {% capture key_cap %}caption_{{ i }}{% endcapture %}
+      {% assign img = section.settings[key_img] %}
+      {% assign cap = section.settings[key_cap] %}
+      {% if img %}
+        <figure class="card">
+          {{ img
+            | image_url: width: 1600
+            | image_tag:
+              alt: cap | default: 'Detail image',
+              loading: 'lazy',
+              widths: '360, 533, 720, 940, 1200, 1600',
+              sizes: '(min-width: 992px) 33vw, 100vw'
+          }}
+          {% if cap %}<figcaption>{{ cap }}</figcaption>{% endif %}
+        </figure>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+.x-img-details{padding:28px 16px;max-width:1200px;margin:0 auto}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(3,1fr)}
+.card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eee}
+.card img{width:100%;display:block}
+.card figcaption{padding:10px;font-size:14px;color:#333}
+@media (max-width: 992px){.grid{grid-template-columns:1fr}}
+</style>
+
+{% schema %}
+{
+  "name": "Image Details",
+  "target": "section",
+  "settings": [
+    { "type": "range", "id": "count", "label": "Images count", "min": 1, "max": 6, "step": 1, "default": 3 },
+
+    { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+    { "type": "text", "id": "caption_1", "label": "Caption 1" },
+
+    { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+    { "type": "text", "id": "caption_2", "label": "Caption 2" },
+
+    { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+    { "type": "text", "id": "caption_3", "label": "Caption 3" },
+
+    { "type": "image_picker", "id": "image_4", "label": "Image 4" },
+    { "type": "text", "id": "caption_4", "label": "Caption 4" },
+
+    { "type": "image_picker", "id": "image_5", "label": "Image 5" },
+    { "type": "text", "id": "caption_5", "label": "Caption 5" },
+
+    { "type": "image_picker", "id": "image_6", "label": "Image 6" },
+    { "type": "text", "id": "caption_6", "label": "Caption 6" }
+  ]
+}
+{% endschema %}

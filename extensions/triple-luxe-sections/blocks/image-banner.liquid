@@ -1,0 +1,125 @@
+{%- assign ratio = 1.777 -%}
+{%- for i in (1..4) -%}
+  {%- assign key = 'image_' | append: i -%}
+  {%- assign img = section.settings[key] -%}
+  {%- if img != blank -%}
+    {%- assign ratio = img.aspect_ratio | default: 1.777 -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- assign uid = 's4-' | append: section.id -%}
+{%- assign is_full_bleed = section.settings.full_bleed | default: true -%}
+
+<div
+  id="{{ uid }}"
+  class="s4{% if is_full_bleed %} s4--bleed{% endif %}{% if section.settings.pause_on_hover %} s4--pause{% endif %}"
+  data-auto="{{ section.settings.auto_play }}"
+  data-speed="{{ section.settings.auto_speed }}"
+  data-effect="{{ section.settings.effect }}"
+  data-fit="{{ section.settings.image_fit }}"
+  aria-label="Slider 4 images"
+  style="
+    --h: {{ section.settings.height_desktop }}vh;
+    --hm: {{ section.settings.height_mobile }}vh;
+    --ratio: {{ ratio }};
+    --overlay: {{ section.settings.overlay_color }};
+    --overlay-o: {{ section.settings.overlay_opacity_pct | default: 20 | divided_by: 100.0 }};
+    --radius: {{ section.settings.radius }}px;
+    --glow: {{ section.settings.glow_color }};
+    --glow-blur: {{ section.settings.glow_strength }}px;
+  "
+>
+  <div class="s4__frame">
+    {% assign has_images = false %}
+{% for i in (1..4) %}
+  {% assign key = 'image_' | append: i %}
+  {% assign img = section.settings[key] %}
+
+  <p>Image {{ i }}: 
+    {% if img %}
+      {% if img.src %}
+        URL via src: {{ img.src }}
+      {% else %}
+        URL direct: {{ img }}
+      {% endif %}
+    {% else %}
+      VIDE
+    {% endif %}
+  </p>
+{% endfor %}
+
+
+
+
+
+
+    {% unless has_images %}
+      <div class="s4__empty">Ajoute jusqu'à 4 images dans les settings de la section.</div>
+    {% endunless %}
+
+    {% if section.settings.show_controls %}
+      <button class="s4__nav s4__prev" type="button" aria-label="Précédent">‹</button>
+      <button class="s4__nav s4__next" type="button" aria-label="Suivant">›</button>
+      <div class="s4__dots" aria-hidden="true"></div>
+    {% endif %}
+    <span class="s4__overlay" aria-hidden="true"></span>
+  </div>
+</div>
+
+
+{% schema %}
+{
+  "name": "Slider 4 — Medium",
+  "target": "section",
+  "settings": [
+    { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+    { "type": "text", "id": "alt_1", "label": "Alt 1", "default": "Slide 1" },
+    { "type": "url", "id": "link_1", "label": "Link 1" },
+
+    { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+    { "type": "text", "id": "alt_2", "label": "Alt 2", "default": "Slide 2" },
+    { "type": "url", "id": "link_2", "label": "Link 2" },
+
+    { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+    { "type": "text", "id": "alt_3", "label": "Alt 3", "default": "Slide 3" },
+    { "type": "url", "id": "link_3", "label": "Link 3" },
+
+    { "type": "image_picker", "id": "image_4", "label": "Image 4" },
+    { "type": "text", "id": "alt_4", "label": "Alt 4", "default": "Slide 4" },
+    { "type": "url", "id": "link_4", "label": "Link 4" },
+
+    { "type": "select", "id": "image_fit", "label": "Image fit", "default": "contain",
+      "options": [
+        { "value": "contain", "label": "Show full image (contain)" },
+        { "value": "cover", "label": "Fill area (cover)" }
+      ]
+    },
+
+    { "type": "range", "id": "height_desktop", "label": "Height desktop (vh)", "min": 20, "max": 100, "step": 1, "default": 50 },
+    { "type": "range", "id": "height_mobile", "label": "Height mobile (vh)", "min": 20, "max": 100, "step": 1, "default": 38 },
+
+
+    { "type": "color", "id": "glow_color", "label": "Glow color", "default": "#FFD54D" },
+    { "type": "range", "id": "glow_strength", "label": "Glow strength (px)", "min": 0, "max": 40, "step": 1, "default": 10 },
+
+    { "type": "color", "id": "overlay_color", "label": "Overlay color", "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity_pct", "label": "Overlay opacity (%)", "min": 0, "max": 100, "step": 1, "default": 20 },
+
+    { "type": "select", "id": "effect", "label": "Transition effect", "default": "slide",
+      "options": [
+        { "value": "fade", "label": "Fade" },
+        { "value": "slide", "label": "Slide" },
+        { "value": "zoom", "label": "Zoom" }
+      ]
+    },
+
+    { "type": "checkbox", "id": "auto_play", "label": "Auto play", "default": true },
+    { "type": "range", "id": "auto_speed", "label": "Seconds per slide", "min": 2, "max": 12, "step": 1, "default": 5 },
+    { "type": "checkbox", "id": "pause_on_hover", "label": "Pause on hover", "default": true },
+
+    { "type": "checkbox", "id": "show_controls", "label": "Show arrows & dots", "default": true },
+    { "type": "checkbox", "id": "full_bleed", "label": "Full-bleed (edge-to-edge)", "default": true }
+  ]
+}
+{% endschema %}

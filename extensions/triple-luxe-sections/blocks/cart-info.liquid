@@ -1,0 +1,77 @@
+{% comment %} Cart Info — line items, quantity updates, remove {% endcomment %}
+{% if template.name != 'cart' %}
+  <p style="padding:12px 16px;background:#fff3cd;border:1px solid #ffe69c;border-radius:8px">
+    This block is intended for the <strong>cart</strong> template.
+  </p>
+{% endif %}
+
+<section class="x-cart" aria-label="Cart items">
+  <form action="/cart" method="post">
+    <table class="x-cart-table">
+      <thead>
+        <tr>
+          <th>Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in cart.items %}
+          <tr>
+            <td class="prod">
+              <a href="{{ item.url }}">
+                {% if item.image %}
+                  {{ item.image
+                    | image_url: width: 180
+                    | image_tag:
+                      alt: item.product.title,
+                      class: 'x-cart-thumb',
+                      loading: 'lazy',
+                      widths: '60, 120, 180',
+                      sizes: '60px'
+                  }}
+                {% endif %}
+                <span>{{ item.product.title }}</span>
+                {% if item.variant.title != 'Default Title' %}
+                  <small> — {{ item.variant.title }}</small>
+                {% endif %}
+              </a>
+            </td>
+            <td>{{ item.price | money }}</td>
+            <td>
+              <input name="updates[]" type="number" min="0" value="{{ item.quantity }}" aria-label="Quantity for {{ item.product.title }}">
+              <input type="hidden" name="id[]" value="{{ item.key }}">
+            </td>
+            <td>{{ item.final_line_price | money }}</td>
+            <td><a href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity=0">Remove</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="x-cart-actions">
+      <a href="{{ routes.all_products_collection_url }}">Continue shopping</a>
+      <button type="submit" name="update" class="x-btn-ghost">Update cart</button>
+      <a class="x-btn" href="{{ routes.cart_checkout_url }}">Checkout</a>
+    </div>
+  </form>
+</section>
+
+<style>
+.x-cart{max-width:1000px;margin:0 auto;padding:20px 16px;background:#fff;border-radius:12px;border:1px solid #eee}
+.x-cart-table{width:100%;border-collapse:separate;border-spacing:0 8px}
+.x-cart-table th{text-align:left;font-weight:700}
+.x-cart-table td,.x-cart-table th{padding:10px}
+.x-cart-table .prod{display:flex;gap:10px;align-items:center}
+.x-cart-thumb{width:60px;height:auto;border-radius:8px;display:block}
+.x-cart-actions{display:flex;gap:12px;justify-content:flex-end;align-items:center;margin-top:14px}
+.x-btn{display:inline-block;padding:10px 16px;border-radius:10px;background:#0b1f3a;color:#fff;text-decoration:none;font-weight:700}
+.x-btn-ghost{padding:10px 16px;border-radius:10px;border:1px solid #0b1f3a;background:#fff;color:#0b1f3a}
+.x-btn-ghost:hover{background:#f5f7fb}
+</style>
+
+{% schema %}
+{
+  "name": "Cart Info",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

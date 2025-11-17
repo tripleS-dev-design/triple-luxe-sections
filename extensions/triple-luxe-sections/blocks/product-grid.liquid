@@ -1,0 +1,74 @@
+{% comment %} Product Grid — Featured collection {% endcomment %}
+<section class="x-featured-collection" aria-label="Featured products">
+  {% if section.settings.title != blank %}
+    <h2 class="x-collection-title">{{ section.settings.title }}</h2>
+  {% endif %}
+
+  {% assign coll = collections[section.settings.collection] %}
+  {% if coll and coll.products_count > 0 %}
+    <div class="x-collection-grid">
+      {% for product in coll.products limit: section.settings.limit %}
+        <div class="x-product-card">
+          <a href="{{ product.url }}" class="x-product-img">
+            {% assign img = product.featured_image %}
+            {% if img %}
+              {{ img
+                | image_url: width: 1200
+                | image_tag:
+                  alt: product.title,
+                  loading: 'lazy',
+                  widths: '360, 533, 720, 940, 1200',
+                  sizes: '(min-width: 990px) 240px, 50vw'
+              }}
+            {% endif %}
+          </a>
+          <div class="x-product-info">
+            <h3 class="x-product-title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+            <div class="x-product-price">
+              {% if product.compare_at_price_max > product.price %}
+                <span class="old-price">{{ product.compare_at_price_max | money }}</span>
+              {% endif %}
+              <span class="price">{{ product.price | money }}</span>
+            </div>
+            {% if product.variants.first %}
+              <form method="post" action="/cart/add">
+                <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+                <button type="submit" class="x-btn">Add to cart</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No products found in the selected collection.</p>
+  {% endif %}
+</section>
+
+<style>
+.x-featured-collection{padding:50px 20px;text-align:center;background:#0b1f3a;color:#fff}
+.x-collection-title{font-size:26px;font-weight:700;margin-bottom:30px;text-shadow:0 0 8px #ffcc00}
+.x-collection-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.x-product-card{background:#fff;border-radius:14px;overflow:hidden;padding:12px;transition:transform .3s, box-shadow .3s}
+.x-product-card:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 0 16px #ffcc00,0 0 32px rgba(255,204,0,.6)}
+.x-product-img img{width:100%;border-radius:10px;display:block}
+.x-product-info{margin-top:12px;text-align:left}
+.x-product-title{font-size:16px;font-weight:600;margin:6px 0}
+.x-product-title a{color:#0b1f3a;text-decoration:none}
+.x-product-price{font-size:15px;margin-bottom:10px}
+.x-product-price .old-price{text-decoration:line-through;color:#888;margin-right:6px}
+.x-btn{display:inline-block;padding:8px 14px;border:none;border-radius:6px;background:#ffcc00;color:#0b1f3a;font-weight:600;cursor:pointer;transition:background .3s}
+.x-btn:hover{background:#ffdb4d}
+</style>
+
+{% schema %}
+{
+  "name": "Product Grid",
+  "target": "section",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Title", "default": "⭐ Featured products" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "limit", "label": "Products count", "min": 2, "max": 12, "step": 1, "default": 4 }
+  ]
+}
+{% endschema %}

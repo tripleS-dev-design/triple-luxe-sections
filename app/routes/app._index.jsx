@@ -1,4 +1,4 @@
-// app/routes/app._index.jsx — TLS · 3 themes (Polaris-only icons)
+// app/routes/app._index.jsx — Selya · Pages: Home / Product / Cart
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouteLoaderData } from "@remix-run/react";
 import {
@@ -10,8 +10,8 @@ import {
   InlineStack,
   Text,
   Box,
-  Banner,
   Icon,
+  Banner,
 } from "@shopify/polaris";
 import {
   AppsIcon,
@@ -21,9 +21,8 @@ import {
   ViewIcon,
 } from "@shopify/polaris-icons";
 
-/* ===== externals (YouTube / WhatsApp) ===== */
-const YOUTUBE_URL = "https://www.youtube.com/@yourchannel"; // change si besoin
-const WHATSAPP_URL = "https://wa.me/+212630079763";
+/* ===== externals (YouTube only) ===== */
+const YOUTUBE_URL = "https://www.youtube.com/@yourchannel"; // change if needed
 
 /* ===== shared button base (for floating FABs) ===== */
 const BUTTON_FAB = {
@@ -43,6 +42,7 @@ const BUTTON_FAB = {
 
 /* ===== get parent data (shopSub, apiKey) ===== */
 function useParentData() {
+  // Ensure your parent route id matches your app (commonly "routes/app")
   return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
 }
 
@@ -60,8 +60,8 @@ function linkAddBlock({
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
     context: "apps",
-    template,
-    target,
+    template, // "index", "product", "cart", ...
+    target, // keep "main" unless you use header/footer targets
     addAppBlockId: `${apiKey}/${handle}`,
   });
   return `${base}?${p.toString()}`;
@@ -70,14 +70,26 @@ function linkAddBlock({
 /* ===== Light CSS ===== */
 const LAYOUT_CSS = `
   html, body { margin:0; background:#F6F7F9; }
-  .tls-theme-chip {
+  .tls-page-chip {
     display:inline-grid; grid-auto-flow:column; gap:8px; align-items:center;
     padding:8px 12px; border:1px solid #E5E7EB; border-radius:999px;
     background:#fff; cursor:pointer; font-weight:700;
   }
-  .tls-theme-chip[data-on="1"] { outline:2px solid #2563EB; }
+  .tls-page-chip[data-on="1"] { outline:2px solid #2563EB; }
   .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
   .tls-block-row:first-of-type { border-top:none; }
+
+  /* Video 16:9 responsive container */
+  .tls-video-wrap { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #0b1f3a; }
+  .tls-video-16x9 { position: relative; width: 100%; padding-top: 56.25%; }
+  .tls-video-16x9 iframe, .tls-video-16x9 .tls-video-placeholder {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
+  }
+  .tls-video-placeholder {
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-weight:600; letter-spacing:.3px;
+    background: radial-gradient(ellipse at 50% 50%, rgba(255,204,0,.25), rgba(11,31,58,.95));
+  }
 `;
 function InjectCssOnce() {
   useEffect(() => {
@@ -91,148 +103,276 @@ function InjectCssOnce() {
   return null;
 }
 
-/* ===== META (Polaris icons only) ===== */
+/* ===== Tawk.to loader (mount/unmount safe) ===== */
+function TawkTo({ propertyId, widgetId }) {
+  useEffect(() => {
+    // avoid duplicate injection on HMR
+    const selector = `script[src*="embed.tawk.to/${propertyId}/${widgetId}"]`;
+    if (document.querySelector(selector)) return;
+
+    const s1 = document.createElement("script");
+    const s0 = document.getElementsByTagName("script")[0];
+    s1.async = true;
+    s1.src = `https://embed.tawk.to/${propertyId}/${widgetId}`;
+    s1.charset = "UTF-8";
+    s1.setAttribute("crossorigin", "*");
+    s0.parentNode.insertBefore(s1, s0);
+
+    return () => {
+      const node = document.querySelector(selector);
+      if (node) node.remove();
+      try { delete window.Tawk_API; } catch {}
+    };
+  }, [propertyId, widgetId]);
+  return null;
+}
+
+/* ===== VIDEO URLS (put your YouTube links later) =====
+   – Leave empty string "" to show the placeholder preview box.
+   – Example: "https://www.youtube.com/embed/VIDEO_ID"
+*/
+const VIDEO_URLS = {
+  home: "",     // add your URL later
+  product: "",  // add your URL later
+  cart: "",     // add your URL later
+};
+
+/* ===== PAGE TEXTS (definition + how-to) ===== */
+const PAGE_TEXTS = {
+  home: {
+    title: "Welcome to Selya — Homepage Builder",
+    intro:
+      "Selya lets you build a complete theme experience using app-powered sections. Use the quick actions below to add sections directly into your theme editor.",
+    howto: [
+      "Click “Add to theme” on any section to deep-link into Shopify’s Theme Editor.",
+      "In the Theme Editor, adjust the section’s settings (text, images, colors, layout).",
+      "Reorder sections as you like, then save your changes.",
+    ],
+  },
+  product: {
+    title: "Product Page — Information & Conversion",
+    intro:
+      "Enhance your product detail page with rich information blocks, recommendations, imagery and sticky CTAs. Add the sections below and customize them.",
+    howto: [
+      "Choose a block and click “Add to theme” to open the Product template.",
+      "Configure gallery, variants, pricing, and upsell options as needed.",
+      "Preview on a real product and save.",
+    ],
+  },
+  cart: {
+    title: "Cart Page — Upsell & Trust",
+    intro:
+      "Improve the cart experience with clean line items, clear totals, trust badges and smart recommendations. Add the sections below in one click.",
+    howto: [
+      "Click “Add to theme” on the blocks you need for the Cart template.",
+      "Tune visibility, messaging and upsell logic in settings.",
+      "Test flows to checkout and save.",
+    ],
+  },
+};
+
+/* ===== META (labels & Polaris icons) ===== */
 const META = {
-  // Theme 1 — Tech
-  "header-informatique": {
-    title: "Header — Tech",
+  // HOME (index)
+  header: {
+    title: "Header",
     icon: ThemeEditIcon,
-    desc: "Logo, search, utilities, quick links.",
+    desc: "Brand logo, navigation, utilities.",
   },
-  "banner-kenburns": {
-    title: "Ken Burns Banner",
+  "image-banner": {
+    title: "Image Banner",
     icon: ImageIcon,
-    desc: "3 slides, fade + smooth zoom/pan.",
+    desc: "Hero banner with image and CTA.",
   },
-  "carousel-cercle": {
-    title: "Circle Carousel",
+  "image-scroller": {
+    title: "Image Scroller",
+    icon: ImageIcon,
+    desc: "Continuous horizontal image strip.",
+  },
+  "video-carousel-trio": {
+    title: "Video Carousel (Trio)",
+    icon: ImageIcon,
+    desc: "Three inline video carousels.",
+  },
+  "marquee-text": {
+    title: "Marquee Text",
     icon: AppsIcon,
-    desc: "Circular image scrolling.",
-  },
-  "packs-descriptifs": {
-    title: "Descriptive Packs",
-    icon: StarIcon,
-    desc: "Product cards + lists & badges.",
-  },
-  "product-grid-glow": {
-    title: "Product Grid (Glow)",
-    icon: AppsIcon,
-    desc: "Showcase products with glow style.",
+    desc: "Scrolling promotional text.",
   },
   "social-icons": {
     title: "Social Icons",
     icon: AppsIcon,
-    desc: "Stylish social links, variants.",
+    desc: "Instagram, Facebook, WhatsApp, YouTube, TikTok.",
   },
-  "footer-liens": {
-    title: "Footer — Links",
+  "product-description": {
+    title: "Product Description",
+    icon: StarIcon,
+    desc: "Rich product or brand description block.",
+  },
+  "product-grid": {
+    title: "Product Grid",
+    icon: AppsIcon,
+    desc: "Responsive product cards with price and ATC.",
+  },
+  footer: {
+    title: "Footer",
     icon: ViewIcon,
-    desc: "2–4 link columns.",
+    desc: "About / Links / Contact + social.",
   },
 
-  // Theme 2 — Fashion
-  "t2-header-fashion": {
-    title: "Header — Fashion",
+  // PRODUCT (product)
+  "product-header": {
+    title: "Header",
     icon: ThemeEditIcon,
-    desc: "Fashion header (light, airy).",
+    desc: "Brand header for product page.",
   },
-  "t2-hero-runway": {
-    title: "Hero — Runway",
-    icon: ImageIcon,
-    desc: "Runway hero with collection CTA.",
+  "product-info-section": {
+    title: "Product Info",
+    icon: ThemeEditIcon,
+    desc: "Gallery, title, price, variants, ATC.",
   },
-  "t2-categories-pills": {
-    title: "Categories (pills)",
-    icon: AppsIcon,
-    desc: "Filters/tabs styled as pills.",
-  },
-  "t2-products-grid": {
-    title: "Product Grid (Fashion)",
-    icon: AppsIcon,
-    desc: "Responsive grid adapted for fashion.",
-  },
-  "t2-social-proof": {
-    title: "Social Proof",
+  "product-recommended": {
+    title: "Recommended Products",
     icon: StarIcon,
-    desc: "Testimonials / customer reviews.",
+    desc: "You may also like…",
+  },
+  "image-details-section": {
+    title: "Image Details",
+    icon: ImageIcon,
+    desc: "Detailed imagery or feature highlights.",
+  },
+  "product-footer": {
+    title: "Footer",
+    icon: ViewIcon,
+    desc: "Footer for product page.",
   },
 
-  // Theme 3 — Triple-S Branding (pro)
-  "tls3-hero-brand-video-pro": {
-    title: "Hero Video — Brand Pro",
-    icon: ImageIcon,
-    desc: "Large hero video or key visual.",
+  // CART (cart)
+  "cart-header": {
+    title: "Header",
+    icon: ThemeEditIcon,
+    desc: "Brand header for cart page.",
   },
-  "tls3-founders-story-pro": {
-    title: "Founders’ Story",
+  "cart-info": {
+    title: "Cart Info",
+    icon: AppsIcon,
+    desc: "Line items, quantities, remove actions.",
+  },
+  "cart-recommended": {
+    title: "Recommended Products",
     icon: StarIcon,
-    desc: "Storytelling & photo.",
+    desc: "Cross-sell based on cart.",
+  },
+  "cart-footer": {
+    title: "Footer",
+    icon: ViewIcon,
+    desc: "Footer for cart page.",
   },
 };
 
-/* ===== THEMES (block handles) ===== */
-const THEMES = [
+/* ===== PAGES (sections by template) ===== */
+const PAGES = [
+  // HOME
   {
-    key: "tech",
-    label: "Tech",
-    emoji: "💻",
-    desc: "Hero + product highlights + packs and social.",
-    header: { handle: "header-informatique", template: "index" },
-    content: [
-      { handle: "banner-kenburns", template: "index" },
-      { handle: "carousel-cercle", template: "index" },
-      { handle: "product-grid-glow", template: "index" },
-      { handle: "packs-descriptifs", template: "index" },
-      { handle: "social-icons", template: "index" },
+    key: "home",
+    emoji: "🏠",
+    label: "Home",
+    template: "index",
+    desc: "Build your homepage with ready-to-use sections.",
+    blocks: [
+      { handle: "header" },
+      { handle: "image-banner" },
+      { handle: "image-scroller" },
+      { handle: "video-carousel-trio" },
+      { handle: "marquee-text" },
+      { handle: "social-icons" },
+      { handle: "product-description" },
+      { handle: "product-grid" },
+      { handle: "footer" },
     ],
-    footer: { handle: "footer-liens", template: "index" },
   },
+
+  // PRODUCT
   {
-    key: "fashion",
-    label: "Fashion",
-    emoji: "🧥",
-    desc: "Lookbook, categories pills, product grid, and social proof.",
-    header: { handle: "t2-header-fashion", template: "index" },
-    content: [
-      { handle: "t2-hero-runway", template: "index" },
-      { handle: "t2-categories-pills", template: "index" },
-      { handle: "t2-products-grid", template: "index" },
-      { handle: "t2-social-proof", template: "index" },
+    key: "product",
+    emoji: "📦",
+    label: "Product",
+    template: "product",
+    desc: "Optimize PDP with info, recommendations, and rich imagery.",
+    blocks: [
+      { handle: "product-header" },
+      { handle: "product-info-section" },
+      { handle: "product-recommended" },
+      { handle: "image-details-section" },
+      { handle: "product-footer" },
     ],
-    footer: { handle: "footer-liens", template: "index" },
   },
+
+  // CART
   {
-    key: "triple-s",
-    label: "Triple-S Branding",
-    emoji: "✨",
-    desc: "All blocks in one place (branding + tech + fashion).",
-    header: { handle: "header-informatique", template: "index" }, // header par défaut
-    content: [
-      // ---- tous les blocs existants ----
-       // Pro (restants)
-      { handle: "tls3-hero-brand-video-pro", template: "index" },
-      { handle: "tls3-founders-story-pro", template: "index" },
-      // Tech
-      { handle: "banner-kenburns", template: "index" },
-      { handle: "carousel-cercle", template: "index" },
-      { handle: "product-grid-glow", template: "index" },
-      { handle: "packs-descriptifs", template: "index" },
-      { handle: "social-icons", template: "index" },
-
-      // Fashion
-      { handle: "t2-hero-runway", template: "index" },
-      { handle: "t2-categories-pills", template: "index" },
-      { handle: "t2-products-grid", template: "index" },
-      { handle: "t2-social-proof", template: "index" },
-
-     
+    key: "cart",
+    emoji: "🛒",
+    label: "Cart",
+    template: "cart",
+    desc: "Enhance the cart experience and drive checkout.",
+    blocks: [
+      { handle: "cart-header" },
+      { handle: "cart-info" },
+      { handle: "cart-recommended" },
+      { handle: "cart-footer" },
     ],
-    footer: { handle: "footer-liens", template: "index" },
   },
 ];
 
-/* ===== Block Row ===== */
-function BlockRow({ shopSub, apiKey, block }) {
+/* ===== UI bits ===== */
+function DefinitionBanner({ pageKey }) {
+  const c = PAGE_TEXTS[pageKey];
+  if (!c) return null;
+  return (
+    <Banner title={c.title} tone="info">
+      <p style={{ marginTop: 6 }}>{c.intro}</p>
+      <div style={{ marginTop: 10 }}>
+        <strong>How to add sections</strong>
+        <ol style={{ marginTop: 6, paddingLeft: 18 }}>
+          {c.howto.map((line, i) => (
+            <li key={i} style={{ margin: "4px 0" }}>{line}</li>
+          ))}
+        </ol>
+      </div>
+    </Banner>
+  );
+}
+
+function VideoPanel({ url }) {
+  return (
+    <Card>
+      <Box padding="300">
+        <Text as="h3" variant="headingSm">Video walkthrough</Text>
+        <Box paddingBlockStart="200">
+          <div className="tls-video-wrap">
+            <div className="tls-video-16x9">
+              {url ? (
+                <iframe
+                  src={url}
+                  title="Selya walkthrough"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="tls-video-placeholder">
+                  Add your YouTube embed URL in VIDEO_URLS to show the video
+                </div>
+              )}
+            </div>
+          </div>
+        </Box>
+      </Box>
+    </Card>
+  );
+}
+
+/* ===== Block Row (single actionable line) ===== */
+function BlockRow({ shopSub, apiKey, block, template }) {
   const meta = META[block.handle] || {};
   const IconSrc = meta.icon || AppsIcon;
 
@@ -258,7 +398,7 @@ function BlockRow({ shopSub, apiKey, block }) {
             <Button
               url={linkAddBlock({
                 shopSub,
-                template: block.template,
+                template,
                 apiKey,
                 handle: block.handle,
               })}
@@ -278,80 +418,77 @@ function BlockRow({ shopSub, apiKey, block }) {
   );
 }
 
-/* ===== Theme blocks view ===== */
-function ThemeBlocksView({ theme, shopSub, apiKey }) {
+/* ===== Template view (list blocks + definition + video) ===== */
+function TemplateBlocksView({ page, shopSub, apiKey }) {
   return (
     <BlockStack gap="400">
+      {/* Definition / How-to */}
+      <DefinitionBanner pageKey={page.key} />
+
+      {/* Sections list */}
       <Card>
         <Box padding="300" borderRadius="300" background="bg-surface-secondary">
           <InlineStack gap="200" blockAlign="center">
             <Icon source={ThemeEditIcon} />
             <Text as="h2" variant="headingSm">
-              Header
+              {page.label} — sections ({page.blocks.length})
             </Text>
           </InlineStack>
         </Box>
-        <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.header} />
-      </Card>
 
-      <Card>
-        <Box padding="300" borderRadius="300" background="bg-surface-secondary">
-          <InlineStack gap="200" blockAlign="center">
-            <Icon source={AppsIcon} />
-            <Text as="h2" variant="headingSm">
-              Content
-            </Text>
-          </InlineStack>
-        </Box>
         <BlockStack gap="0">
-          {theme.content.map((blk) => (
-            <BlockRow key={blk.handle} shopSub={shopSub} apiKey={apiKey} block={blk} />
+          {page.blocks.map((blk) => (
+            <BlockRow
+              key={`${page.key}:${blk.handle}`}
+              shopSub={shopSub}
+              apiKey={apiKey}
+              block={blk}
+              template={page.template}
+            />
           ))}
         </BlockStack>
       </Card>
 
-      <Card>
-        <Box padding="300" borderRadius="300" background="bg-surface-secondary">
-          <InlineStack gap="200" blockAlign="center">
-            <Icon source={ViewIcon} />
-            <Text as="h2" variant="headingSm">
-              Footer
-            </Text>
-          </InlineStack>
-        </Box>
-        <BlockRow shopSub={shopSub} apiKey={apiKey} block={theme.footer} />
-      </Card>
+      {/* Video walkthrough (16:9, large) */}
+      <VideoPanel
+        url={
+          page.key === "home"
+            ? VIDEO_URLS.home
+            : page.key === "product"
+            ? VIDEO_URLS.product
+            : VIDEO_URLS.cart
+        }
+      />
     </BlockStack>
   );
 }
 
 /* ===== Main page ===== */
-export default function TLSBuilderIndex() {
+export default function SelyaBuilderIndex() {
   const { shopSub, apiKey } = useParentData();
-  const [themeKey, setThemeKey] = useState(THEMES[0].key);
+  const [pageKey, setPageKey] = useState(PAGES[0].key);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("tls_selected_theme");
-      if (saved && THEMES.some((t) => t.key === saved)) setThemeKey(saved);
+      const saved = localStorage.getItem("tls_selected_page");
+      if (saved && PAGES.some((p) => p.key === saved)) setPageKey(saved);
     } catch {}
   }, []);
   useEffect(() => {
     try {
-      localStorage.setItem("tls_selected_theme", themeKey);
+      localStorage.setItem("tls_selected_page", pageKey);
     } catch {}
-  }, [themeKey]);
+  }, [pageKey]);
 
-  const theme = useMemo(
-    () => THEMES.find((t) => t.key === themeKey) || THEMES[0],
-    [themeKey]
+  const page = useMemo(
+    () => PAGES.find((p) => p.key === pageKey) || PAGES[0],
+    [pageKey]
   );
-  const countBlocks = (t) => 1 + (t.content?.length || 0) + 1;
 
   return (
     <Page
-      title="Triple-Luxe-Sections"
-      subtitle="Choose a theme • Add blocks in 1 click"
+      title="Selya — Theme Sections"
+      subtitle="Pick a page • Add sections in one click"
       secondaryActions={[
         {
           content: "Theme editor",
@@ -364,38 +501,40 @@ export default function TLSBuilderIndex() {
       <InjectCssOnce />
 
       <BlockStack gap="400">
-       
-
+        {/* Page selector (Home / Product / Cart) */}
         <Card>
           <Box padding="300">
             <InlineStack gap="200" wrap>
-              {THEMES.map((t) => (
+              {PAGES.map((p) => (
                 <button
-                  key={t.key}
+                  key={p.key}
                   type="button"
-                  className="tls-theme-chip"
-                  data-on={themeKey === t.key ? 1 : 0}
-                  onClick={() => setThemeKey(t.key)}
-                  title={t.desc}
+                  className="tls-page-chip"
+                  data-on={pageKey === p.key ? 1 : 0}
+                  onClick={() => setPageKey(p.key)}
+                  title={p.desc}
                 >
-                  <span style={{ fontSize: 16, marginRight: 6 }}>{t.emoji}</span>
-                  <span style={{ fontWeight: 700 }}>{t.label}</span>
+                  <span style={{ fontSize: 16, marginRight: 6 }}>{p.emoji}</span>
+                  <span style={{ fontWeight: 700 }}>{p.label}</span>
                   <span style={{ marginLeft: 8 }}>
-                    <Badge>{countBlocks(t)}</Badge>
+                    <Badge>{p.blocks.length}</Badge>
                   </span>
                 </button>
               ))}
             </InlineStack>
+
             <Box paddingBlockStart="200">
               <Text as="p" tone="subdued">
-                {theme.desc}
+                {page.desc}
               </Text>
             </Box>
           </Box>
         </Card>
 
-        <ThemeBlocksView theme={theme} shopSub={shopSub} apiKey={apiKey} />
+        {/* Page content (definition + sections + video) */}
+        <TemplateBlocksView page={page} shopSub={shopSub} apiKey={apiKey} />
 
+        {/* Quick links (optional) */}
         <Card>
           <Box padding="300">
             <Text as="h3" variant="headingSm">
@@ -405,75 +544,14 @@ export default function TLSBuilderIndex() {
               <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
                 Open Theme Editor
               </Button>
-              <InlineStack gap="200" wrap>
-                <Button
-                  url={linkAddBlock({
-                    shopSub,
-                    template: "index",
-                    apiKey,
-                    handle: "banner-kenburns",
-                  })}
-                  target="_top"
-                  icon={ThemeEditIcon}
-                >
-                  Try · Ken Burns Banner
-                </Button>
-                <Button
-                  url={linkAddBlock({
-                    shopSub,
-                    template: "index",
-                    apiKey,
-                    handle: "footer-liens",
-                  })}
-                  target="_top"
-                  icon={ThemeEditIcon}
-                >
-                  Try · Footer Links
-                </Button>
-              </InlineStack>
             </BlockStack>
           </Box>
         </Card>
       </BlockStack>
 
-      {/* ===== Floating buttons wrapper: no overlay on the page ===== */}
-      <div style={{ pointerEvents: "none" }}>
-        {/* YouTube (bottom-right) */}
-        <a
-          href={YOUTUBE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="YouTube tutorial"
-          style={{
-            ...BUTTON_FAB,
-            right: "24px",
-            backgroundColor: "#FF0000",
-            pointerEvents: "auto",
-          }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 576 512" fill="#fff" aria-hidden="true">
-            <path d="M549.7 124.1c-6.3-23.7-24.9-42.3-48.6-48.6C458.8 64 288 64 288 64S117.2 64 74.9 75.5c-23.7 6.3-42.3 24.9-48.6 48.6C15.9 166.3 16 256 16 256s0 89.7 10.3 131.9c6.3 23.7 24.9 42.3 48.6 48.6C117.2 448 288 448 288 448s170.8 0 213.1-11.5c23.7-6.3 42.3-24.9 48.6-48.6C560.1 345.7 560 256 560 256s.1-89.7-10.3-131.9zM232 336V176l142 80-142 80z"/>
-          </svg>
-        </a>
 
-        {/* WhatsApp (bottom-left) */}
-        <a
-          href={WHATSAPP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="WhatsApp support"
-          style={{
-            ...BUTTON_FAB,
-            left: "24px",
-            backgroundColor: "#25D366",
-            pointerEvents: "auto",
-          }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 448 512" fill="#fff" aria-hidden="true">
-            <path d="M380.9 97.1C339.4 55.6 283.3 32 224 32S108.6 55.6 67.1 97.1C25.6 138.6 2 194.7 2 254c0 45.3 13.5 89.3 39 126.7L0 480l102.6-38.7C140 481.5 181.7 494 224 494c59.3 0 115.4-23.6 156.9-65.1C422.4 370.6 446 314.5 446 254s-23.6-115.4-65.1-156.9zM224 438c-37.4 0-73.5-11.1-104.4-32l-7.4-4.9-61.8 23.3 23.2-60.6-4.9-7.6C50.1 322.9 38 289.1 38 254c0-102.6 83.4-186 186-186s186 83.4 186 186-83.4 186-186 186zm101.5-138.6c-5.5-2.7-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.7-12.5 2.7s-14.3 17.9-17.5 21.6c-3.2 3.7-6.4 4.1-11.9 1.4s-23.2-8.5-44.2-27.1c-16.3-14.5-27.3-32.4-30.5-37.9-3.2-5.5-.3-8.5 2.4-11.2 2.5-2.5 5.5-6.4 8.3-9.6 2.8-3.2 3.7-5.5 5.5-9.2s.9-6.9-.5-9.6c-1.4-2.7-12.5-30.1-17.2-41.3-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2s-9.6 1.4-14.6 6.9-19.2 18.7-19.2 45.7 19.7 53 22.4 56.7c2.7 3.7 38.6 59.1 93.7 82.8 13.1 5.7 23.3 9.1 31.3 11.7 13.1 4.2 25.1 3.6 34.6 2.2 10.5-1.6 32.7-13.4 37.3-26.3 4.6-12.7 4.6-23.5 3.2-25.7-1.4-2.2-5-3.6-10.5-6.2z"/>
-          </svg>
-        </a>
-      </div>
+      {/* Tawk.to chat widget */}
+      <TawkTo propertyId="68d9b9b47e832f194e5d7159" widgetId="1j697qqqh" />
     </Page>
   );
 }

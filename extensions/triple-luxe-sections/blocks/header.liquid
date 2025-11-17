@@ -1,0 +1,308 @@
+{% comment %}
+Header (App Block) — full width fiable + logo calculé (width/height corrects)
+{% endcomment %}
+
+<header
+  class="x-header{% if block.settings.sticky %} x-sticky{% endif %}{% if block.settings.transparent %} x-transparent{% endif %}{% if block.settings.full_bleed %} x-full{% endif %}"
+  {{ block.shopify_attributes }}
+  role="banner"
+  aria-label="Site header"
+  style="
+    --bar: {{ block.settings.bar_color }};
+    --fg: {{ block.settings.text_color }};
+    --accent: {{ block.settings.accent_color }};
+    --dd-bg: {{ block.settings.dropdown_bg }};
+    --dd-fg: {{ block.settings.dropdown_text }};
+    --bg-alpha: {{ block.settings.bg_opacity }};
+    --logo-h: {{ block.settings.logo_height }}px;
+    --pad-y: {{ block.settings.padding_y }}px;
+    --top-offset: {{ block.settings.top_offset }}px;
+    --top-border: {{ block.settings.top_border_color }};
+    --top-border-w: {{ block.settings.top_border_w }}px;
+    --bottom-border: {{ block.settings.bottom_border_color }};
+    --bottom-border-w: {{ block.settings.bottom_border_w }}px;
+    --underline: {{ block.settings.search_underline }};
+  "
+  data-block-id="{{ block.id }}"
+>
+  <div class="x-bar">
+    <!-- Burger (mobile) -->
+    <button class="x-burger" aria-label="Open menu" aria-controls="x-drawer-{{ block.id }}" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- Logo -->
+    <a class="x-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }}">
+      {% if block.settings.logo %}
+        {%- assign logo_w = 560 -%}
+        {%- assign src_w  = block.settings.logo.width  | default: 0 -%}
+        {%- assign src_h  = block.settings.logo.height | default: 0 -%}
+        {%- if src_w > 0 and src_h > 0 -%}
+          {%- assign logo_h = src_h | times: logo_w | divided_by: src_w -%}
+        {%- else -%}
+          {%- assign logo_h = block.settings.logo_height | default: 44 -%}
+        {%- endif -%}
+        {{ block.settings.logo
+          | image_url: width: logo_w
+          | image_tag:
+            alt: shop.name,
+            class: 'x-logo__img',
+            loading: 'eager',
+            width: logo_w,
+            height: logo_h,
+            decoding: 'async'
+        }}
+      {% else %}
+        <span class="x-logo__text">{{ shop.name }}</span>
+      {% endif %}
+    </a>
+
+    <!-- Desktop navigation -->
+    <nav class="x-nav" aria-label="Primary">
+      <ul class="x-menu" role="list">
+        {% assign nav = block.settings.nav_menu %}
+        {% if nav and linklists[nav] %}
+          {% for link in linklists[nav].links %}
+            {% if link.links.size > 0 %}
+              <li class="x-item has-children">
+                <a class="x-link" href="{{ link.url }}">{{ link.title }}</a>
+                <span class="x-caret" aria-hidden="true">▾</span>
+                <ul class="x-submenu" role="menu">
+                  {% for sub in link.links %}
+                    <li role="none"><a role="menuitem" href="{{ sub.url }}">{{ sub.title }}</a></li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% else %}
+              <li class="x-item"><a class="x-link" href="{{ link.url }}">{{ link.title }}</a></li>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <!-- Actions -->
+    <div class="x-actions">
+      {% if block.settings.show_search %}
+        <form class="x-search" role="search" action="{{ routes.search_url }}">
+          <input
+            class="x-search__input"
+            name="q"
+            type="search"
+            placeholder="{{ block.settings.search_placeholder | default: 'Search products…' }}"
+            aria-label="Search"
+          >
+          <button class="x-search__btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1014 15.5l.27.28v.79L20 21 21 20l-5.5-6zM4 9.5A5.5 5.5 0 119.5 15 5.5 5.5 0 014 9.5z"/></svg>
+          </button>
+        </form>
+      {% endif %}
+
+      {% if block.settings.show_account_icon %}
+        <a class="x-ico" href="{{ routes.account_url }}" aria-label="Account">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 10-5-5 5 5 0 005 5zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg>
+        </a>
+      {% endif %}
+
+      {% if block.settings.show_cart_icon %}
+        <a class="x-ico x-cart" href="{{ routes.cart_url }}" aria-label="Cart">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a2 2 0 102 2 2 2 0 00-2-2zm8 0a2 2 0 102 2 2 2 0 00-2-2zM7.2 6l.4 2H21l-2 7H8.2l-3-11H3V2h3a1 1 0 01.96.72L7.2 6z"/></svg>
+          {% if cart.item_count > 0 %}
+            <span class="x-badge" aria-label="{{ cart.item_count }} items">{{ cart.item_count }}</span>
+          {% endif %}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Mobile Drawer -->
+  <aside id="x-drawer-{{ block.id }}" class="x-drawer" hidden aria-hidden="true">
+    <div class="x-drawer__inner" role="dialog" aria-modal="true" aria-label="Mobile menu">
+      <button class="x-close" aria-label="Close menu">✕</button>
+
+      {% if block.settings.show_search %}
+        <form class="x-msearch" role="search" action="{{ routes.search_url }}">
+          <input name="q" type="search" placeholder="{{ block.settings.search_placeholder | default: 'Search products…' }}" aria-label="Search">
+        </form>
+      {% endif %}
+
+      <nav class="x-mnav" aria-label="Mobile">
+        <ul role="list">
+          {% assign nav = block.settings.nav_menu %}
+          {% if nav and linklists[nav] %}
+            {% for link in linklists[nav].links %}
+              <li>
+                {% if link.links.size > 0 %}
+                  <details>
+                    <summary>{{ link.title }}</summary>
+                    <ul role="list">
+                      {% for sub in link.links %}
+                        <li><a href="{{ sub.url }}">{{ sub.title }}</a></li>
+                      {% endfor %}
+                    </ul>
+                  </details>
+                {% else %}
+                  <a href="{{ link.url }}">{{ link.title }}</a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="x-overlay" hidden aria-hidden="true"></div>
+</header>
+
+<style>
+html, body { overflow-x: hidden; }
+
+/* Bar + borders */
+.x-header{border-top:var(--top-border-w) solid var(--top-border);border-bottom:var(--bottom-border-w) solid var(--bottom-border)}
+.x-bar{
+  background:var(--bar); color:var(--fg);
+  width:100%; margin:0;
+  padding:var(--pad-y) 18px;
+  display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center;
+  box-sizing:border-box;
+}
+
+/* Full width (100vw) */
+.x-header.x-full{
+  width:100vw !important;
+  max-width:100vw !important;
+  margin-left:calc(50% - 50vw) !important;
+  margin-right:calc(50% - 50vw) !important;
+  isolation:isolate;
+}
+.x-header.x-full .x-bar{
+  width:100vw !important;
+  max-width:100vw !important;
+  margin-left:calc(50% - 50vw) !important;
+  margin-right:calc(50% - 50vw) !important;
+}
+
+.x-sticky{position:sticky;top:var(--top-offset);z-index:60}
+.x-transparent .x-bar{background: color-mix(in srgb, var(--bar) calc(var(--bg-alpha)*100%), transparent); backdrop-filter: blur(8px)}
+
+.x-logo{display:inline-flex;align-items:center;text-decoration:none}
+.x-logo__img{max-height:var(--logo-h);height:auto;width:auto;display:block}
+.x-logo__text{font-weight:800;font-size:16px;color:var(--fg)}
+
+.x-nav{display:flex;justify-content:center}
+.x-menu{display:flex;gap:36px;list-style:none;margin:0;padding:0}
+.x-item{position:relative}
+.x-link{color:var(--fg);text-decoration:none;font-weight:800;letter-spacing:.02em;text-transform:uppercase;font-size:14px}
+.x-caret{margin-left:6px;color:var(--fg);font-size:12px}
+.x-submenu{
+  position:absolute; top:calc(100% + 10px); left:0; min-width:220px;
+  background:var(--dd-bg); color:var(--dd-fg); padding:10px; border-radius:10px;
+  box-shadow:0 12px 32px rgba(0,0,0,.25); display:none; z-index:120;
+}
+.x-submenu a{display:block;padding:8px 10px;border-radius:8px;color:var(--dd-fg);text-decoration:none;font-weight:500}
+.x-submenu a:hover{background:rgba(255,255,255,.08)}
+.has-children:hover .x-submenu{display:block}
+
+.x-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.x-ico{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;text-decoration:none}
+.x-ico svg{fill:var(--fg);width:18px;height:18px}
+.x-badge{position:absolute;top:-6px;right:-7px;background:var(--accent);color:#000;border-radius:999px;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;padding:0 4px}
+
+.x-search{display:flex;align-items:center;min-width:260px;gap:6px}
+.x-search__input{flex:1;background:transparent;border:0;border-bottom:2px solid var(--underline);padding:6px 0;color:var(--fg);outline:none}
+.x-search__input::placeholder{color:var(--fg);opacity:.6}
+.x-search__btn{border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center}
+.x-search__btn svg{width:18px;height:18px;fill:var(--fg)}
+
+.x-burger{display:none;flex-direction:column;gap:4px;background:transparent;border:0}
+.x-burger span{width:22px;height:2px;background:var(--fg);display:block;border-radius:2px}
+
+@media (max-width: 990px){
+  .x-burger{display:inline-flex}
+  .x-nav,.x-search{display:none}
+}
+
+.x-overlay[hidden]{display:none}
+.x-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);z-index:85}
+.x-drawer[hidden]{display:none}
+.x-drawer{position:fixed;inset:0 0 0 auto;width:min(86vw,360px);background:var(--bar);color:var(--fg);z-index:90}
+.x-drawer__inner{height:100%;padding:16px;box-shadow:-24px 0 48px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:12px}
+.x-close{align-self:flex-end;border:0;background:transparent;color:var(--fg);font-size:22px;line-height:1;cursor:pointer}
+.x-msearch input{width:100%;border-radius:10px;border:1px solid color-mix(in srgb, var(--fg) 20%, transparent);padding:.6rem .75rem;background:transparent;color:var(--fg)}
+.x-mnav ul, .x-mnav>ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.x-mnav a{color:var(--fg);text-decoration:none;font-weight:700}
+.x-mnav details>summary{cursor:pointer;font-weight:800}
+</style>
+
+<script>
+(function(){
+  var root = document.querySelector('.x-header[data-block-id="{{ block.id }}"]');
+  if(!root) return;
+  var burger  = root.querySelector('.x-burger');
+  var drawer  = root.querySelector('.x-drawer');
+  var overlay = root.querySelector('.x-overlay');
+
+  function openDrawer(){
+    if(!drawer) return;
+    drawer.removeAttribute('hidden');
+    if(overlay) overlay.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    if(burger) burger.setAttribute('aria-expanded','true');
+    drawer.setAttribute('aria-hidden','false');
+  }
+  function closeDrawer(){
+    if(!drawer) return;
+    drawer.setAttribute('hidden','');
+    if(overlay) overlay.setAttribute('hidden','');
+    document.body.style.overflow = '';
+    if(burger) burger.setAttribute('aria-expanded','false');
+    drawer.setAttribute('aria-hidden','true');
+  }
+
+  if(burger){ burger.addEventListener('click', function(){ drawer.hasAttribute('hidden') ? openDrawer() : closeDrawer(); }); }
+  if(overlay){ overlay.addEventListener('click', closeDrawer); }
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !drawer.hasAttribute('hidden')) closeDrawer(); });
+  root.querySelectorAll('.x-drawer a').forEach(function(a){ a.addEventListener('click', closeDrawer); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Header (App Block)",
+  "target": "section",
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "range", "id": "logo_height", "label": "Logo height (px)", "min": 28, "max": 80, "step": 2, "default": 44 },
+
+    { "type": "link_list", "id": "nav_menu", "label": "Navigation menu" },
+
+    { "type": "checkbox", "id": "show_search", "label": "Show search", "default": true },
+    { "type": "text", "id": "search_placeholder", "label": "Search placeholder", "default": "Search products…" },
+    { "type": "color", "id": "search_underline", "label": "Search underline color", "default": "#000000" },
+
+    { "type": "checkbox", "id": "show_account_icon", "label": "Show account icon", "default": true },
+    { "type": "checkbox", "id": "show_cart_icon", "label": "Show cart icon", "default": true },
+
+    { "type": "checkbox", "id": "sticky", "label": "Sticky on scroll", "default": true },
+    { "type": "checkbox", "id": "transparent", "label": "Transparent background + blur", "default": false },
+    { "type": "range", "id": "bg_opacity", "label": "Transparent background opacity", "min": 0, "max": 1, "step": 0.1, "default": 0.3 },
+
+    { "type": "color", "id": "bar_color", "label": "Header bar color", "default": "#fbd483" },
+    { "type": "color", "id": "text_color", "label": "Text & icons color", "default": "#000000" },
+    { "type": "color", "id": "accent_color", "label": "Accent color (badges)", "default": "#ff5252" },
+    { "type": "color", "id": "dropdown_bg", "label": "Dropdown background", "default": "#1b2b45" },
+    { "type": "color", "id": "dropdown_text", "label": "Dropdown text", "default": "#ffffff" },
+
+    { "type": "color", "id": "top_border_color", "label": "Top border color", "default": "#17324d" },
+    { "type": "range", "id": "top_border_w", "label": "Top border thickness (px)", "min": 0, "max": 6, "step": 1, "default": 4 },
+    { "type": "color", "id": "bottom_border_color", "label": "Bottom border color", "default": "#17324d" },
+    { "type": "range", "id": "bottom_border_w", "label": "Bottom border thickness (px)", "min": 0, "max": 6, "step": 1, "default": 3 },
+
+    { "type": "checkbox", "id": "full_bleed", "label": "Full width (100vw)", "default": false },
+
+    { "type": "range", "id": "padding_y", "label": "Vertical padding (px)", "min": 6, "max": 24, "step": 2, "default": 10 },
+    { "type": "range", "id": "top_offset", "label": "Top offset (for announcement bar)", "min": 0, "max": 100, "step": 1, "default": 0 }
+  ]
+}
+{% endschema %}
