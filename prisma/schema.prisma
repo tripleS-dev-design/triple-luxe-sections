@@ -24,3 +24,10 @@ model session {
   collaborator  Boolean? @default(false)
   emailVerified Boolean? @default(false)
 }
+
+model ShopFeature {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  feature   String
+  createdAt DateTime @default(now())
+}
