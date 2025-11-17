@@ -1,557 +1,902 @@
-// app/routes/app._index.jsx — Selya · Pages: Home / Product / Cart
+// app/routes/app._index.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouteLoaderData } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { useRouteLoaderData, useLoaderData } from "@remix-run/react";
 import {
   Page,
   Card,
-  Button,
-  Badge,
   BlockStack,
   InlineStack,
   Text,
+  Button,
   Box,
+  Badge,
+  Select,
   Icon,
-  Banner,
 } from "@shopify/polaris";
-import {
-  AppsIcon,
-  ThemeEditIcon,
-  ImageIcon,
-  StarIcon,
-  ViewIcon,
-} from "@shopify/polaris-icons";
+import * as PI from "@shopify/polaris-icons";
+import { authenticate } from "../shopify.server";
+import { getFeaturesForShop } from "../services/shopFeatures.server";
 
-/* ===== externals (YouTube only) ===== */
-const YOUTUBE_URL = "https://www.youtube.com/@yourchannel"; // change if needed
+/* ======================= LOADER ======================= */
 
-/* ===== shared button base (for floating FABs) ===== */
-const BUTTON_FAB = {
-  position: "fixed",
-  bottom: "24px",
-  width: "56px",
-  height: "56px",
-  borderRadius: "50%",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
-  zIndex: 60,
-  textDecoration: "none",
-  backgroundColor: "#000",
+export const loader = async ({ request }) => {
+  const { session } = await authenticate.admin(request);
+  const features = await getFeaturesForShop(session.shop);
+  return json({ features });
 };
 
-/* ===== get parent data (shopSub, apiKey) ===== */
+/* ======================= LAYOUT / CSS GLOBAL ======================= */
+
+const LAYOUT_CSS = `
+  html, body { margin:0; background:#F6F7F9; }
+
+  .Polaris-Page,
+  .Polaris-Page__Content {
+    max-width:none !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+  }
+
+  .Polaris-Page-Header {
+    padding: 12px 24px;
+    background:#F9FAFB;
+    border-bottom:1px solid #E5E7EB;
+  }
+
+  .Polaris-Page-Header__TitleWrapper {
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 14px;
+    border-radius:999px;
+    background:linear-gradient(135deg,#000000,#4C1D95,#7C3AED);
+    color:#fff;
+    box-shadow:0 10px 24px rgba(15,23,42,0.35);
+  }
+
+  .Polaris-Header-Title,
+  .Polaris-Header-Title__Title,
+  .Polaris-Header-Title__Subtitle {
+    color:#F9FAFB !important;
+  }
+
+  .tls-shell {
+    padding:16px 24px 32px 24px;
+  }
+
+  .tls-editor {
+    display:grid;
+    grid-template-columns: 320px minmax(0, 3fr) minmax(260px, 1.2fr);
+    gap:16px;
+    align-items:start;
+  }
+
+  @media (max-width: 1200px) {
+    .tls-editor {
+      grid-template-columns: 280px minmax(0, 3fr);
+    }
+    .tls-side-col {
+      display:none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .tls-editor {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .tls-rail {
+      position:static;
+      max-height:none;
+    }
+  }
+
+  .tls-rail {
+    position:sticky;
+    top:80px;
+    max-height:calc(100vh - 96px);
+    overflow:auto;
+  }
+  .tls-rail-card {
+    background:#fff;
+    border:1px solid #E5E7EB;
+    border-radius:12px;
+  }
+  .tls-rail-head {
+    padding:10px 12px;
+    border-bottom:1px solid #E5E7EB;
+    font-weight:700;
+    font-size:13px;
+  }
+  .tls-rail-list {
+    padding:8px;
+    display:grid;
+    gap:8px;
+  }
+  .tls-rail-item {
+    display:grid;
+    grid-template-columns:28px 1fr;
+    gap:8px;
+    align-items:center;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid #E5E7EB;
+    background:#FFF;
+    cursor:pointer;
+  }
+  .tls-rail-item[data-sel="1"] {
+    outline:2px solid #7C3AED;
+    box-shadow:0 0 0 1px rgba(124,58,237,0.25);
+  }
+  .tls-rail-mini {
+    margin-top:4px;
+    border-radius:8px;
+    padding:4px 6px;
+    background:#F9FAFB;
+    border:1px dashed #E5E7EB;
+    font-size:11px;
+    color:#6B7280;
+  }
+
+  .tls-main-col {
+    display:grid;
+    gap:16px;
+  }
+
+  .tls-guide-title {
+    padding:10px 12px;
+    border-radius:10px;
+    background:#F2F6FF;
+    border:1px solid #C7D2FE;
+    color:#0C4A6E;
+    font-weight:800;
+    margin-bottom:10px;
+  }
+
+  .tls-step-card {
+    border-radius:10px;
+    border:1px solid #E5E7EB;
+    background:#FFF;
+    padding:10px 10px;
+  }
+
+  .tls-blocks-card-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+  }
+
+  .tls-blocks-chip {
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:600;
+    background:rgba(15,23,42,0.08);
+  }
+
+  .tls-blocks-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap:16px;
+  }
+
+  .tls-block-header-pill {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:linear-gradient(135deg,#4C1D95,#7C3AED);
+    color:#FFF;
+  }
+
+  .tls-block-group-tag {
+    margin-left:auto;
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:600;
+    background:rgba(15,23,42,0.38);
+  }
+
+  .tls-side-col {
+    position:sticky;
+    top:80px;
+    max-height:calc(100vh - 96px);
+    overflow:auto;
+    display:grid;
+    gap:16px;
+  }
+
+  .tls-note-list {
+    margin-top:8px;
+    display:grid;
+    gap:6px;
+    font-size:13px;
+  }
+
+  .tls-youtube-btn {
+    position:fixed;
+    left:24px;
+    bottom:24px;
+    border:none;
+    border-radius:999px;
+    padding:10px 18px;
+    background:linear-gradient(135deg,#111827,#4C1D95,#7C3AED);
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 10px 24px rgba(15,23,42,0.35);
+    z-index:60;
+  }
+
+  @media (max-width: 640px){
+    .tls-youtube-btn { left:16px; bottom:16px; padding:8px 14px; font-size:12px; }
+  }
+`;
+
+function InjectCssOnce() {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (document.getElementById("tls-layout-css-admin")) return;
+    const t = document.createElement("style");
+    t.id = "tls-layout-css-admin";
+    t.appendChild(document.createTextNode(LAYOUT_CSS));
+    document.head.appendChild(t);
+  }, []);
+}
+
+/* ======================= UTIL: shopSub / apiKey ======================= */
+
 function useParentData() {
-  // Ensure your parent route id matches your app (commonly "routes/app")
   return useRouteLoaderData("routes/app") || { shopSub: "", apiKey: "" };
 }
 
-/* ===== Deep links Theme Editor ===== */
+/* ======================= Deep links Theme Editor ======================= */
+
 function editorBase({ shopSub }) {
   return `https://admin.shopify.com/store/${shopSub}/themes/current/editor`;
 }
-function linkAddBlock({
+
+function makeAddBlockLink({
   shopSub,
-  template = "index",
   apiKey,
+  template = "index",
   handle,
   target = "main",
 }) {
   const base = editorBase({ shopSub });
   const p = new URLSearchParams({
     context: "apps",
-    template, // "index", "product", "cart", ...
-    target, // keep "main" unless you use header/footer targets
+    template,
     addAppBlockId: `${apiKey}/${handle}`,
+    target,
+    enable_app_theme_extension_dev_preview: "1",
   });
   return `${base}?${p.toString()}`;
 }
 
-/* ===== Light CSS ===== */
-const LAYOUT_CSS = `
-  html, body { margin:0; background:#F6F7F9; }
-  .tls-page-chip {
-    display:inline-grid; grid-auto-flow:column; gap:8px; align-items:center;
-    padding:8px 12px; border:1px solid #E5E7EB; border-radius:999px;
-    background:#fff; cursor:pointer; font-weight:700;
-  }
-  .tls-page-chip[data-on="1"] { outline:2px solid #2563EB; }
-  .tls-block-row  { padding:10px 6px; border-top:1px solid #F1F2F4; }
-  .tls-block-row:first-of-type { border-top:none; }
+/* ======================= Langues & textes ======================= */
 
-  /* Video 16:9 responsive container */
-  .tls-video-wrap { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #0b1f3a; }
-  .tls-video-16x9 { position: relative; width: 100%; padding-top: 56.25%; }
-  .tls-video-16x9 iframe, .tls-video-16x9 .tls-video-placeholder {
-    position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
-  }
-  .tls-video-placeholder {
-    display:flex; align-items:center; justify-content:center; color:#fff;
-    font-weight:600; letter-spacing:.3px;
-    background: radial-gradient(ellipse at 50% 50%, rgba(255,204,0,.25), rgba(11,31,58,.95));
-  }
-`;
-function InjectCssOnce() {
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    if (document.getElementById("tls-layout-css")) return;
-    const t = document.createElement("style");
-    t.id = "tls-layout-css";
-    t.appendChild(document.createTextNode(LAYOUT_CSS));
-    document.head.appendChild(t);
-  }, []);
-  return null;
-}
+const LANG_OPTIONS = [
+  { value: "en", label: "English" },
+  { value: "fr", label: "Français" },
+  { value: "es", label: "Español" },
+  { value: "it", label: "Italiano" },
+  { value: "de", label: "Deutsch" },
+  { value: "ar", label: "العربية" },
+];
 
-/* ===== Tawk.to loader (mount/unmount safe) ===== */
-function TawkTo({ propertyId, widgetId }) {
-  useEffect(() => {
-    // avoid duplicate injection on HMR
-    const selector = `script[src*="embed.tawk.to/${propertyId}/${widgetId}"]`;
-    if (document.querySelector(selector)) return;
-
-    const s1 = document.createElement("script");
-    const s0 = document.getElementsByTagName("script")[0];
-    s1.async = true;
-    s1.src = `https://embed.tawk.to/${propertyId}/${widgetId}`;
-    s1.charset = "UTF-8";
-    s1.setAttribute("crossorigin", "*");
-    s0.parentNode.insertBefore(s1, s0);
-
-    return () => {
-      const node = document.querySelector(selector);
-      if (node) node.remove();
-      try { delete window.Tawk_API; } catch {}
-    };
-  }, [propertyId, widgetId]);
-  return null;
-}
-
-/* ===== VIDEO URLS (put your YouTube links later) =====
-   – Leave empty string "" to show the placeholder preview box.
-   – Example: "https://www.youtube.com/embed/VIDEO_ID"
-*/
-const VIDEO_URLS = {
-  home: "",     // add your URL later
-  product: "",  // add your URL later
-  cart: "",     // add your URL later
-};
-
-/* ===== PAGE TEXTS (definition + how-to) ===== */
-const PAGE_TEXTS = {
-  home: {
-    title: "Welcome to Selya — Homepage Builder",
-    intro:
-      "Selya lets you build a complete theme experience using app-powered sections. Use the quick actions below to add sections directly into your theme editor.",
-    howto: [
-      "Click “Add to theme” on any section to deep-link into Shopify’s Theme Editor.",
-      "In the Theme Editor, adjust the section’s settings (text, images, colors, layout).",
-      "Reorder sections as you like, then save your changes.",
+const COPY = {
+  en: {
+    langLabel: "Language",
+    guideTitle: "How to use Luxe Sections & Blocks",
+    guideIntro:
+      "Use this quick guide to add each block from the app into your Shopify theme.",
+    guideSteps: [
+      "Open your Theme Editor and choose the page where you want to add sections.",
+      "Click “Add section” or “Add block” in the Apps area on the left.",
+      "From this app page, click “Add to theme” on the block you want to install.",
+      "Back in the Theme Editor, customise text, colours and images for your store.",
     ],
+    blocksIntroTitle: "Blocks & sections",
+    blocksIntroText:
+      'Each card below is a block. Click “Add to theme”, then use “See how to install” to open the matching video tutorial.',
+    addToTheme: "Add to theme",
+    openEditor: "Open editor",
+    seeHowToInstall: "See how to install",
+    sideNotesTitle: "Quick notes",
+    premium: "Premium",
+    unlockFor: (price) => `Unlock for $${price}`,
+    unlocked: "Unlocked",
   },
-  product: {
-    title: "Product Page — Information & Conversion",
-    intro:
-      "Enhance your product detail page with rich information blocks, recommendations, imagery and sticky CTAs. Add the sections below and customize them.",
-    howto: [
-      "Choose a block and click “Add to theme” to open the Product template.",
-      "Configure gallery, variants, pricing, and upsell options as needed.",
-      "Preview on a real product and save.",
+  fr: {
+    langLabel: "Langue",
+    guideTitle: "Comment utiliser Luxe Sections & Blocks",
+    guideIntro:
+      "Suis ce guide rapide pour ajouter chaque bloc de l’app dans ton thème Shopify.",
+    guideSteps: [
+      "Ouvre l’éditeur de thème et choisis la page où tu veux ajouter les sections.",
+      "Clique sur « Ajouter une section » ou « Ajouter un bloc » dans la zone Applications à gauche.",
+      "Depuis cette page, clique sur « Add to theme » sur le bloc que tu veux installer.",
+      "Retourne dans l’éditeur de thème pour personnaliser le texte, les couleurs et les images.",
     ],
+    blocksIntroTitle: "Blocs & sections",
+    blocksIntroText:
+      "Chaque carte ci-dessous est un bloc. Clique sur « Add to theme », puis « Voir comment installer » pour ouvrir la vidéo tutorielle.",
+    addToTheme: "Add to theme",
+    openEditor: "Open editor",
+    seeHowToInstall: "Voir comment installer",
+    sideNotesTitle: "Notes rapides",
+    premium: "Premium",
+    unlockFor: (price) => `Débloquer pour $${price}`,
+    unlocked: "Débloqué",
   },
-  cart: {
-    title: "Cart Page — Upsell & Trust",
-    intro:
-      "Improve the cart experience with clean line items, clear totals, trust badges and smart recommendations. Add the sections below in one click.",
-    howto: [
-      "Click “Add to theme” on the blocks you need for the Cart template.",
-      "Tune visibility, messaging and upsell logic in settings.",
-      "Test flows to checkout and save.",
+  es: {
+    langLabel: "Idioma",
+    guideTitle: "Cómo usar Luxe Sections & Blocks",
+    guideIntro:
+      "Usa esta guía rápida para añadir los bloques de la app a tu tema de Shopify.",
+    guideSteps: [
+      "Abre el editor de temas y elige la página donde quieres añadir secciones.",
+      "Haz clic en «Agregar sección» o «Agregar bloque» en el área de aplicaciones.",
+      "Desde esta página, haz clic en «Add to theme» en el bloque que quieres instalar.",
+      "En el editor de temas, personaliza textos, colores e imágenes.",
     ],
+    blocksIntroTitle: "Bloques & secciones",
+    blocksIntroText:
+      "Cada tarjeta es un bloque. Haz clic en «Add to theme» y luego en «See how to install» para ver el vídeo explicativo.",
+    addToTheme: "Add to theme",
+    openEditor: "Open editor",
+    seeHowToInstall: "Ver cómo instalar",
+    sideNotesTitle: "Notas rápidas",
+    premium: "Premium",
+    unlockFor: (price) => `Desbloquear por $${price}`,
+    unlocked: "Desbloqueado",
   },
-};
-
-/* ===== META (labels & Polaris icons) ===== */
-const META = {
-  // HOME (index)
-  header: {
-    title: "Header",
-    icon: ThemeEditIcon,
-    desc: "Brand logo, navigation, utilities.",
+  it: {
+    langLabel: "Lingua",
+    guideTitle: "Come usare Luxe Sections & Blocks",
+    guideIntro:
+      "Segui questa guida rapida per aggiungere i blocchi dell’app al tuo tema Shopify.",
+    guideSteps: [
+      "Apri il Theme Editor e scegli la pagina dove vuoi aggiungere le sezioni.",
+      "Clicca «Aggiungi sezione» o «Aggiungi blocco» nell’area App.",
+      "Da questa pagina, clicca «Add to theme» sul blocco che vuoi installare.",
+      "Nel Theme Editor personalizza testi, colori e immagini.",
+    ],
+    blocksIntroTitle: "Blocchi & sezioni",
+    blocksIntroText:
+      "Ogni card è un blocco. Clicca «Add to theme» e poi «See how to install» per aprire il video tutorial.",
+    addToTheme: "Add to theme",
+    openEditor: "Open editor",
+    seeHowToInstall: "Vedi come installare",
+    sideNotesTitle: "Note rapide",
+    premium: "Premium",
+    unlockFor: (price) => `Sblocca per $${price}`,
+    unlocked: "Sbloccato",
   },
-  "image-banner": {
-    title: "Image Banner",
-    icon: ImageIcon,
-    desc: "Hero banner with image and CTA.",
+  de: {
+    langLabel: "Sprache",
+    guideTitle: "So benutzt du Luxe Sections & Blocks",
+    guideIntro:
+      "Nutze diese kurze Anleitung, um die App-Blöcke in dein Shopify-Theme einzufügen.",
+    guideSteps: [
+      "Öffne den Theme-Editor und wähle die Seite, auf der du Sektionen hinzufügen möchtest.",
+      "Klicke auf „Abschnitt hinzufügen“ oder „Block hinzufügen“ im Apps-Bereich.",
+      "Klicke auf dieser Seite bei dem gewünschten Block auf „Add to theme“.",
+      "Passe anschließend im Theme-Editor Texte, Farben und Bilder an.",
+    ],
+    blocksIntroTitle: "Blöcke & Sektionen",
+    blocksIntroText:
+      "Jede Karte ist ein Block. Klicke „Add to theme“ und dann „See how to install“, um das Video-Tutorial zu öffnen.",
+    addToTheme: "Add to theme",
+    openEditor: "Open editor",
+    seeHowToInstall: "Installationsvideo ansehen",
+    sideNotesTitle: "Schnelle Hinweise",
+    premium: "Premium",
+    unlockFor: (price) => `Freischalten für $${price}`,
+    unlocked: "Freigeschaltet",
   },
-  "image-scroller": {
-    title: "Image Scroller",
-    icon: ImageIcon,
-    desc: "Continuous horizontal image strip.",
-  },
-  "video-carousel-trio": {
-    title: "Video Carousel (Trio)",
-    icon: ImageIcon,
-    desc: "Three inline video carousels.",
-  },
-  "marquee-text": {
-    title: "Marquee Text",
-    icon: AppsIcon,
-    desc: "Scrolling promotional text.",
-  },
-  "social-icons": {
-    title: "Social Icons",
-    icon: AppsIcon,
-    desc: "Instagram, Facebook, WhatsApp, YouTube, TikTok.",
-  },
-  "product-description": {
-    title: "Product Description",
-    icon: StarIcon,
-    desc: "Rich product or brand description block.",
-  },
-  "product-grid": {
-    title: "Product Grid",
-    icon: AppsIcon,
-    desc: "Responsive product cards with price and ATC.",
-  },
-  footer: {
-    title: "Footer",
-    icon: ViewIcon,
-    desc: "About / Links / Contact + social.",
-  },
-
-  // PRODUCT (product)
-  "product-header": {
-    title: "Header",
-    icon: ThemeEditIcon,
-    desc: "Brand header for product page.",
-  },
-  "product-info-section": {
-    title: "Product Info",
-    icon: ThemeEditIcon,
-    desc: "Gallery, title, price, variants, ATC.",
-  },
-  "product-recommended": {
-    title: "Recommended Products",
-    icon: StarIcon,
-    desc: "You may also like…",
-  },
-  "image-details-section": {
-    title: "Image Details",
-    icon: ImageIcon,
-    desc: "Detailed imagery or feature highlights.",
-  },
-  "product-footer": {
-    title: "Footer",
-    icon: ViewIcon,
-    desc: "Footer for product page.",
-  },
-
-  // CART (cart)
-  "cart-header": {
-    title: "Header",
-    icon: ThemeEditIcon,
-    desc: "Brand header for cart page.",
-  },
-  "cart-info": {
-    title: "Cart Info",
-    icon: AppsIcon,
-    desc: "Line items, quantities, remove actions.",
-  },
-  "cart-recommended": {
-    title: "Recommended Products",
-    icon: StarIcon,
-    desc: "Cross-sell based on cart.",
-  },
-  "cart-footer": {
-    title: "Footer",
-    icon: ViewIcon,
-    desc: "Footer for cart page.",
+  ar: {
+    langLabel: "اللغة",
+    guideTitle: "طريقة استخدام Luxe Sections & Blocks",
+    guideIntro:
+      "استعمل هذا الدليل السريع لإضافة البلوكات من التطبيق إلى قالب Shopify.",
+    guideSteps: [
+      "افتح محرر القالب واختر الصفحة التي تريد إضافة السكشن فيها.",
+      "اضغط «Add section» أو «Add block» داخل قسم التطبيقات.",
+      "من هذه الصفحة، اضغط «Add to theme» على البلوك الذي تريد تثبيته.",
+      "بعدها عدّل النصوص والألوان والصور من داخل محرر القالب.",
+    ],
+    blocksIntroTitle: "البلوكات و السكشن",
+    blocksIntroText:
+      "كل كارت هنا هو بلوك. اضغط «Add to theme» ثم «See how to install» لمشاهدة فيديو الشرح.",
+    addToTheme: "Add to theme",
+    openEditor: "Open editor",
+    seeHowToInstall: "طريقة التثبيت",
+    sideNotesTitle: "ملاحظات سريعة",
+    premium: "بريميوم",
+    unlockFor: (price) => `فتح مقابل $${price}`,
+    unlocked: "مفتوح",
   },
 };
 
-/* ===== PAGES (sections by template) ===== */
-const PAGES = [
-  // HOME
+/* ======================= Blocks ======================= */
+
+const BLOCKS = [
   {
-    key: "home",
-    emoji: "🏠",
-    label: "Home",
+    handle: "header-informatique",
+    title: "Header — Tech",
+    group: "Tech",
+    description: "Logo, search, utilities, quick links.",
     template: "index",
-    desc: "Build your homepage with ready-to-use sections.",
-    blocks: [
-      { handle: "header" },
-      { handle: "image-banner" },
-      { handle: "image-scroller" },
-      { handle: "video-carousel-trio" },
-      { handle: "marquee-text" },
-      { handle: "social-icons" },
-      { handle: "product-description" },
-      { handle: "product-grid" },
-      { handle: "footer" },
-    ],
+    icon: PI.ThemeEditIcon,
+    videoUrl: "#",
   },
-
-  // PRODUCT
   {
-    key: "product",
-    emoji: "📦",
-    label: "Product",
-    template: "product",
-    desc: "Optimize PDP with info, recommendations, and rich imagery.",
-    blocks: [
-      { handle: "product-header" },
-      { handle: "product-info-section" },
-      { handle: "product-recommended" },
-      { handle: "image-details-section" },
-      { handle: "product-footer" },
-    ],
+    handle: "banner-kenburns",
+    title: "Ken Burns Banner",
+    group: "Tech",
+    description: "3 slides, fade + smooth zoom/pan.",
+    template: "index",
+    icon: PI.ImageIcon,
+    videoUrl: "#",
   },
-
-  // CART
   {
-    key: "cart",
-    emoji: "🛒",
-    label: "Cart",
-    template: "cart",
-    desc: "Enhance the cart experience and drive checkout.",
-    blocks: [
-      { handle: "cart-header" },
-      { handle: "cart-info" },
-      { handle: "cart-recommended" },
-      { handle: "cart-footer" },
-    ],
+    handle: "carousel-cercle",
+    title: "Circle Carousel",
+    group: "Tech",
+    description: "Circular image scrolling.",
+    template: "index",
+    icon: PI.AppsIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "product-grid-glow",
+    title: "Product Grid (Glow)",
+    group: "Tech",
+    description: "Showcase products with glow style.",
+    template: "index",
+    icon: PI.AppsIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "packs-descriptifs",
+    title: "Descriptive Packs",
+    group: "Tech",
+    description: "Product cards + lists & badges.",
+    template: "index",
+    icon: PI.StarIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "social-icons",
+    title: "Social Icons",
+    group: "Tech",
+    description: "Stylish social links, variants.",
+    template: "index",
+    icon: PI.AppsIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "footer-liens",
+    title: "Footer — Links",
+    group: "Shared",
+    description: "2–4 link columns.",
+    template: "index",
+    icon: PI.ViewIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "t2-header-fashion",
+    title: "Header — Fashion",
+    group: "Fashion",
+    description: "Fashion header, clean and airy.",
+    template: "index",
+    icon: PI.ThemeEditIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "t2-hero-runway",
+    title: "Hero — Runway",
+    group: "Fashion",
+    description: "Runway hero with collection CTA.",
+    template: "index",
+    icon: PI.ImageIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "t2-categories-pills",
+    title: "Categories (pills)",
+    group: "Fashion",
+    description: "Filters/tabs styled as pills.",
+    template: "index",
+    icon: PI.AppsIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "t2-products-grid",
+    title: "Product Grid (Fashion)",
+    group: "Fashion",
+    description: "Responsive grid adapted for fashion.",
+    template: "index",
+    icon: PI.AppsIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "t2-social-proof",
+    title: "Social Proof",
+    group: "Fashion",
+    description: "Testimonials / customer reviews.",
+    template: "index",
+    icon: PI.StarIcon,
+    videoUrl: "#",
+  },
+  {
+    handle: "tls3-hero-brand-video-pro",
+    title: "Hero Video — Brand Pro",
+    group: "Pro",
+    description: "Large hero video or key visual.",
+    template: "index",
+    icon: PI.ImageIcon,
+    videoUrl: "#",
+    premiumKey: "premium_hero_brand_video_pro",
+    price: 1,
+  },
+  {
+    handle: "tls3-founders-story-pro",
+    title: "Founders’ Story",
+    group: "Pro",
+    description: "Founders’ story + photo layout.",
+    template: "index",
+    icon: PI.StarIcon,
+    videoUrl: "#",
+    premiumKey: "premium_founders_story_pro",
+    price: 1,
   },
 ];
 
-/* ===== UI bits ===== */
-function DefinitionBanner({ pageKey }) {
-  const c = PAGE_TEXTS[pageKey];
-  if (!c) return null;
-  return (
-    <Banner title={c.title} tone="info">
-      <p style={{ marginTop: 6 }}>{c.intro}</p>
-      <div style={{ marginTop: 10 }}>
-        <strong>How to add sections</strong>
-        <ol style={{ marginTop: 6, paddingLeft: 18 }}>
-          {c.howto.map((line, i) => (
-            <li key={i} style={{ margin: "4px 0" }}>{line}</li>
-          ))}
-        </ol>
-      </div>
-    </Banner>
-  );
-}
+/* ======================= NAV gauche ======================= */
 
-function VideoPanel({ url }) {
+const NAV_ITEMS = [
+  {
+    id: "guide",
+    label: "Guide",
+    desc: "Steps to add and configure the blocks.",
+    icon: PI.AppsIcon,
+  },
+  {
+    id: "blocks",
+    label: "Blocks library",
+    desc: "All sections included in Luxe Sections & Blocks.",
+    icon: PI.ThemeEditIcon,
+  },
+  {
+    id: "theme",
+    label: "Theme editor",
+    desc: "Open your Shopify Theme Editor.",
+    icon: PI.ViewIcon,
+  },
+  {
+    id: "support",
+    label: "Support",
+    desc: "YouTube tutorials & Tawk.to chat.",
+    icon: PI.ChatIcon || PI.AppsIcon,
+  },
+];
+
+/* ======================= Carte bloc ======================= */
+
+function BlockCard({ block, shopSub, apiKey, t, unlockedFeatures }) {
+  const IconSrc = block.icon || PI.AppsIcon;
+  const addUrl = makeAddBlockLink({
+    shopSub,
+    apiKey,
+    template: block.template,
+    handle: block.handle,
+  });
+  const editorUrl = editorBase({ shopSub });
+
+  const isPremium = !!block.premiumKey;
+  const isUnlocked =
+    !isPremium ||
+    (Array.isArray(unlockedFeatures) &&
+      unlockedFeatures.includes(block.premiumKey));
+
   return (
     <Card>
       <Box padding="300">
-        <Text as="h3" variant="headingSm">Video walkthrough</Text>
-        <Box paddingBlockStart="200">
-          <div className="tls-video-wrap">
-            <div className="tls-video-16x9">
-              {url ? (
-                <iframe
-                  src={url}
-                  title="Selya walkthrough"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="tls-video-placeholder">
-                  Add your YouTube embed URL in VIDEO_URLS to show the video
-                </div>
-              )}
-            </div>
+        <BlockStack gap="300">
+          <div className="tls-block-header-pill">
+            <Icon source={IconSrc} />
+            <Text as="h3" variant="headingSm">
+              {block.title}
+            </Text>
+            <span className="tls-block-group-tag">{block.group}</span>
+            {isPremium && (
+              <Badge tone={isUnlocked ? "success" : "attention"}>
+                {isUnlocked
+                  ? t.unlocked
+                  : t.premium}
+              </Badge>
+            )}
           </div>
-        </Box>
+
+          {block.description ? (
+            <Text as="p" tone="subdued">
+              {block.description}
+            </Text>
+          ) : null}
+
+          <InlineStack gap="200" wrap>
+            <Button
+              url={addUrl}
+              target="_top"
+              variant="primary"
+              disabled={!isUnlocked}
+            >
+              {t.addToTheme}
+            </Button>
+
+            {isPremium && !isUnlocked && (
+              <Button
+                url={`/api/billing/request?feature=${block.premiumKey}`}
+                target="_top"
+                variant="secondary"
+                tone="success"
+              >
+                {t.unlockFor(block.price ?? 1)}
+              </Button>
+            )}
+
+            <Button url={editorUrl} target="_blank" external>
+              {t.openEditor}
+            </Button>
+
+            <Button
+              url={block.videoUrl || "#"}
+              target="_blank"
+              external
+              icon={PI.VideoIcon || PI.PlayIcon}
+            >
+              {t.seeHowToInstall}
+            </Button>
+          </InlineStack>
+        </BlockStack>
       </Box>
     </Card>
   );
 }
 
-/* ===== Block Row (single actionable line) ===== */
-function BlockRow({ shopSub, apiKey, block, template }) {
-  const meta = META[block.handle] || {};
-  const IconSrc = meta.icon || AppsIcon;
+/* ======================= Composant principal ======================= */
 
+const YOUTUBE_URL = "https://www.youtube.com"; // remplace par ta vraie chaîne
+
+function TawkScript() {
   return (
-    <div className="tls-block-row">
-      <Box paddingBlock="200" paddingInline="100">
-        <InlineStack align="space-between" blockAlign="center" gap="400" wrap={false}>
-          <InlineStack gap="300" blockAlign="center">
-            <Icon source={IconSrc} />
-            <Box>
-              <Text as="h3" variant="headingSm">
-                {meta.title || block.handle}
-              </Text>
-              {meta.desc ? (
-                <Text as="p" tone="subdued">
-                  {meta.desc}
-                </Text>
-              ) : null}
-            </Box>
-          </InlineStack>
-
-          <InlineStack gap="200">
-            <Button
-              url={linkAddBlock({
-                shopSub,
-                template,
-                apiKey,
-                handle: block.handle,
-              })}
-              target="_top"
-              variant="primary"
-              icon={ThemeEditIcon}
-            >
-              Add to theme
-            </Button>
-            <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
-              Open editor
-            </Button>
-          </InlineStack>
-        </InlineStack>
-      </Box>
-    </div>
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+  var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+  s1.async=true;
+  s1.src='https://embed.tawk.to/68fd2c098f570d1956b50811/1j8ef81r3';
+  s1.charset='UTF-8';
+  s1.setAttribute('crossorigin','*');
+  s0.parentNode.insertBefore(s1,s0);
+})();
+      `,
+      }}
+    />
   );
 }
 
-/* ===== Template view (list blocks + definition + video) ===== */
-function TemplateBlocksView({ page, shopSub, apiKey }) {
-  return (
-    <BlockStack gap="400">
-      {/* Definition / How-to */}
-      <DefinitionBanner pageKey={page.key} />
-
-      {/* Sections list */}
-      <Card>
-        <Box padding="300" borderRadius="300" background="bg-surface-secondary">
-          <InlineStack gap="200" blockAlign="center">
-            <Icon source={ThemeEditIcon} />
-            <Text as="h2" variant="headingSm">
-              {page.label} — sections ({page.blocks.length})
-            </Text>
-          </InlineStack>
-        </Box>
-
-        <BlockStack gap="0">
-          {page.blocks.map((blk) => (
-            <BlockRow
-              key={`${page.key}:${blk.handle}`}
-              shopSub={shopSub}
-              apiKey={apiKey}
-              block={blk}
-              template={page.template}
-            />
-          ))}
-        </BlockStack>
-      </Card>
-
-      {/* Video walkthrough (16:9, large) */}
-      <VideoPanel
-        url={
-          page.key === "home"
-            ? VIDEO_URLS.home
-            : page.key === "product"
-            ? VIDEO_URLS.product
-            : VIDEO_URLS.cart
-        }
-      />
-    </BlockStack>
-  );
-}
-
-/* ===== Main page ===== */
-export default function SelyaBuilderIndex() {
+export default function TLSAdminIndex() {
   const { shopSub, apiKey } = useParentData();
-  const [pageKey, setPageKey] = useState(PAGES[0].key);
+  const { features } = useLoaderData();
+  const [lang, setLang] = useState("fr");
+  const [navSel, setNavSel] = useState("blocks");
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("tls_selected_page");
-      if (saved && PAGES.some((p) => p.key === saved)) setPageKey(saved);
-    } catch {}
-  }, []);
-  useEffect(() => {
-    try {
-      localStorage.setItem("tls_selected_page", pageKey);
-    } catch {}
-  }, [pageKey]);
+  const t = useMemo(() => COPY[lang] || COPY.en, [lang]);
 
-  const page = useMemo(
-    () => PAGES.find((p) => p.key === pageKey) || PAGES[0],
-    [pageKey]
-  );
+  const scrollToAnchor = (id) => {
+    if (typeof document === "undefined") return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleNavClick = (item) => {
+    setNavSel(item.id);
+    if (item.id === "guide") scrollToAnchor("tls-guide");
+    if (item.id === "blocks") scrollToAnchor("tls-blocks");
+    if (item.id === "theme") window.open(editorBase({ shopSub }), "_blank");
+    if (item.id === "support") {
+      try {
+        if (window.Tawk_API && typeof window.Tawk_API.maximize === "function") {
+          window.Tawk_API.maximize();
+          return;
+        }
+      } catch {}
+      window.open(YOUTUBE_URL, "_blank");
+    }
+  };
 
   return (
-    <Page
-      title="Selya — Theme Sections"
-      subtitle="Pick a page • Add sections in one click"
-      secondaryActions={[
-        {
-          content: "Theme editor",
-          url: editorBase({ shopSub }),
-          target: "_blank",
-          external: true,
-        },
-      ]}
-    >
+    <>
       <InjectCssOnce />
 
-      <BlockStack gap="400">
-        {/* Page selector (Home / Product / Cart) */}
-        <Card>
-          <Box padding="300">
-            <InlineStack gap="200" wrap>
-              {PAGES.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  className="tls-page-chip"
-                  data-on={pageKey === p.key ? 1 : 0}
-                  onClick={() => setPageKey(p.key)}
-                  title={p.desc}
-                >
-                  <span style={{ fontSize: 16, marginRight: 6 }}>{p.emoji}</span>
-                  <span style={{ fontWeight: 700 }}>{p.label}</span>
-                  <span style={{ marginLeft: 8 }}>
-                    <Badge>{p.blocks.length}</Badge>
-                  </span>
-                </button>
-              ))}
-            </InlineStack>
+      <Page
+        fullWidth
+        title="Luxe Sections & Blocks"
+        subtitle="Blocks & guide in one interface"
+      >
+        <div className="tls-shell">
+          <div className="tls-editor">
+            {/* Rail gauche */}
+            <div className="tls-rail">
+              <div className="tls-rail-card">
+                <div className="tls-rail-head">Navigation</div>
+                <div className="tls-rail-list">
+                  {NAV_ITEMS.map((item) => (
+                    <div
+                      key={item.id}
+                      className="tls-rail-item"
+                      data-sel={navSel === item.id ? 1 : 0}
+                      onClick={() => handleNavClick(item)}
+                    >
+                      <div>
+                        <Icon source={item.icon || PI.AppsIcon} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>
+                          {item.label}
+                        </div>
+                        <div className="tls-rail-mini">{item.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-            <Box paddingBlockStart="200">
-              <Text as="p" tone="subdued">
-                {page.desc}
-              </Text>
-            </Box>
-          </Box>
-        </Card>
+            {/* Colonne centrale */}
+            <div className="tls-main-col">
+              {/* GUIDE */}
+              <div id="tls-guide">
+                <Card>
+                  <Box padding="300">
+                    <BlockStack gap="200">
+                      <div className="tls-guide-title">{t.guideTitle}</div>
+                      <Text as="p" tone="subdued">
+                        {t.guideIntro}
+                      </Text>
 
-        {/* Page content (definition + sections + video) */}
-        <TemplateBlocksView page={page} shopSub={shopSub} apiKey={apiKey} />
+                      <BlockStack gap="150">
+                        {t.guideSteps.map((step, idx) => (
+                          <div key={idx} className="tls-step-card">
+                            <InlineStack gap="200" blockAlign="center">
+                              <div
+                                style={{
+                                  width: 26,
+                                  height: 26,
+                                  borderRadius: 8,
+                                  background: "#000",
+                                  color: "#fff",
+                                  display: "grid",
+                                  placeItems: "center",
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                }}
+                              >
+                                {idx + 1}
+                              </div>
+                              <Text as="p">{step}</Text>
+                            </InlineStack>
+                          </div>
+                        ))}
+                      </BlockStack>
+                    </BlockStack>
+                  </Box>
+                </Card>
+              </div>
 
-        {/* Quick links (optional) */}
-        <Card>
-          <Box padding="300">
-            <Text as="h3" variant="headingSm">
-              Quick links
-            </Text>
-            <BlockStack gap="200">
-              <Button url={editorBase({ shopSub })} target="_blank" external icon={ViewIcon}>
-                Open Theme Editor
-              </Button>
-            </BlockStack>
-          </Box>
-        </Card>
-      </BlockStack>
+              {/* INTRO + LANG + NB BLOCS */}
+              <div id="tls-blocks">
+                <Card>
+                  <Box padding="300">
+                    <div className="tls-blocks-card-header">
+                      <InlineStack gap="200" blockAlign="center">
+                        <Icon source={PI.ThemeEditIcon} />
+                        <Text as="h2" variant="headingSm">
+                          {t.blocksIntroTitle}
+                        </Text>
+                        <Badge tone="success">{BLOCKS.length} blocks</Badge>
+                      </InlineStack>
 
+                      <InlineStack gap="100" blockAlign="center">
+                        <Text as="span" tone="subdued">
+                          {t.langLabel}:
+                        </Text>
+                        <Select
+                          options={LANG_OPTIONS}
+                          value={lang}
+                          onChange={setLang}
+                        />
+                      </InlineStack>
+                    </div>
 
-      {/* Tawk.to chat widget */}
-      <TawkTo propertyId="68d9b9b47e832f194e5d7159" widgetId="1j697qqqh" />
-    </Page>
+                    <Text as="p" tone="subdued">
+                      {t.blocksIntroText}
+                    </Text>
+                  </Box>
+                </Card>
+              </div>
+
+              {/* GRILLE DES BLOCS */}
+              <div className="tls-blocks-grid">
+                {BLOCKS.map((block) => (
+                  <BlockCard
+                    key={block.handle}
+                    block={block}
+                    shopSub={shopSub}
+                    apiKey={apiKey}
+                    t={t}
+                    unlockedFeatures={features}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Colonne droite */}
+            <div className="tls-side-col">
+              <Card>
+                <Box padding="300">
+                  <BlockStack gap="200">
+                    <InlineStack gap="200" blockAlign="center">
+                      <Icon source={PI.StarIcon} />
+                      <Text as="h3" variant="headingSm">
+                        {t.sideNotesTitle}
+                      </Text>
+                    </InlineStack>
+                    <div className="tls-note-list">
+                      <Text as="p">
+                        • Commence par installer les headers et le hero sur ta
+                        page principale.
+                      </Text>
+                      <Text as="p">
+                        • Utilise les carrousels et grids produits sur les
+                        landing pages ou collections.
+                      </Text>
+                      <Text as="p">
+                        • Garde le même style (couleurs, typo) que ton thème
+                        principal pour un rendu pro.
+                      </Text>
+                      <Text as="p">
+                        • Si tu bloques, ouvre le chat Tawk.to ou la vidéo
+                        YouTube pour voir un exemple réel.
+                      </Text>
+                    </div>
+                  </BlockStack>
+                </Box>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        <button
+          className="tls-youtube-btn"
+          type="button"
+          onClick={() => window.open(YOUTUBE_URL, "_blank")}
+        >
+          YouTube
+        </button>
+      </Page>
+
+      <TawkScript />
+    </>
   );
 }
